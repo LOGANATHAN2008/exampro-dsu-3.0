@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+
+    <!-- PRIMARY SEO METADATA -->
+    <title>Exam Results &amp; Internal Marks | ExamPro DSU - Student Portal</title>
+    <meta name="description" content="View your semester exam results and internal marks on ExamPro DSU. Access subject-wise scores, grade reports, and academic performance analytics through the student portal.">
+    <meta name="keywords" content="ExamPro DSU Results, Exam Results, Internal Marks, Student Results, Semester Results, DSU Results, Academic Results, Grade Report, Mark Sheet">
+    <meta name="author" content="ExamPro DSU Team">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="language" content="English">
+
+    <!-- CANONICAL & HREFLANG -->
+    <link rel="canonical" href="https://dsu.loganathanm.in/result.html">
+    <link rel="alternate" hreflang="en" href="https://dsu.loganathanm.in/result.html">
+    <link rel="alternate" hreflang="x-default" href="https://dsu.loganathanm.in/result.html">
+
+    <!-- OPEN GRAPH -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="ExamPro DSU">
+    <meta property="og:title" content="Exam Results &amp; Internal Marks | ExamPro DSU - Student Portal">
+    <meta property="og:description" content="View your semester exam results and internal marks on ExamPro DSU. Access subject-wise scores, grade reports, and academic performance analytics.">
+    <meta property="og:url" content="https://dsu.loganathanm.in/result.html">
+    <meta property="og:image" content="https://dsu.loganathanm.in/dsu_logo.png">
+    <meta property="og:locale" content="en_US">
+
+    <!-- TWITTER CARD -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Exam Results &amp; Internal Marks | ExamPro DSU - Student Portal">
+    <meta name="twitter:description" content="View your semester exam results and internal marks on ExamPro DSU.">
+    <meta name="twitter:image" content="https://dsu.loganathanm.in/dsu_logo.png">
+
+    <!-- THEME & FAVICON -->
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="ExamPro DSU">
+    <meta name="application-name" content="ExamPro DSU">
+    <link rel="icon" type="image/png" href="dsu_logo.png">
+    <link rel="apple-touch-icon" href="dsu_logo.png">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- PERFORMANCE -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="//www.gstatic.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="image" href="dsu_logo.png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --primary: #6c63ff;
+            --primary-dark: #4f46e5;
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #000000;
+            --glass: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --radius: 16px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .bg-glow {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background: radial-gradient(ellipse at top, rgba(108, 99, 255, .15) 0%, transparent 60%), radial-gradient(ellipse at bottom right, rgba(6, 182, 212, .1) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .back-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all .25s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, .1);
+            color: var(--text);
+        }
+
+        /* Result hero card */
+        .result-hero {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 36px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(108, 99, 255, .1), rgba(6, 182, 212, .05));
+        }
+
+        .score-ring {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin-bottom: 24px;
+        }
+
+        .score-ring canvas {
+            position: relative;
+            z-index: 1;
+        }
+
+        .score-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .score-pct {
+            font-size: 38px;
+            font-weight: 900;
+        }
+
+        .score-label {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .result-title {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .result-subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .result-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 24px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .badge-pass {
+            background: rgba(16, 185, 129, .2);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, .4);
+        }
+
+        .badge-fail {
+            background: rgba(239, 68, 68, .2);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, .4);
+        }
+
+        /* Stats row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-box {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-box .val {
+            font-size: 28px;
+            font-weight: 900;
+        }
+
+        .stat-box .lbl {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .val.correct {
+            color: var(--success);
+        }
+
+        .val.wrong {
+            color: var(--danger);
+        }
+
+        .val.skip {
+            color: var(--text-muted);
+        }
+
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .chart-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-title i {
+            color: var(--primary);
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 220px;
+        }
+
+        /* History Table */
+        .history-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+        }
+
+        td {
+            padding: 12px;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .grade-chip {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .grade-pass {
+            background: rgba(16, 185, 129, .15);
+            color: var(--success);
+        }
+
+        .grade-fail {
+            background: rgba(239, 68, 68, .15);
+            color: var(--danger);
+        }
+
+        /* Action buttons */
+        .action-btns {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            transition: all .3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(108, 99, 255, .4);
+        }
+
+        .btn-outline {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--text);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, .1);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 8px 20px rgba(16, 185, 129, .4);
+        }
+
+        /* Answer review */
+        .review-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .answer-item {
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 1px solid transparent;
+        }
+
+        .answer-item.correct {
+            background: rgba(16, 185, 129, .08);
+            border-color: rgba(16, 185, 129, .2);
+        }
+
+        .answer-item.wrong {
+            background: rgba(239, 68, 68, .08);
+            border-color: rgba(239, 68, 68, .2);
+        }
+
+        .answer-item.skip {
+            background: rgba(148, 163, 184, .08);
+            border-color: rgba(148, 163, 184, .2);
+        }
+
+        .answer-q {
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .answer-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 12px;
+        }
+
+        .yr {
+            color: var(--text-muted);
+        }
+
+        .ans-correct {
+            color: var(--success);
+        }
+
+        .ans-wrong {
+            color: var(--danger);
+        }
+
+        .spinner-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 15, 35, .95);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .spinner-big {
+            width: 52px;
+            height: 52px;
+            border: 4px solid rgba(108, 99, 255, .3);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 13px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        @media(max-width:640px) {
+            .stats-row {
+                grid-template-columns: 1fr
+            }
+
+            ;
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-hero {
+                padding: 24px 16px;
+            }
+
+            body {
+                padding: 12px;
+            }
+
+            .action-btns .btn {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
+<script>if(sessionStorage.getItem('appLoaded')) document.documentElement.classList.add('no-loader');</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+
+<body>
+    <div class="bg-glow"></div>
+
+        <!-- Mass Loader -->
+    <div class="spinner-overlay" id="loader" style="display: none !important;">
+        <div class="loader-mass">
+            <div class="loader-ring"></div>
+            <img src="dsu_logo.png" alt="DSU" class="loader-logo">
+        </div>
+        <p class="loader-text">Loading Results...</p>
+    </div>
+
+    <div class="container">
+        <div class="page-header">
+            <a class="back-btn" href="dashboard.html"><i class="fas fa-arrow-left"></i></a>
+            <div>
+                <div style="font-size:20px;font-weight:800">Test Results</div>
+                <div style="color:var(--text-muted);font-size:13px">Your performance summary</div>
+            </div>
+        </div>
+
+        <!-- Latest result from URL params -->
+        <div id="latestResultSection"></div>
+
+        <!-- Action Buttons -->
+        <div class="action-btns">
+            <button class="btn btn-primary" onclick="window.location.href='test.html'"><i class="fas fa-play"></i> Take Another Test</button>
+            <button class="btn btn-outline" onclick="window.location.href='dashboard.html'"><i class="fas fa-home"></i> Dashboard</button>
+            <button class="btn btn-primary" onclick="downloadReport()" style="background:var(--success);border-color:var(--success)"><i class="fas fa-file-pdf"></i> Download Report Card</button>
+        </div>
+
+        <!-- Answer Review -->
+        <div class="review-card" id="reviewSection" style="display:none">
+            <div class="section-title"><i class="fas fa-search"></i> Answer Review</div>
+            <div id="answerReview"></div>
+        </div>
+
+        <!-- All History -->
+        <div class="history-card">
+            <div class="section-title"><i class="fas fa-history"></i> All Test History</div>
+            <div id="historyTable" style="overflow-x:auto"></div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid" style="grid-template-columns: 1fr; max-width: 600px; margin: 0 auto;">
+            <div class="chart-card">
+                <div class="chart-title"><i class="fas fa-chart-pie"></i> Pass vs Fail</div>
+                <div class="chart-wrap"><canvas id="passFailChart"></canvas></div>
+            </div>
+        </div>
+
+        <footer>Developed by <a href="https://loganathanm.in" target="_blank">Loganathan</a></footer>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+       const firebaseConfig = {
+            apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
+            authDomain: "dsu-exam-system.firebaseapp.com",
+            projectId: "dsu-exam-system",
+            storageBucket: "dsu-exam-system.firebasestorage.app",
+            messagingSenderId: "155083834622",
+            appId: "1:155083834622:web:ff0a9780b88bad0b8811af",
+            measurementId: "G-1TPT1BR6GD"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = 'login.html'; return; }
+            window.currentUser = user;
+            await loadResults(user);
+        });
+
+        async function loadResults(user) {
+            // Check URL params for latest result
+            const params = new URLSearchParams(window.location.search);
+            const score = params.get('score');
+            const total = params.get('total');
+            const correct = parseInt(params.get('correct') || 0);
+            const wrong = parseInt(params.get('wrong') || 0);
+            const pct = parseInt(params.get('pct') || 0);
+            const testId = params.get('testId');
+
+            if (score !== null && total !== null) {
+                renderLatestResult(pct, correct, wrong, parseInt(score), parseInt(total));
+            }
+
+            // Load all results realtime
+            const q = query(collection(db, 'results'), where('studentId', '==', user.uid));
+            onSnapshot(q, (snap) => {
+                const results = snap.docs.map(d => d.data()).sort((a, b) => {
+                    const t1 = a.submittedAt?.seconds || 0;
+                    const t2 = b.submittedAt?.seconds || 0;
+                    return t2 - t1;
+                });
+                window.allResultsData = results;
+                renderHistory(results);
+                renderCharts(results);
+                document.getElementById('loader').style.display = 'none';
+            });
+        }
+
+        function renderLatestResult(pct, correct, wrong, score, total) {
+            const pass = pct >= 60;
+            const unanswered = total - correct - wrong;
+            document.getElementById('latestResultSection').innerHTML = `
+        <div class="result-hero">
+          <div class="score-ring">
+            <canvas id="scoreRingChart" width="160" height="160"></canvas>
+            <div class="score-center">
+              <div class="score-pct" style="color:${pass ? 'var(--success)' : 'var(--danger)'}">${pct}%</div>
+              <div class="score-label">Score</div>
+            </div>
+          </div>
+          <div class="result-title">Test Completed! 🎉</div>
+          <div class="result-subtitle">${score} out of ${total} marks</div>
+          <span class="result-badge ${pass ? 'badge-pass' : 'badge-fail'}">
+            <i class="fas ${pass ? 'fa-trophy' : 'fa-times-circle'}"></i> ${pass ? 'Passed' : 'Failed'}
+          </span>
+        </div>
+        <div class="stats-row">
+          <div class="stat-box"><div class="val correct">${correct}</div><div class="lbl">✅ Correct</div></div>
+          <div class="stat-box"><div class="val wrong">${wrong}</div><div class="lbl">❌ Wrong</div></div>
+          <div class="stat-box"><div class="val skip">${unanswered}</div><div class="lbl">⏭ Skipped</div></div>
+        </div>
+      `;
+
+            // Doughnut ring
+            setTimeout(() => {
+                const ctx = document.getElementById('scoreRingChart');
+                if (!ctx) return;
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [pct, 100 - pct],
+                            backgroundColor: [pass ? 'rgba(16,185,129,.9)' : 'rgba(239,68,68,.9)', 'rgba(255,255,255,.07)'],
+                            borderWidth: 0, borderRadius: 4
+                        }]
+                    },
+                    options: { responsive: false, cutout: '78%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+                });
+            }, 100);
+        }
+
+        function renderHistory(results) {
+            const container = document.getElementById('historyTable');
+            if (!results.length) {
+                container.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-muted)"><i class="fas fa-clipboard-list" style="font-size:36px;opacity:.3;display:block;margin-bottom:12px"></i>No test history yet.</div>`;
+                return;
+            }
+            container.innerHTML = `<div class="table-responsive"><table>
+        <thead><tr><th>#</th><th>Test</th><th>Score</th><th>Correct</th><th>Wrong</th><th>Grade</th><th>Date</th></tr></thead>
+        <tbody>
+          ${results.map((r, i) => {
+                const date = r.submittedAt ? new Date(r.submittedAt.seconds * 1000).toLocaleDateString('en-IN') : '-';
+                const pass = (r.percentage || 0) >= 60;
+                return `<tr>
+              <td>${i + 1}</td>
+              <td><b>${r.testTitle || r.testId}</b></td>
+              <td>${r.score}/${r.totalMarks} (${r.percentage}%)</td>
+              <td style="color:var(--success)">${r.correct}</td>
+              <td style="color:var(--danger)">${r.wrong}</td>
+              <td><span class="grade-chip ${pass ? 'grade-pass' : 'grade-fail'}">${pass ? 'Pass' : 'Fail'}</span></td>
+              <td style="color:var(--text-muted)">${date}</td>
+            </tr>`;
+            }).join('')}
+        </tbody>
+      </table></div>`;
+        }
+
+        function renderCharts(results) {
+            const pass = results.filter(r => (r.percentage || 0) >= 60).length;
+            const fail = results.length - pass;
+
+            // Pass/Fail
+            const pf = document.getElementById('passFailChart');
+            if (pf) {
+                new Chart(pf, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Passed', 'Failed'],
+                        datasets: [{
+                            data: [pass, fail],
+                            backgroundColor: ['rgba(16,185,129,.8)', 'rgba(239,68,68,.8)'],
+                            borderWidth: 0, borderRadius: 4
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } } }
+                });
+            }
+
+            // Score Trend
+            const tt = document.getElementById('trendChart');
+            if (tt && results.length) {
+                const sorted = [...results].reverse();
+                new Chart(tt, {
+                    type: 'line',
+                    data: {
+                        labels: sorted.map((r, i) => "Test " + (i + 1)),
+                        datasets: [{
+                            label: 'Score %',
+                            data: sorted.map(r => r.percentage || 0),
+                            borderColor: '#6c63ff',
+                            backgroundColor: 'rgba(108,99,255,.15)',
+                            borderWidth: 2, tension: 0.4, fill: true,
+                            pointBackgroundColor: '#6c63ff', pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,.05)' } },
+                            y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,.05)' }, min: 0, max: 100 }
+                        }
+                    }
+                });
+            }
+        }
+    </script>
+
+    <script>
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12') { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.key === 'U') { e.preventDefault(); return false; }
+        });
+        // Review logic omitted...
+        
+        window.downloadReport = async function() {
+            if(!window.allResultsData || window.allResultsData.length === 0) {
+                alert('No results available to generate report.');
+                return;
+            }
+            
+            const btn = document.querySelector('button[onclick="downloadReport()"]');
+            const ogHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            btn.disabled = true;
+            
+            try {
+                document.getElementById('rcName').textContent = window.currentUser?.displayName || window.currentUser?.email || 'Student';
+                document.getElementById('rcEmail').textContent = window.currentUser?.email || '-';
+                document.getElementById('rcDate').textContent = new Date().toLocaleDateString();
+                document.getElementById('rcTotalExams').textContent = window.allResultsData.length;
+                
+                const avg = Math.round(window.allResultsData.reduce((s, r) => s + (r.percentage || 0), 0) / window.allResultsData.length);
+                document.getElementById('rcAvgScore').textContent = avg;
+                
+                const tbody = document.getElementById('rcTableBody');
+                tbody.innerHTML = window.allResultsData.map(r => {
+                    const pass = (r.percentage || 0) >= 60;
+                    const date = r.submittedAt ? new Date(r.submittedAt.seconds * 1000).toLocaleDateString() : '-';
+                    return `
+                        <tr>
+                            <td style="border:1px solid #ddd; padding:10px;">${r.testTitle || r.testId}</td>
+                            <td style="border:1px solid #ddd; padding:10px; text-align:center;">${r.score}/${r.totalMarks}</td>
+                            <td style="border:1px solid #ddd; padding:10px; text-align:center;">${r.percentage}%</td>
+                            <td style="border:1px solid #ddd; padding:10px; text-align:center; color:${pass ? 'green' : 'red'}"><strong>${pass ? 'Pass' : 'Fail'}</strong></td>
+                            <td style="border:1px solid #ddd; padding:10px; text-align:center;">${date}</td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                const element = document.getElementById('reportCardTemplate');
+                element.style.display = 'block';
+                
+                const opt = {
+                    margin: 10,
+                    filename: 'ExamPro_Semester_Report.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                
+                await html2pdf().set(opt).from(element).save();
+                element.style.display = 'none';
+            } catch(e) {
+                console.error(e);
+                alert('Failed to generate PDF');
+            }
+            
+            btn.innerHTML = ogHtml;
+            btn.disabled = false;
+        };
+
+    </script>
+    
+    <!-- Hidden Report Card Template -->
+    <div id="reportCardTemplate" style="display:none; padding:40px; background:#fff; color:#000; font-family:Arial, sans-serif; width:800px;">
+        <div style="text-align:center; border-bottom:2px solid #ccc; padding-bottom:20px; margin-bottom:20px;">
+            <h1 style="margin:0; color:#1a1a3e; font-size:28px;">ExamPro DSU</h1>
+            <h2 style="margin:10px 0 0; color:#4a4a4a; font-size:20px;">Semester Report Card</h2>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:30px;">
+            <div>
+                <p><strong>Student:</strong> <span id="rcName"></span></p>
+                <p><strong>Email:</strong> <span id="rcEmail"></span></p>
+            </div>
+            <div style="text-align:right;">
+                <p><strong>Date Generated:</strong> <span id="rcDate"></span></p>
+                <p><strong>Total Exams:</strong> <span id="rcTotalExams"></span></p>
+                <p><strong>Average Score:</strong> <span id="rcAvgScore"></span>%</p>
+            </div>
+        </div>
+        <table style="width:100%; border-collapse:collapse; margin-bottom:30px;">
+            <thead>
+                <tr style="background:#f0f0f0;">
+                    <th style="border:1px solid #ddd; padding:10px; text-align:left;">Test Name</th>
+                    <th style="border:1px solid #ddd; padding:10px; text-align:center;">Score</th>
+                    <th style="border:1px solid #ddd; padding:10px; text-align:center;">Percentage</th>
+                    <th style="border:1px solid #ddd; padding:10px; text-align:center;">Grade</th>
+                    <th style="border:1px solid #ddd; padding:10px; text-align:center;">Date</th>
+                </tr>
+            </thead>
+            <tbody id="rcTableBody"></tbody>
+        </table>
+        <div style="text-align:center; margin-top:50px; color:#777; font-size:12px;">
+            <p>This is a computer-generated report and does not require a physical signature.</p>
+            <p>&copy; ExamPro DSU - All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+

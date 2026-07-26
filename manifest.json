@@ -1,0 +1,60 @@
+{
+  "name": "ExamPro DSU",
+  "short_name": "ExamPro DSU",
+  "description": "ExamPro DSU is an independent student portal and exam management system providing student registration, hall ticket, results, internal marks, attendance, and academic services.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#060b1a",
+  "theme_color": "#4f46e5",
+  "lang": "en-US",
+  "scope": "/",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "dsu_logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "dsu_logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "dsu_logo.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "ExamPro DSU Student Portal Home"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Student Login",
+      "short_name": "Login",
+      "description": "Login to your ExamPro DSU student account",
+      "url": "/login.html",
+      "icons": [{ "src": "dsu_logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Student Registration",
+      "short_name": "Register",
+      "description": "Register a new student account on ExamPro DSU",
+      "url": "/register.html",
+      "icons": [{ "src": "dsu_logo.png", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://dsu.loganathanm.in/app-release.apk",
+      "id": "com.exampro.dsu"
+    }
+  ],
+  "prefer_related_applications": false,
+  "iarc_rating_id": ""
+}

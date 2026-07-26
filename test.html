@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Test | ExamPro DSU</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --primary: #6c63ff;
+            --primary-dark: #4f46e5;
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #000000;
+            --glass: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --radius: 16px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ===== Test Selection View ===== */
+        #testSelectionView {
+            padding: 24px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .back-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all .25s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, .1);
+            color: var(--text);
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: 800;
+        }
+
+        .page-subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .tests-list {
+            display: grid;
+            gap: 16px;
+        }
+
+        .test-card-full {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            cursor: pointer;
+            transition: all .3s;
+        }
+
+        .test-card-full:hover {
+            background: rgba(108, 99, 255, .1);
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .3);
+        }
+
+        .test-card-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .test-card-info {
+            flex: 1;
+        }
+
+        .test-card-info h3 {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .test-card-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .meta-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            background: rgba(255, 255, 255, .07);
+            padding: 4px 10px;
+            border-radius: 20px;
+            color: var(--text-muted);
+        }
+
+        .test-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .start-btn {
+            padding: 10px 22px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all .3s;
+            flex-shrink: 0;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(108, 99, 255, .4);
+        }
+
+        /* ===== Test Start Confirmation ===== */
+        #testConfirmView {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .8);
+            backdrop-filter: blur(10px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        #testConfirmView.active {
+            display: flex;
+        }
+
+        .confirm-card {
+            background: rgba(26, 26, 62, .98);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 36px;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .confirm-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .confirm-card h2 {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .confirm-card p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .confirm-rules {
+            text-align: left;
+            background: rgba(255, 255, 255, .05);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .confirm-rules li {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            list-style: none;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .confirm-rules li i {
+            color: var(--danger);
+            margin-top: 2px;
+        }
+
+        .confirm-btns {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-cancel {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 255, 255, .07);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text);
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+        }
+
+        .btn-start {
+            flex: 2;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--success), #059669);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* ===== Test Taking View ===== */
+        #testTakingView {
+            display: none;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        #testTakingView.active {
+            display: flex;
+        }
+
+        .test-header {
+            background: rgba(15, 15, 35, .97);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            flex-wrap: wrap;
+        }
+
+        .test-title {
+            font-size: 15px;
+            font-weight: 700;
+            flex: 1;
+        }
+
+        .timer-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(239, 68, 68, .15);
+            border: 1px solid rgba(239, 68, 68, .3);
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--danger);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .timer-box.warn {
+            animation: timerWarn 1s ease-in-out infinite;
+        }
+
+        @keyframes timerWarn {
+
+            0%,
+            100% {
+                background: rgba(239, 68, 68, .15)
+            }
+
+            50% {
+                background: rgba(239, 68, 68, .3)
+            }
+        }
+
+        .question-progress {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .nav-strip {
+            background: rgba(15, 15, 35, .9);
+            padding: 10px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .q-nav-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass);
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .q-nav-btn.answered {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: #fff;
+            border: none;
+        }
+
+        .q-nav-btn.current {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+            border: none;
+        }
+
+        .q-nav-btn.flagged {
+            background: rgba(245, 158, 11, .3);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .question-area {
+            flex: 1;
+            padding: 24px;
+            max-width: 860px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .question-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin-bottom: 16px;
+        }
+
+        .q-number {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin-bottom: 8px;
+        }
+
+        .q-text {
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+
+        .q-image {
+            width: 100%;
+            max-height: 250px;
+            object-fit: contain;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, .05);
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .option {
+            padding: 14px 18px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, .05);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all .25s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+        }
+
+        .option:hover {
+            background: rgba(108, 99, 255, .1);
+            border-color: var(--primary);
+        }
+
+        .option.selected {
+            background: rgba(108, 99, 255, .15);
+            border-color: var(--primary);
+        }
+
+        .option-label {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, .1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .option.selected .option-label {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .question-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-flag {
+            padding: 10px 18px;
+            background: rgba(245, 158, 11, .15);
+            border: 1px solid rgba(245, 158, 11, .4);
+            border-radius: 10px;
+            color: var(--accent);
+            cursor: pointer;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            transition: all .2s;
+        }
+
+        .btn-prev {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, .07);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text);
+            cursor: pointer;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-next {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-submit-final {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, var(--success), #059669);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Anti-cheat warning */
+        .cheat-warning {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .9);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .cheat-warning.show {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cheat-warning i {
+            font-size: 72px;
+            color: var(--danger);
+            margin-bottom: 20px;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1)
+            }
+
+            50% {
+                transform: scale(1.1)
+            }
+        }
+
+        .cheat-warning h2 {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--danger);
+            margin-bottom: 12px;
+        }
+
+        .cheat-warning p {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            max-width: 400px;
+        }
+
+        .warning-count {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--danger);
+            margin-bottom: 12px;
+        }
+
+        .btn-continue {
+            padding: 12px 32px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Submit confirm */
+        #submitConfirm {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .85);
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        #submitConfirm.show {
+            display: flex;
+        }
+
+        .submit-modal {
+            background: rgba(26, 26, 62, .98);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .spinner-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 15, 35, .95);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .spinner-big {
+            width: 52px;
+            height: 52px;
+            border: 4px solid rgba(108, 99, 255, .3);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: toastIn .3s ease;
+            max-width: 300px;
+            backdrop-filter: blur(10px);
+        }
+
+        .toast.success {
+            background: rgba(16, 185, 129, .9);
+            color: #fff;
+        }
+
+        .toast.error {
+            background: rgba(239, 68, 68, .9);
+            color: #fff;
+        }
+
+        .toast.info {
+            background: rgba(108, 99, 255, .9);
+            color: #fff;
+        }
+
+        @keyframes toastIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1
+            }
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        @media(max-width:600px) {
+            .test-card-full {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .start-btn {
+                width: 100%;
+            }
+
+            .question-area {
+                padding: 14px;
+            }
+
+            .q-text {
+                font-size: 14px;
+            }
+
+            .confirm-btns {
+                flex-direction: column;
+            }
+
+            .test-header {
+                gap: 8px;
+            }
+        }
+    </style>
+
+    <!-- -- AI Proctoring Module -- -->
+    <script src="proctor.js"></script>
+    <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
+<script>if(sessionStorage.getItem('appLoaded')) document.documentElement.classList.add('no-loader');</script>
+</head>
+
+<body>
+
+        <!-- Mass Loader -->
+    <div class="spinner-overlay" id="loader" style="display: none !important;">
+        <div class="loader-mass">
+            <div class="loader-ring"></div>
+            <img src="dsu_logo.png" alt="DSU" class="loader-logo">
+        </div>
+        <p class="loader-text">Loading Tests...</p>
+    </div>
+
+    <!-- ===== Test Selection ===== -->
+    <div id="testSelectionView">
+        <div class="page-header">
+            <a class="back-btn" href="dashboard.html"><i class="fas fa-arrow-left"></i></a>
+            <div>
+                <div class="page-title">Available Tests</div>
+                <div class="page-subtitle">Choose a test to begin</div>
+            </div>
+        </div>
+        <div id="testsList" class="tests-list">
+            <div style="text-align:center;padding:40px;color:var(--text-muted)">
+                <div style="width:40px;height:40px;border:3px solid rgba(108,99,255,.3);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px"></div>
+                Loading available tests...
+            </div>
+        </div>
+        <footer>Developed by <a href="https://loganathanm.in" target="_blank">Loganathan</a></footer>
+    </div>
+
+    <!-- ===== Test Confirm Modal ===== -->
+    <div id="testConfirmView">
+        <div class="confirm-card">
+            <div class="confirm-icon">📝</div>
+            <h2 id="confirmTitle">Data Structures Test</h2>
+            <p id="confirmDesc">Duration: 30 minutes � 20 Questions � 100 Marks</p>
+            <ul class="confirm-rules">
+                <li><i class="fas fa-camera" style="color:var(--primary)"></i> AI Proctoring will monitor you via webcam during the exam.</li>
+                <li><i class="fas fa-exclamation-triangle"></i> Do NOT switch tabs or windows during the test.</li>
+                <li><i class="fas fa-exclamation-triangle"></i> Keep your face visible � looking away 5+ seconds is a violation.</li>
+                <li><i class="fas fa-exclamation-triangle"></i> No other people should be visible in your camera frame.</li>
+                <li><i class="fas fa-exclamation-triangle"></i> After 3 tab-switch warnings, your test will be auto-submitted.</li>
+                <li><i class="fas fa-check-circle" style="color:var(--success)"></i> Test will auto-submit when timer ends.</li>
+            </ul>
+            <div class="confirm-btns">
+                <button class="btn-cancel" onclick="cancelTest()">Cancel</button>
+                <button class="btn-start" onclick="startTest()"><i class="fas fa-play"></i> Start Test</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Anti-Cheat Warning ===== -->
+    <div class="cheat-warning" id="cheatWarning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div class="warning-count" id="warningCount">1</div>
+        <h2>🚨 Tab Switch Detected!</h2>
+        <p>You switched tabs or windows. This is your <strong id="warningOrdinal">1st</strong> warning. On your 2nd
+            warning, your test will be automatically submitted.</p>
+        <button class="btn-continue" onclick="dismissWarning()">Return to Test</button>
+    </div>
+
+    <!-- ===== Test Taking View ===== -->
+    <div id="testTakingView">
+        <div class="test-header">
+            <div class="test-title" id="testTitleHeader">Test</div>
+            <div class="question-progress" id="qProgress">Q 1 / 10</div>
+            <div class="timer-box" id="timerBox"><i class="fas fa-clock"></i> <span id="timerDisplay">30:00</span></div>
+        </div>
+
+        <div class="nav-strip" id="qNavStrip"></div>
+
+        <div class="question-area">
+            <div class="question-card">
+                <div class="q-number" id="qNumber">Question 1 of 10</div>
+                <div class="q-text" id="qText"></div>
+                <img class="q-image" id="qImage" style="display:none" alt="Question Image" />
+                <div class="options-grid" id="optionsGrid"></div>
+            </div>
+            <div class="question-actions">
+                <button class="btn-flag" onclick="flagQuestion()"><i class="fas fa-flag"></i> Flag</button>
+                <button class="btn-prev" onclick="prevQuestion()"><i class="fas fa-arrow-left"></i> Previous</button>
+                <button class="btn-next" id="nextBtn" onclick="nextQuestion()">Next <i
+                        class="fas fa-arrow-right"></i></button>
+                <button class="btn-submit-final" id="submitFinalBtn" style="display:none"
+                    onclick="confirmSubmit()">Submit Test <i class="fas fa-check"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit Confirm Modal -->
+    <div id="submitConfirm">
+        <div class="submit-modal">
+            <div style="font-size:52px;margin-bottom:16px">🏁</div>
+            <h2 style="font-size:20px;font-weight:800;margin-bottom:8px">Submit Test?</h2>
+            <p style="color:var(--text-muted);font-size:14px;margin-bottom:8px" id="submitSummary">You answered 0 of 0
+                questions.</p>
+            <p style="color:var(--text-muted);font-size:13px;margin-bottom:24px" id="unansweredMsg"></p>
+            <div style="display:flex;gap:12px">
+                <button class="btn-cancel" onclick="document.getElementById('submitConfirm').classList.remove('show')"
+                    style="flex:1;padding:12px;cursor:pointer;background:rgba(255,255,255,.07);border:1px solid var(--glass-border);border-radius:12px;color:var(--text);font-family:'Inter',sans-serif;">Review</button>
+                <button
+                    style="flex:2;padding:12px;background:linear-gradient(135deg,var(--success),#059669);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;"
+                    onclick="submitTest()">Submit Now</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, addDoc, setDoc, serverTimestamp, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
+            authDomain: "dsu-exam-system.firebaseapp.com",
+            projectId: "dsu-exam-system",
+            storageBucket: "dsu-exam-system.firebasestorage.app",
+            messagingSenderId: "155083834622",
+            appId: "1:155083834622:web:ff0a9780b88bad0b8811af",
+            measurementId: "G-1TPT1BR6GD"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+        let studentProfile = null;
+        let selectedTest = null;
+        let currentQ = 0;
+        let answers = {};
+        let flagged = new Set();
+        let timerInterval = null;
+        let timeLeft = 0;
+        let tabSwitchCount = 0;
+        let testStarted = false;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = 'login.html'; return; }
+            currentUser = user;
+            // Fetch student profile for department filtering
+            try {
+                const studentDoc = await getDoc(doc(db, 'students', user.uid));
+                if (studentDoc.exists()) {
+                    studentProfile = studentDoc.data();
+                }
+            } catch (err) { console.error('Could not fetch student profile:', err); }
+            await loadTests();
+            document.getElementById('loader').style.display = 'none';
+        });
+
+        function loadTests() {
+            const testsList = document.getElementById('testsList');
+            onSnapshot(collection(db, 'tests'), (snap) => {
+                if (snap.empty) {
+                    testsList.innerHTML = `<div style="text-align:center;padding:48px;color:var(--text-muted)"><i class="fas fa-clipboard-list" style="font-size:48px;opacity:.3;display:block;margin-bottom:16px"></i>No tests available right now.</div>`;
+                    return;
+                }
+
+                const now = new Date();
+                const studentDept = studentProfile?.department || '';
+
+                // Filter tests: must be active, within time, and dept-matched
+                const filteredDocs = snap.docs.filter(d => {
+                    const t = d.data();
+                    // Must be active
+                    if (!t.isActive) return false;
+                    // Check time window
+                    if (t.startTime) {
+                        const start = t.startTime.toDate ? t.startTime.toDate() : new Date(t.startTime.seconds * 1000);
+                        if (now < start) return false;
+                    }
+                    if (t.endTime) {
+                        const end = t.endTime.toDate ? t.endTime.toDate() : new Date(t.endTime.seconds * 1000);
+                        if (now > end) return false;
+                    }
+                    // Check department
+                    const depts = t.departments || ['ALL'];
+                    if (!depts.includes('ALL') && studentDept && !depts.includes(studentDept)) return false;
+                    return true;
+                });
+
+                if (!filteredDocs.length) {
+                    testsList.innerHTML = `<div style="text-align:center;padding:48px;color:var(--text-muted)"><i class="fas fa-clipboard-list" style="font-size:48px;opacity:.3;display:block;margin-bottom:16px"></i>No tests available for your department right now.</div>`;
+                    return;
+                }
+
+                const colors = [['#6c63ff', '#4f46e5'], ['#10b981', '#059669'], ['#f59e0b', '#d97706'], ['#06b6d4', '#0891b2'], ['#ef4444', '#dc2626']];
+                testsList.innerHTML = filteredDocs.map((d, i) => {
+                    const t = d.data();
+                    const c = colors[i % colors.length];
+                    // Show remaining time if endTime exists
+                    let timeInfo = '';
+                    if (t.endTime) {
+                        const end = t.endTime.toDate ? t.endTime.toDate() : new Date(t.endTime.seconds * 1000);
+                        const diff = Math.max(0, Math.floor((end - now) / 60000));
+                        timeInfo = `<span class="meta-chip" style="color:var(--danger)"><i class="fas fa-hourglass-half"></i> Closes in ${diff} min</span>`;
+                    }
+                    return `
+            <div class="test-card-full" onclick="openConfirm('${d.id}')">
+              <div class="test-card-icon" style="background:linear-gradient(135deg,${c[0]}30,${c[0]}60)">
+                <i class="fas fa-file-alt" style="color:${c[0]}"></i>
+              </div>
+              <div class="test-card-info">
+                <h3>${t.title || 'Untitled Test'}</h3>
+                <div class="test-card-meta">
+                  <span class="meta-chip"><i class="fas fa-clock"></i> ${t.duration || 30} mins</span>
+                  <span class="meta-chip"><i class="fas fa-question-circle"></i> ${t.questions?.length || 0} Questions</span>
+                  <span class="meta-chip"><i class="fas fa-star"></i> ${t.totalMarks || 100} Marks</span>
+                  <span class="meta-chip"><i class="fas fa-tag"></i> ${t.subject || 'General'}</span>
+                  ${timeInfo}
+                </div>
+                <div class="test-desc">${t.description || 'Click to start the test.'}</div>
+              </div>
+              <button class="start-btn">Start <i class="fas fa-play"></i></button>
+            </div>`;
+                }).join('');
+                window._tests = {};
+                filteredDocs.forEach(d => window._tests[d.id] = { id: d.id, ...d.data() });
+            }, (err) => {
+                testsList.innerHTML = `<div style="text-align:center;padding:40px;color:var(--danger)"><i class="fas fa-times-circle"></i> Error loading tests.</div>`;
+            });
+        }
+
+        window.openConfirm = function (testId) {
+            selectedTest = window._tests[testId];
+            document.getElementById('confirmTitle').textContent = selectedTest.title;
+            document.getElementById('confirmDesc').textContent = `Duration: ${selectedTest.duration || 30} minutes • ${selectedTest.questions?.length || 0} Questions • ${selectedTest.totalMarks || 100} Marks`;
+            document.getElementById('testConfirmView').classList.add('active');
+        };
+
+        window.cancelTest = function () {
+            document.getElementById('testConfirmView').classList.remove('active');
+            selectedTest = null;
+        };
+
+            window.startTest = async function () {
+                if (!selectedTest || !selectedTest.questions?.length) {
+                    showToast('This test has no questions yet.', 'error'); return;
+                }
+
+                // -- Step 1: Initialise AI Proctoring module ------------------
+                await ExamProctor.init({
+                    db:           db,
+                    currentUser:  currentUser,
+                    selectedTest: selectedTest,
+                    // Called when exam is force-terminated (3rd tab violation)
+                    onTerminate: () => {
+                        testStarted = false;
+                        clearInterval(timerInterval);
+                        submitTest(true, true);
+                    },
+                });
+
+                // -- Step 2: Close confirm modal, show proctoring guidelines --
+                document.getElementById('testConfirmView').classList.remove('active');
+
+                ExamProctor.showGuidelines(
+                    // onConfirm - student clicked "Allow Camera & Start Exam"
+                    async () => {
+                        // -- Step 3: Enter fullscreen synchronously BEFORE await ---
+                        try {
+                            if (document.documentElement.requestFullscreen)
+                                await document.documentElement.requestFullscreen();
+                            else if (document.documentElement.webkitRequestFullscreen)
+                                await document.documentElement.webkitRequestFullscreen();
+                        } catch (err) {
+                            console.warn('Fullscreen request failed:', err);
+                        }
+
+                        // Request webcam + start proctoring
+                        const procOk = await ExamProctor.start();
+                        if (!procOk) return; // webcam denied - blocked by proctor module
+
+                        // -- Step 4: Show exam view ---------------------------
+                        document.getElementById('testSelectionView').style.display = 'none';
+                        document.getElementById('testTakingView').classList.add('active');
+
+                        answers = {}; flagged = new Set(); currentQ = 0; tabSwitchCount = 0; testStarted = true;
+                        timeLeft = (selectedTest.duration || 30) * 60;
+                        document.getElementById('testTitleHeader').textContent = selectedTest.title;
+
+                        buildNavStrip();
+                        renderQuestion();
+                        startTimer();
+                        registerAntiCheat(); // existing tab/key anti-cheat still runs alongside
+                    },
+                    // onCancel – student clicked "Cancel"
+                    () => {
+                        // Return to test selection
+                        selectedTest = null;
+                    }
+                );
+            };
+
+        function buildNavStrip() {
+            const strip = document.getElementById('qNavStrip');
+            strip.innerHTML = selectedTest.questions.map((_, i) =>
+                `<button class="q-nav-btn" id="qnav${i}" onclick="goToQuestion(${i})">${i + 1}</button>`
+            ).join('');
+        }
+
+        function renderQuestion() {
+            const qs = selectedTest.questions;
+            const q = qs[currentQ];
+            const total = qs.length;
+
+            document.getElementById('qNumber').textContent = `Question ${currentQ + 1} of ${total}`;
+            document.getElementById('qProgress').textContent = `Q ${currentQ + 1} / ${total}`;
+            document.getElementById('qText').textContent = q.question || q.text;
+
+            const img = document.getElementById('qImage');
+            if (q.image) { img.src = q.image; img.style.display = 'block'; }
+            else { img.style.display = 'none'; }
+
+            const labels = ['A', 'B', 'C', 'D', 'E'];
+            const optionsGrid = document.getElementById('optionsGrid');
+            optionsGrid.innerHTML = (q.options || []).map((opt, i) => `
+        <div class="option ${answers[currentQ] === i ? 'selected' : ''}" onclick="selectAnswer(${i})">
+          <div class="option-label">${labels[i]}</div>
+          <span>${opt}</span>
+        </div>
+      `).join('');
+
+            // Update nav strip
+            document.querySelectorAll('.q-nav-btn').forEach((btn, i) => {
+                btn.className = 'q-nav-btn';
+                if (i === currentQ) btn.classList.add('current');
+                else if (answers[i] !== undefined) btn.classList.add('answered');
+                else if (flagged.has(i)) btn.classList.add('flagged');
+            });
+
+            // Show/hide next/submit
+            document.getElementById('nextBtn').style.display = currentQ < total - 1 ? '' : 'none';
+            document.getElementById('submitFinalBtn').style.display = currentQ === total - 1 ? '' : 'none';
+        }
+
+        window.selectAnswer = function (optIndex) {
+            answers[currentQ] = optIndex;
+            renderQuestion();
+        };
+
+        window.nextQuestion = function () {
+            if (currentQ < selectedTest.questions.length - 1) { currentQ++; renderQuestion(); }
+        };
+
+        window.prevQuestion = function () {
+            if (currentQ > 0) { currentQ--; renderQuestion(); }
+        };
+
+        window.goToQuestion = function (i) { currentQ = i; renderQuestion(); };
+
+        window.flagQuestion = function () {
+            if (flagged.has(currentQ)) flagged.delete(currentQ);
+            else flagged.add(currentQ);
+            renderQuestion();
+            showToast(flagged.has(currentQ) ? 'Question flagged for review' : 'Flag removed', 'info');
+        };
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+                const s = (timeLeft % 60).toString().padStart(2, '0');
+                document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+                if (timeLeft <= 300) document.getElementById('timerBox').classList.add('warn');
+                if (timeLeft <= 0) { clearInterval(timerInterval); submitTest(true); }
+            }, 1000);
+        }
+
+        function registerAntiCheat() {
+            document.addEventListener('visibilitychange', handleTabSwitch);
+            window.addEventListener('blur', handleTabSwitch);
+            
+            // Fullscreen enforcement
+            document.addEventListener('fullscreenchange', () => {
+                if (!document.fullscreenElement && testStarted) {
+                    showToast('Fullscreen exited! This is a violation.', 'error');
+                    handleTabSwitch();
+                }
+            });
+
+            // Key blocking
+            window.addEventListener('keydown', e => {
+                const blockedKeys = ['Tab', 'Meta', 'Alt', 'Control'];
+                if (blockedKeys.includes(e.key) || (e.altKey && e.key === 'Tab')) {
+                    e.preventDefault();
+                    showToast('Key blocked! Focus on the test.', 'error');
+                    return false;
+                }
+            });
+        }
+
+        function handleTabSwitch() {
+            if (!testStarted) return;
+            tabSwitchCount++;
+            document.getElementById('warningCount').textContent = tabSwitchCount;
+            document.getElementById('warningOrdinal').textContent = tabSwitchCount === 1 ? '1st' : '2nd';
+            document.getElementById('cheatWarning').classList.add('show');
+
+            // Log malpractice
+            if (window._fbDb && currentUser && selectedTest) {
+                const { addDoc, collection: fcollection } = window._fbFuncs;
+                fcollection && addDoc(fcollection(window._fbDb, 'malpracticeLogs'), {
+                    studentId: currentUser.uid,
+                    testId: selectedTest.id,
+                    testTitle: selectedTest.title,
+                    attempts: tabSwitchCount,
+                    timestamp: new Date()
+                }).catch(console.error);
+            }
+
+            if (tabSwitchCount >= 2) {
+                setTimeout(() => {
+                    document.getElementById('cheatWarning').classList.remove('show');
+                    submitTest(true, true);
+                }, 3000);
+            }
+        }
+
+        window.dismissWarning = function () {
+            document.getElementById('cheatWarning').classList.remove('show');
+        };
+
+        window.confirmSubmit = function () {
+            const total = selectedTest.questions.length;
+            const answered = Object.keys(answers).length;
+            document.getElementById('submitSummary').textContent = `You answered ${answered} of ${total} questions.`;
+            document.getElementById('unansweredMsg').textContent = answered < total ? `⚠️ ${total - answered} questions are unanswered.` : `✅ All questions answered!`;
+            document.getElementById('submitConfirm').classList.add('show');
+        };
+
+        window.submitTest = async function (autoSubmit = false, malpractice = false) {
+            testStarted = false;
+            clearInterval(timerInterval);
+            document.removeEventListener('visibilitychange', handleTabSwitch);
+            window.removeEventListener('blur', handleTabSwitch);
+            document.getElementById('submitConfirm').classList.remove('show');
+            document.getElementById('loader').style.display = 'flex';
+
+            // -- Stop Proctoring & save violation log ----------------------
+            ExamProctor.stop();
+            try {
+                await ExamProctor.saveViolationLog();
+            } catch (e) { console.warn('[ExamProctor] Log save error on submit:', e); }
+
+            try {
+                const qs = selectedTest.questions;
+                let correct = 0, wrong = 0;
+                qs.forEach((q, i) => {
+                    if (answers[i] !== undefined) {
+                        if (answers[i] === q.correctIndex) correct++;
+                        else wrong++;
+                    }
+                });
+                const unanswered = qs.length - correct - wrong;
+                const score = correct * (selectedTest.marksPerQuestion || 1);
+                const totalMarks = selectedTest.totalMarks || qs.length;
+                const percentage = Math.round((score / totalMarks) * 100);
+
+                // Build proctoring summary to attach to result
+                const procLog = ExamProctor.getLog();
+                const procSummary = ExamProctor.getSummary();
+
+                // Save result
+                const resultId = `${currentUser.uid}_${selectedTest.id}`;
+                await setDoc(doc(db, 'results', resultId), {
+                    studentId: currentUser.uid,
+                    testId: selectedTest.id,
+                    testTitle: selectedTest.title,
+                    score, totalMarks, correct, wrong, unanswered, percentage,
+                    answers, autoSubmit, malpractice,
+                    // Attach proctoring metadata to result
+                    proctoring: {
+                        violations: procLog,
+                        summary: procSummary,
+                    },
+                    submittedAt: serverTimestamp()
+                });
+
+                // Log malpractice in Firestore
+                if (malpractice || procSummary.flagged) {
+                    await addDoc(collection(db, 'malpracticeLogs'), {
+                        studentId: currentUser.uid,
+                        testId: selectedTest.id,
+                        tabSwitches: tabSwitchCount,
+                        proctoringViolations: procLog,
+                        procSummary,
+                        timestamp: serverTimestamp()
+                    });
+                }
+
+                document.getElementById('loader').style.display = 'none';
+                // Redirect to result
+                window.location.href = `result.html?testId=${selectedTest.id}&score=${score}&total=${totalMarks}&correct=${correct}&wrong=${wrong}&pct=${percentage}`;
+            } catch (err) {
+                document.getElementById('loader').style.display = 'none';
+                showToast('Error submitting test. Please try again.', 'error');
+            }
+        };
+    </script>
+
+    <script>
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12') { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.key === 'U') { e.preventDefault(); return false; }
+        });
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle' };
+            toast.innerHTML = `<i class="fas ${icons[type]}"></i> ${msg}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3500);
+        }
+        window.showToast = showToast;
+    </script>
+</body>
+
+</html>
+
+

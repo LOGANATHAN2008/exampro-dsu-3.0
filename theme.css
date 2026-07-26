@@ -1,0 +1,391 @@
+body {
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+.light-mode {
+    --bg-main: #f0f4ff;
+    --bg: #f0f4ff;
+    --bg2: #ffffff;
+    --glass: rgba(255, 255, 255, 0.9);
+    --glass-border: rgba(0, 0, 0, 0.08);
+    --text-main: #0f172a;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    background: #f0f4ff !important;
+    color: #1e293b !important;
+}
+.light-mode .sidebar {
+    background: #ffffff;
+    border-right: 1px solid var(--glass-border);
+}
+.light-mode .sidebar-logo span {
+    background: var(--primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.light-mode .nav-item { color: var(--text-muted); }
+.light-mode .nav-item:hover { background: rgba(108, 99, 255, 0.1); color: var(--primary); }
+.light-mode .nav-item.active { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; }
+.light-mode .icon-btn { background: #ffffff; border: 1px solid var(--glass-border); color: var(--text); }
+.light-mode .card, .light-mode .stat-card, .light-mode .test-card, .light-mode .quick-btn, .light-mode .panel, .light-mode .reminder-dropdown {
+    background: #ffffff !important; border: 1px solid var(--glass-border) !important; box-shadow: 0 4px 15px rgba(0,0,0,0.03) !important; color: var(--text) !important;
+}
+.light-mode .table, .light-mode table th, .light-mode .table td { color: var(--text-main); }
+.light-mode select, .light-mode input { background: #ffffff !important; color: var(--text) !important; border: 1px solid var(--glass-border) !important; }
+.light-mode .search-bar input { background: transparent !important; border: none !important; outline: none !important; }
+.light-mode select option { background: #ffffff; color: var(--text); }
+.light-mode .perf-subject, .light-mode .stat-info .value { color: var(--text-main); }
+.light-mode .reminder-item {
+    background: rgba(0,0,0,0.02);
+    border: 1px solid var(--glass-border);
+}
+.light-mode .reminder-item:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+/* Global Mass Loader */
+.spinner-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-main, #000000);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 24px;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.light-mode .spinner-overlay {
+    background: #f0f4ff !important;
+}
+
+.loader-mass {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loader-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: var(--primary);
+    border-bottom-color: var(--secondary);
+    animation: spin-mass 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+    box-shadow: 0 0 20px rgba(108, 99, 255, 0.2);
+}
+
+.loader-ring::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-left-color: var(--accent);
+    border-right-color: var(--success);
+    animation: spin-mass 2s linear infinite reverse;
+}
+
+.loader-logo {
+    width: 45px;
+    height: auto;
+    animation: pulseLogo 2s ease-in-out infinite;
+    z-index: 2;
+}
+
+.loader-text {
+    color: var(--text-main, #e2e8f0);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: pulseText 2s ease-in-out infinite;
+}
+
+.light-mode .loader-text {
+    color: #1e293b;
+    -webkit-text-fill-color: #1e293b;
+}
+
+@keyframes spin-mass {
+    to { transform: rotate(360deg); }
+}
+@keyframes pulseLogo {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(108,99,255,0.4)); }
+    50% { transform: scale(1.15); filter: drop-shadow(0 0 25px rgba(108,99,255,0.8)); }
+}
+@keyframes pulseText {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; transform: scale(1.05); }
+}
+
+/* Global Light Mode Modals */
+.light-mode .modal,
+.light-mode .modal-card {
+    background: #ffffff !important;
+    border: 1px solid var(--glass-border) !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1) !important;
+}
+
+/* =========================================
+   GLOBAL MOBILE UX & SMOOTHNESS UPGRADES
+   ========================================= */
+
+/* 1. Hardware Accelerated Smooth Animations */
+.sidebar, .modal, .modal-card, .btn, .nav-item, .card, .stat-card, .test-card {
+    will-change: transform, opacity;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+/* 2. Standardized Sidebar Overlay */
+.overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(4px) !important;
+    z-index: 998 !important; /* Just below sidebar which is usually 1000 */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    display: block !important;
+    pointer-events: none !important;
+}
+.overlay.active {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+/* 3. Table Responsiveness */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+    border-radius: 12px;
+}
+.table-responsive table {
+    width: 100%;
+    min-width: 600px; /* Forces scrolling on small screens instead of squishing */
+}
+
+/* 4. Global Mobile Media Queries (Overrides) */
+@media (max-width: 768px) {
+    /* Touch Targets */
+    .icon-btn, .menu-toggle, .close-modal {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Modals should fit screen with margin */
+    .modal, .modal-card {
+        width: calc(100% - 32px) !important;
+        max-width: calc(100% - 32px) !important;
+        margin: 16px !important;
+        max-height: calc(100vh - 32px) !important;
+    }
+    
+    /* Ensure Sidebars properly hide */
+    .sidebar {
+        transform: translateX(-100%);
+        position: fixed !important;
+        z-index: 999 !important;
+        height: 100vh !important;
+        box-shadow: 10px 0 30px rgba(0,0,0,0.5) !important;
+    }
+    .sidebar.open {
+        transform: translateX(0) !important;
+    }
+    
+    /* Content wrapper fixes */
+    .main {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 16px !important;
+    }
+    
+    /* Grid fixes */
+    .content-grid, .stats-grid, .quick-actions, .courses-grid, .course-grid, .test-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+}
+
+/* Fix Mobile Header in Light Mode */
+.light-mode .mobile-header {
+    background: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.8) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Fix Side Panels (Notifications & Chatbot) in Light Mode */
+.light-mode .notif-panel,
+.light-mode .chatbot-window {
+    background: #ffffff !important;
+    border-left: 1px solid var(--glass-border) !important;
+}
+
+.light-mode .notif-header .close-btn,
+.light-mode .notif-header h3 {
+    color: #1e293b !important;
+}
+
+.light-mode .msg.bot {
+    background: #f1f5f9 !important;
+    color: #1e293b !important;
+}
+
+.light-mode .chatbot-header * {
+    color: #ffffff !important;
+}
+
+/* 5. Mobile Bottom Navigation */
+.mobile-bottom-nav {
+    display: none; /* Hidden on desktop */
+}
+
+@media (max-width: 768px) {
+    /* Show bottom nav on mobile */
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 15px;
+        left: 15px;
+        right: 15px;
+        height: 65px;
+        background: rgba(15, 15, 35, 0.65);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        z-index: 1000;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0 10px;
+        border-radius: 35px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    
+    /* Ensure body has padding so content doesn't hide behind nav */
+    body {
+        padding-bottom: 90px !important;
+    }
+
+    .mobile-bottom-nav .nav-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: rgba(255, 255, 255, 0.7); /* Faded white for inactive */
+        padding: 8px 14px;
+        border-radius: 25px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        gap: 6px;
+    }
+
+    .mobile-bottom-nav .nav-item i {
+        font-size: 18px;
+    }
+
+    .mobile-bottom-nav .nav-item .nav-text {
+        font-size: 13px;
+        font-weight: 600;
+        max-width: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Active State Pill */
+    .mobile-bottom-nav .nav-item.active {
+        background: rgba(255, 255, 255, 0.15);
+        color: #ffffff; 
+    }
+
+    .mobile-bottom-nav .nav-item.active .nav-text {
+        max-width: 100px;
+        opacity: 1;
+    }
+
+    /* Light Mode Adjustments */
+    .light-mode .mobile-bottom-nav {
+        background: rgba(255, 255, 255, 0.65);
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    .light-mode .mobile-bottom-nav .nav-item {
+        color: rgba(0, 0, 0, 0.5);
+    }
+    .light-mode .mobile-bottom-nav .nav-item.active {
+        background: var(--primary); /* Use the primary purple/blue color */
+        color: #ffffff;
+    }
+    
+    /* Move Chatbot above bottom nav on mobile */
+    .chatbot-fab {
+        bottom: 100px !important;
+    }
+    .chatbot-window {
+        bottom: 170px !important;
+    }
+}
+
+/* 6. Staggered Sidebar Waterfall Animation */
+@keyframes slideInRightStaggered {
+    0% { opacity: 0; transform: translateX(-25px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+
+/* By default, prepare elements for animation */
+.sidebar .nav-label,
+.sidebar .nav-item,
+.sidebar .sidebar-user {
+    opacity: 0;
+    animation: slideInRightStaggered 0.4s cubic-bezier(0.2, 0.8, 0.2, 1.1) forwards;
+}
+
+@media (max-width: 768px) {
+    /* On mobile, reset animation when sidebar is closed */
+    .sidebar:not(.open) .nav-label,
+    .sidebar:not(.open) .nav-item,
+    .sidebar:not(.open) .sidebar-user {
+        animation: none;
+        opacity: 0;
+    }
+    /* Trigger animation only when opened */
+    .sidebar.open .nav-label,
+    .sidebar.open .nav-item,
+    .sidebar.open .sidebar-user {
+        animation: slideInRightStaggered 0.4s cubic-bezier(0.2, 0.8, 0.2, 1.1) forwards;
+    }
+}
+
+/* 7. Staggered Card Animation */
+@keyframes slideDownFadeCard {
+    0% { opacity: 0; transform: translateY(-30px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+.stat-card, .course-card, .test-card, .chart-card, .history-card, .review-card, .dsh-card, .result-hero, .stats-row {
+    opacity: 0;
+    animation: slideDownFadeCard 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Disable loader on subsequent navigations */
+html.no-loader #loader {
+    display: none !important;
+}
+body:has(.sidebar.open) .mobile-bottom-nav { display: none !important; }

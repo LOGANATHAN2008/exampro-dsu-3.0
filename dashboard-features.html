@@ -1,0 +1,2292 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow">
+    <title>Exam Schedule, Hall Ticket & History | ExamPro DSU</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <!-- jsPDF CDN – for client-side PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        /* ════════════════════════════════════════════════════════
+       DESIGN TOKENS — mirrors dashboard.html :root
+    ════════════════════════════════════════════════════════ */
+        :root {
+            --primary: #6c63ff;
+            --primary-dark: #4f46e5;
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warn: #f97316;
+            --bg: #000000;
+            --bg2: #111111;
+            --glass: rgba(255, 255, 255, .06);
+            --glass-border: rgba(255, 255, 255, .12);
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --radius: 16px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, .3);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 24px;
+            min-height: 100vh;
+        }
+
+        /* ── Shared Components ──────────────────────────────── */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        .card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 24px;
+        }
+
+        .card+.card,
+        .dsh-section+.dsh-section {
+            margin-top: 32px;
+        }
+
+        .dsh-section {
+            margin-bottom: 40px;
+        }
+
+        /* Pill Buttons */
+        .pill-btn {
+            padding: 8px 18px;
+            border-radius: 20px;
+            border: none;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all .2s;
+        }
+
+        .pill-btn.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+        }
+
+        .pill-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(108, 99, 255, .4);
+        }
+
+        .pill-btn.ghost {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--text-muted);
+        }
+
+        .pill-btn.ghost:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, .1);
+        }
+
+        .pill-btn.ghost.active {
+            background: rgba(108, 99, 255, .2);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .pill-btn.success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: #fff;
+        }
+
+        .pill-btn.warn-btn {
+            background: linear-gradient(135deg, var(--warn), #ea580c);
+            color: #fff;
+        }
+
+        .pill-btn.danger-btn {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: #fff;
+        }
+
+        .pill-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .badge.internal {
+            background: rgba(108, 99, 255, .2);
+            color: var(--primary);
+        }
+
+        .badge.external {
+            background: rgba(239, 68, 68, .2);
+            color: var(--danger);
+        }
+
+        .badge.mid {
+            background: rgba(245, 158, 11, .2);
+            color: var(--accent);
+        }
+
+        .badge.practical {
+            background: rgba(16, 185, 129, .2);
+            color: var(--success);
+        }
+
+        .badge.pass {
+            background: rgba(16, 185, 129, .2);
+            color: var(--success);
+        }
+
+        .badge.fail {
+            background: rgba(239, 68, 68, .2);
+            color: var(--danger);
+        }
+
+        .badge.grade-o {
+            background: rgba(16, 185, 129, .2);
+            color: var(--success);
+        }
+
+        .badge.grade-a {
+            background: rgba(108, 99, 255, .2);
+            color: var(--primary);
+        }
+
+        .badge.grade-b {
+            background: rgba(6, 182, 212, .2);
+            color: var(--secondary);
+        }
+
+        .badge.grade-c {
+            background: rgba(245, 158, 11, .2);
+            color: var(--accent);
+        }
+
+        .badge.grade-f {
+            background: rgba(239, 68, 68, .2);
+            color: var(--danger);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            opacity: .3;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* Toast */
+        #df-toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .df-toast {
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: dfToastIn .3s ease;
+            max-width: 300px;
+            backdrop-filter: blur(10px);
+            color: #fff;
+        }
+
+        .df-toast.info {
+            background: rgba(108, 99, 255, .95);
+        }
+
+        .df-toast.success {
+            background: rgba(16, 185, 129, .95);
+        }
+
+        .df-toast.warn {
+            background: rgba(249, 115, 22, .95);
+        }
+
+        @keyframes dfToastIn {
+            from {
+                transform: translateX(110%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* ════════════════════════════════════════════════════════
+       SECTION 1: EXAM SCHEDULE CALENDAR
+    ════════════════════════════════════════════════════════ */
+
+        /* Bell / reminder badge */
+        .bell-btn {
+            position: relative;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all .25s;
+            font-size: 16px;
+        }
+
+        .bell-btn:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, .1);
+        }
+
+        .bell-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--danger);
+            color: #fff;
+            font-size: 9px;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--bg);
+            padding: 0 4px;
+        }
+
+        /* Toggle Buttons Row */
+        .toggle-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* ─ Calendar Grid ─ */
+        .cal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .cal-month-label {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .cal-nav-btn {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: .2s;
+        }
+
+        .cal-nav-btn:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, .1);
+        }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .cal-day-label {
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            padding: 6px 0;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .cal-cell {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .2s;
+            position: relative;
+            gap: 2px;
+            background: var(--glass);
+            border: 1px solid transparent;
+        }
+
+        .cal-cell:hover {
+            background: rgba(255, 255, 255, .1);
+            border-color: var(--glass-border);
+        }
+
+        .cal-cell.empty {
+            background: transparent;
+            cursor: default;
+            border-color: transparent;
+        }
+
+        .cal-cell.today {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+            font-weight: 800;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(108, 99, 255, .4);
+        }
+
+        .cal-cell.has-exam {
+            border-color: var(--accent);
+            background: rgba(245, 158, 11, .1);
+        }
+
+        .cal-cell.today.has-exam {
+            border-color: rgba(255, 255, 255, .4);
+        }
+
+        .cal-cell .exam-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--accent);
+            position: absolute;
+            bottom: 4px;
+        }
+
+        .cal-cell.today .exam-dot {
+            background: rgba(255, 255, 255, .9);
+        }
+
+        /* ─ List View ─ */
+        .exam-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .exam-list-item {
+            display: flex;
+            gap: 16px;
+            align-items: stretch;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all .25s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .exam-list-item:hover {
+            background: rgba(108, 99, 255, .08);
+            border-color: rgba(108, 99, 255, .3);
+            transform: translateX(4px);
+        }
+
+        .exam-list-item.today-exam {
+            border-color: rgba(245, 158, 11, .4);
+            background: rgba(245, 158, 11, .06);
+        }
+
+        .exam-date-block {
+            min-width: 64px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(108, 99, 255, .15);
+            border-radius: 10px;
+            padding: 8px 12px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .exam-date-block .month {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .exam-date-block .day {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1;
+        }
+
+        .exam-date-block .year {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .exam-list-meta {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .exam-list-meta h4 {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .exam-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .meta-chip {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, .05);
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        .meta-chip i {
+            font-size: 11px;
+        }
+
+        .exam-countdown {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--warn);
+            margin-top: 6px;
+        }
+
+        /* ─ Exam Detail Modal ─ */
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .8);
+            backdrop-filter: blur(8px);
+            z-index: 9000;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-backdrop.show {
+            display: flex;
+        }
+
+        .modal-card {
+            background: rgba(26, 26, 62, .98);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 28px;
+            max-width: 560px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalIn .25s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                transform: scale(.95);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(255, 255, 255, .07);
+            border: none;
+            border-radius: 10px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, .12);
+        }
+
+        .modal-card {
+            position: relative;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .modal-sub {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .modal-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .modal-info-item {
+            background: rgba(255, 255, 255, .04);
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+
+        .modal-info-item .mil {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin-bottom: 4px;
+        }
+
+        .modal-info-item .miv {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .modal-divider {
+            border: none;
+            border-top: 1px solid var(--glass-border);
+            margin: 16px 0;
+        }
+
+        .topic-list {
+            list-style: none;
+            display: grid;
+            gap: 6px;
+        }
+
+        .topic-list li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .topic-list li i {
+            color: var(--primary);
+            font-size: 10px;
+        }
+
+        .ht-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .ht-status.available {
+            background: rgba(16, 185, 129, .15);
+            color: var(--success);
+        }
+
+        .ht-status.pending {
+            background: rgba(249, 115, 22, .15);
+            color: var(--warn);
+        }
+
+        /* Reminder Dropdown */
+        .reminder-dropdown {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 8px);
+            background: rgba(26, 26, 62, .98);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            min-width: 280px;
+            padding: 12px;
+            z-index: 200;
+            display: none;
+            animation: modalIn .2s ease;
+        }
+
+        .reminder-dropdown.open {
+            display: block;
+        }
+
+        .reminder-item {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, .04);
+            margin-bottom: 8px;
+            font-size: 12px;
+            align-items: flex-start;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: .2s;
+        }
+
+        .reminder-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .reminder-item:hover {
+            border-color: var(--primary);
+            background: rgba(108, 99, 255, .1);
+        }
+
+        .reminder-item.unread {
+            border-left: 3px solid var(--warn);
+        }
+
+        .ri-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: rgba(108, 99, 255, .2);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+        }
+
+        .ri-text {
+            flex: 1;
+        }
+
+        .ri-title {
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .ri-time {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        /* ════════════════════════════════════════════════════════
+       SECTION 2: HALL TICKET
+    ════════════════════════════════════════════════════════ */
+        .ht-card {
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        /* Preview Header */
+        .ht-preview-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            padding: 24px 28px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .ht-logo-circle {
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 255, 255, .15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .ht-logo-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .ht-college-info h3 {
+            font-size: 16px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .ht-college-info p {
+            font-size: 12px;
+            color: rgba(255, 255, 255, .7);
+            margin-top: 2px;
+        }
+
+        .ht-ticket-label {
+            margin-left: auto;
+            background: rgba(255, 255, 255, .15);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            border: 1px solid rgba(255, 255, 255, .3);
+        }
+
+        /* Student details */
+        .ht-body {
+            padding: 24px 28px;
+        }
+
+        .ht-student-row {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .ht-photo {
+            width: 90px;
+            height: 110px;
+            background: rgba(255, 255, 255, .06);
+            border: 2px dashed var(--glass-border);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .ht-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .ht-photo i {
+            font-size: 28px;
+        }
+
+        .ht-student-details {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .ht-detail-row {
+            display: flex;
+            gap: 0;
+            border-radius: 0;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .ht-detail-row .htd-l {
+            color: var(--text-muted);
+            width: 120px;
+            flex-shrink: 0;
+        }
+
+        .ht-detail-row .htd-v {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* QR placeholder */
+        .ht-qr {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, .06);
+            border: 2px dashed var(--glass-border);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 10px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+            text-align: center;
+            margin-left: auto;
+        }
+
+        .ht-qr i {
+            font-size: 28px;
+        }
+
+        /* Exam table in hall ticket */
+        .ht-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12.5px;
+            margin-bottom: 20px;
+        }
+
+        .ht-table th,
+        .ht-table td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .ht-table th {
+            background: rgba(108, 99, 255, .15);
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .ht-table tbody tr:hover {
+            background: rgba(255, 255, 255, .03);
+        }
+
+        .ht-table td {
+            color: var(--text-muted);
+        }
+
+        .ht-table td:first-child {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        /* Instructions bar */
+        .ht-instructions {
+            background: rgba(239, 68, 68, .08);
+            border: 1px solid rgba(239, 68, 68, .2);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+
+        .ht-instructions strong {
+            color: var(--danger);
+        }
+
+        .ht-footer-bar {
+            padding: 16px 28px;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* Barcode placeholder */
+        .barcode-placeholder {
+            flex: 1;
+            height: 40px;
+            background: repeating-linear-gradient(90deg, var(--text-muted) 0px, var(--text-muted) 2px, transparent 2px, transparent 6px);
+            opacity: .25;
+            border-radius: 4px;
+            max-width: 200px;
+        }
+
+        /* ════════════════════════════════════════════════════════
+       SECTION 3: EXAM HISTORY
+    ════════════════════════════════════════════════════════ */
+        /* Summary bar */
+        .history-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .hstat {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .hstat .hstat-val {
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .hstat .hstat-lbl {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Filters */
+        .filter-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .filter-select {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 8px 14px;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .filter-select option {
+            background: #111111;
+        }
+
+        /* History table */
+        .history-table-wrap {
+            overflow-x: auto;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 680px;
+        }
+
+        .history-table th {
+            padding: 10px 14px;
+            text-align: left;
+            background: rgba(108, 99, 255, .1);
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            border-bottom: 1px solid var(--glass-border);
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .history-table th:hover {
+            color: var(--text);
+        }
+
+        .history-table th i.sort-icon {
+            margin-left: 4px;
+            opacity: .5;
+            font-size: 10px;
+        }
+
+        .history-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+            color: var(--text-muted);
+            vertical-align: middle;
+        }
+
+        .history-table td:first-child {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .history-table tr {
+            cursor: pointer;
+            transition: background .2s;
+        }
+
+        .history-table tr:hover td {
+            background: rgba(255, 255, 255, .04);
+        }
+
+        /* Progress bar */
+        .score-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, .1);
+            border-radius: 3px;
+            margin-top: 4px;
+        }
+
+        .score-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+
+        /* Expandable row */
+        .expand-row {
+            display: none;
+        }
+
+        .expand-row.open {
+            display: table-row;
+        }
+
+        .expand-cell {
+            padding: 0 !important;
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+        }
+
+        .expand-content {
+            padding: 16px;
+            background: rgba(255, 255, 255, .03);
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+        }
+
+        .q-chip {
+            background: rgba(255, 255, 255, .05);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 12px;
+            border-left: 3px solid transparent;
+        }
+
+        .q-chip.correct {
+            border-color: var(--success);
+        }
+
+        .q-chip.wrong {
+            border-color: var(--danger);
+        }
+
+        .q-chip.skip {
+            border-color: var(--text-muted);
+        }
+
+        .q-chip .qc-num {
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .q-chip .qc-res {
+            font-size: 11px;
+        }
+
+        .q-chip.correct .qc-res {
+            color: var(--success);
+        }
+
+        .q-chip.wrong .qc-res {
+            color: var(--danger);
+        }
+
+        .q-chip.skip .qc-res {
+            color: var(--text-muted);
+        }
+
+        @media(max-width:600px) {
+            body {
+                padding: 16px;
+            }
+
+            .modal-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .ht-preview-header {
+                flex-wrap: wrap;
+            }
+
+            .ht-ticket-label {
+                margin-left: 0;
+            }
+
+            .ht-student-row {
+                flex-direction: column;
+            }
+
+            .ht-qr {
+                margin-left: 0;
+            }
+        }
+        select option {
+            background: var(--bg2, #111111);
+            color: var(--text, #e2e8f0);
+        }
+    </style>
+    <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
+</head>
+
+<body>
+
+    <div id="df-toast-container"></div>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+     SECTION 1: EXAM SCHEDULE CALENDAR
+═══════════════════════════════════════════════════════════════ -->
+    <section class="dsh-section" id="sec-schedule">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fas fa-calendar-alt"></i> Exam Schedule
+            </div>
+            <div class="toggle-row">
+                <!-- Bell Reminder Button with Badge -->
+                <div style="position:relative">
+                    <button class="bell-btn" id="bellBtn" onclick="toggleReminderDropdown()" title="Exam Reminders">
+                        <i class="fas fa-bell"></i>
+                        <span class="bell-badge" id="bellBadge">0</span>
+                    </button>
+                    <!-- Reminder Dropdown -->
+                    <div class="reminder-dropdown" id="reminderDropdown">
+                        <div
+                            style="font-size:12px;font-weight:700;color:var(--text-muted);padding:4px 4px 10px;text-transform:uppercase;letter-spacing:.5px">
+                            Upcoming Reminders
+                        </div>
+                        <div id="reminderList"></div>
+                    </div>
+                </div>
+                <button class="pill-btn ghost active" id="btnCalView" onclick="setCalView('calendar')">
+                    <i class="fas fa-calendar"></i> Calendar
+                </button>
+                <button class="pill-btn ghost" id="btnListView" onclick="setCalView('list')">
+                    <i class="fas fa-list"></i> List
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <!-- Calendar View -->
+            <div id="calendarView">
+                <div class="cal-header">
+                    <button class="cal-nav-btn" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+                    <div class="cal-month-label" id="calMonthLabel">—</div>
+                    <button class="cal-nav-btn" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="cal-grid" id="calGrid"></div>
+            </div>
+
+            <!-- List View -->
+            <div id="listView" style="display:none">
+                <div class="exam-list" id="examListEl"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Exam Detail Modal -->
+    <div class="modal-backdrop" id="examModal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeExamModal()"><i class="fas fa-times"></i></button>
+            <div class="modal-title" id="em-title">—</div>
+            <div class="modal-sub" id="em-sub">—</div>
+            <div class="modal-info-grid" id="em-info-grid"></div>
+            <hr class="modal-divider">
+            <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text)">
+                <i class="fas fa-list-ul" style="color:var(--primary)"></i> Syllabus Topics
+            </div>
+            <ul class="topic-list" id="em-topics"></ul>
+            <hr class="modal-divider">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+                <div>
+                    <div
+                        style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">
+                        Hall Ticket Status</div>
+                    <div class="ht-status" id="em-ht-status">—</div>
+                </div>
+                <div>
+                    <div
+                        style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:6px">
+                        Instructions</div>
+                    <div style="font-size:12px;color:var(--text-muted);max-width:260px" id="em-instr">—</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+     SECTION 2: HALL TICKET DOWNLOAD
+═══════════════════════════════════════════════════════════════ -->
+    <section class="dsh-section" id="sec-hallticket">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fas fa-id-card"></i> Hall Ticket
+            </div>
+            <button class="pill-btn primary" id="htDownloadBtn" onclick="downloadHallTicketPDF()">
+                <i class="fas fa-download"></i> Download PDF
+            </button>
+        </div>
+
+        <div class="ht-card" id="hallTicketPreview">
+            <!-- Header Band -->
+            <div class="ht-preview-header">
+                <div class="ht-logo-circle">
+                    <img src="dsu_logo.png" alt="DSU Logo"
+                        onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'fas fa-university\'></i>'">
+                </div>
+                <div class="ht-college-info">
+                    <h3>Dayananda Sagar University</h3>
+                    <p>Hosur Rd, Kudlu Gate, Bengaluru — 560068 | www.dsu.edu.in | Dsu.loganathanm.in</p>
+                    <p style="margin-top:4px;font-size:11px;color:rgba(255,255,255,.5)">Autonomous University | NAAC
+                        Accredited</p>
+                </div>
+                <div class="ht-ticket-label">Hall Ticket</div>
+            </div>
+
+            <!-- Body -->
+            <div class="ht-body">
+                <!-- Student Details Row -->
+                <div class="ht-student-row">
+                    <div class="ht-photo" id="htPhotoEl">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Photo</span>
+                    </div>
+                    <div class="ht-student-details" id="htStudentDetails">
+                        <div class="ht-detail-row"><span class="htd-l">Name</span><span class="htd-v"
+                                id="htName">Loading...</span></div>
+                        <div class="ht-detail-row"><span class="htd-l">Roll No.</span><span class="htd-v"
+                                id="htRoll">—</span></div>
+                        <div class="ht-detail-row"><span class="htd-l">Register No.</span><span class="htd-v"
+                                id="htReg">—</span></div>
+                        <div class="ht-detail-row"><span class="htd-l">Semester</span><span class="htd-v"
+                                id="htSem">—</span></div>
+                        <div class="ht-detail-row"><span class="htd-l">Department</span><span class="htd-v"
+                                id="htDept">—</span></div>
+                        <div class="ht-detail-row"><span class="htd-l">Academic Year</span><span class="htd-v"
+                                id="htYear">2025-26</span></div>
+                    </div>
+                    <div class="ht-qr">
+                        <i class="fas fa-qrcode"></i>
+                        <span>Scan QR</span>
+                    </div>
+                </div>
+
+                <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text)">
+                    Examination Schedule
+                </div>
+                <!-- Exam Table -->
+                <div class="table-responsive"><table class="ht-table" id="htExamTable">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Code</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Venue</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
+                    <tbody id="htTableBody"></tbody>
+                </table></div>
+
+                <!-- Instructions -->
+                <div class="ht-instructions">
+                    <strong>⚠️ Important Instructions:</strong><br>
+                    1. Bring this hall ticket + a valid government photo ID card to every examination.<br>
+                    2. Report at the exam hall at least 15 minutes before the scheduled start time.<br>
+                    3. Electronic devices (mobile phones, smartwatches, etc.) are strictly prohibited.<br>
+                    4. This hall ticket must be produced to the invigilator on demand.
+                </div>
+
+                <!-- Hall ticket validity note -->
+                <div id="htAvailNote"
+                    style="display:none;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--warn);margin-bottom:16px">
+                    <i class="fas fa-info-circle"></i> <strong>Hall ticket download will be available 3 days before the
+                        first examination.</strong>
+                    Available from: <span id="htAvailDate"></span>
+                </div>
+            </div>
+
+            <!-- Footer with barcode -->
+            <div class="ht-footer-bar">
+                <div>
+                    <div
+                        style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">
+                        Barcode</div>
+                    <div class="barcode-placeholder"></div>
+                </div>
+                <div style="margin-left:auto;text-align:right;font-size:10px;color:var(--text-muted)">
+                    Generated: <span id="htGenDate">—</span><br>
+                    <span style="color:var(--text-muted)">ExamPro DSU | dsu.loganathanm.in</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+     SECTION 3: PREVIOUS EXAM HISTORY
+═══════════════════════════════════════════════════════════════ -->
+    <section class="dsh-section" id="sec-history">
+        <div class="section-header">
+            <div class="section-title">
+                <i class="fas fa-history"></i> Exam History
+            </div>
+            <button class="pill-btn ghost" onclick="exportHistoryPDF()">
+                <i class="fas fa-file-pdf" style="color:var(--danger)"></i> Export PDF
+            </button>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="history-stats" id="historyStats"></div>
+
+        <!-- Filters -->
+        <div class="filter-bar">
+            <select class="filter-select" id="filterSem" onchange="applyFilters()">
+                <option value="all">All Semesters</option>
+                <option value="1">Semester 1</option>
+                <option value="2">Semester 2</option>
+                <option value="3">Semester 3</option>
+                <option value="4">Semester 4</option>
+            </select>
+            <select class="filter-select" id="filterSubject" onchange="applyFilters()">
+                <option value="all">All Subjects</option>
+            </select>
+            <select class="filter-select" id="filterStatus" onchange="applyFilters()">
+                <option value="all">All Status</option>
+                <option value="Pass">Pass</option>
+                <option value="Fail">Fail</option>
+            </select>
+            <select class="filter-select" id="sortBy" onchange="applyFilters()">
+                <option value="date-desc">Latest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="score-desc">Highest Score</option>
+                <option value="score-asc">Lowest Score</option>
+            </select>
+            <button class="pill-btn ghost" onclick="resetFilters()">
+                <i class="fas fa-undo"></i> Reset
+            </button>
+        </div>
+
+        <!-- Table -->
+        <div class="card">
+            <div class="history-table-wrap">
+                <div class="table-responsive"><table class="history-table" id="historyTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortHistory('subject')">Subject <i class="fas fa-sort sort-icon"></i></th>
+                            <th onclick="sortHistory('date')">Date <i class="fas fa-sort sort-icon"></i></th>
+                            <th onclick="sortHistory('semester')">Sem <i class="fas fa-sort sort-icon"></i></th>
+                            <th onclick="sortHistory('score')">Score <i class="fas fa-sort sort-icon"></i></th>
+                            <th>Grade</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody"></tbody>
+                </table></div>
+            </div>
+            <div id="historyEmpty" style="display:none">
+                <div class="empty-state">
+                    <i class="fas fa-history"></i>
+                    <p>No exam history found for the selected filters.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        /* ╔══════════════════════════════════════════════════════════════
+           MOCK DATA — Swap these arrays with real API calls later
+           Structure is documented below each dataset
+           ══════════════════════════════════════════════════════════════ */
+
+        /**
+         * EXAM SCHEDULE DATA
+         * Replace with: fetch('/api/exams/schedule').then(r=>r.json())
+         * Fields: id, subject, subjectCode, date (YYYY-MM-DD), time, duration (min),
+         *         venue, type (Internal|External|Mid-term|Practical),
+         *         syllabus (string[]), instructions (string), hallTicketReady (bool)
+         */
+        const EXAM_SCHEDULE = [
+            {
+                id: 'ex1', subject: 'Data Structures & Algorithms', subjectCode: 'CS301',
+                date: (() => { const d = new Date(); d.setDate(d.getDate() + 2); return d.toISOString().split('T')[0]; })(),
+                time: '09:30 AM', duration: 180, venue: 'Block A — Room 101',
+                type: 'Internal', hallTicketReady: true,
+                syllabus: ['Arrays & Linked Lists', 'Stack & Queues', 'Trees (BST, AVL)', 'Graphs — BFS/DFS', 'Sorting Algorithms'],
+                instructions: 'Bring calculator. No textbooks allowed.',
+            },
+            {
+                id: 'ex2', subject: 'Computer Networks', subjectCode: 'CS401',
+                date: (() => { const d = new Date(); d.setDate(d.getDate() + 5); return d.toISOString().split('T')[0]; })(),
+                time: '02:00 PM', duration: 180, venue: 'Block B — Room 205',
+                type: 'External', hallTicketReady: true,
+                syllabus: ['OSI & TCP/IP Model', 'IP Addressing & Subnetting', 'Routing Protocols', 'Transport Layer', 'HTTP/HTTPS, DNS, SMTP'],
+                instructions: 'University exam. Bring hall ticket + ID.',
+            },
+            {
+                id: 'ex3', subject: 'Operating Systems', subjectCode: 'CS302',
+                date: (() => { const d = new Date(); d.setDate(d.getDate() + 8); return d.toISOString().split('T')[0]; })(),
+                time: '09:30 AM', duration: 90, venue: 'Lab 3 — Block C',
+                type: 'Practical', hallTicketReady: false,
+                syllabus: ['Process Management', 'Memory Management', 'File Systems', 'Scheduling Algorithms'],
+                instructions: 'Practical exam. Log into lab system using your roll number.',
+            },
+            {
+                id: 'ex4', subject: 'Database Management Systems', subjectCode: 'CS303',
+                date: (() => { const d = new Date(); d.setDate(d.getDate() + 14); return d.toISOString().split('T')[0]; })(),
+                time: '11:00 AM', duration: 180, venue: 'Block A — Room 102',
+                type: 'Mid-term', hallTicketReady: false,
+                syllabus: ['ER Model', 'SQL Queries', 'Normalization (1NF-BCNF)', 'Transactions & ACID', 'Indexing'],
+                instructions: 'Mid-term exam. Closed book.',
+            },
+            {
+                id: 'ex5', subject: 'Software Engineering', subjectCode: 'CS501',
+                date: (() => { const d = new Date(); d.setDate(d.getDate() + 21); return d.toISOString().split('T')[0]; })(),
+                time: '02:00 PM', duration: 180, venue: 'Block B — Room 301',
+                type: 'External', hallTicketReady: false,
+                syllabus: ['SDLC Models', 'Requirements Engineering', 'UML Diagrams', 'Testing Strategies', 'Project Management'],
+                instructions: 'University exam. No programmable calculators.',
+            },
+        ];
+
+        /**
+         * STUDENT PROFILE — for Hall Ticket
+         * Replace with: fetch('/api/student/profile').then(r=>r.json())
+         */
+        const STUDENT_PROFILE = {
+            name: 'Loganathan M',
+            rollNo: 'DSU/2024/CS/001',
+            regNo: '21BECS0042',
+            semester: '4th Semester',
+            department: 'B.E. Computer Science & Engineering',
+            photo: null, // URL to student photo; null shows placeholder
+            academicYear: '2025-26',
+        };
+
+        /**
+         * EXAM HISTORY DATA
+         * Replace with: fetch('/api/student/results').then(r=>r.json())
+         * Fields: id, subject, subjectCode, date, semester (number), marks, totalMarks,
+         *         grade, status (Pass|Fail), questions (optional breakdown array)
+         */
+        const EXAM_HISTORY = [
+            {
+                id: 'h1', subject: 'Programming in C', subjectCode: 'CS101',
+                date: '2024-11-15', semester: 1, marks: 85, totalMarks: 100,
+                grade: 'O', status: 'Pass',
+                questions: [
+                    { q: 'Q1 - Pointers', result: 'correct' }, { q: 'Q2 - Arrays', result: 'correct' },
+                    { q: 'Q3 - Functions', result: 'wrong' }, { q: 'Q4 - Strings', result: 'correct' },
+                    { q: 'Q5 - Structures', result: 'correct' },
+                ],
+            },
+            {
+                id: 'h2', subject: 'Mathematics I', subjectCode: 'MA101',
+                date: '2024-11-18', semester: 1, marks: 72, totalMarks: 100,
+                grade: 'A', status: 'Pass',
+                questions: [
+                    { q: 'Q1 - Limits', result: 'correct' }, { q: 'Q2 - Derivatives', result: 'correct' },
+                    { q: 'Q3 - Integration', result: 'wrong' }, { q: 'Q4 - Matrices', result: 'wrong' },
+                    { q: 'Q5 - Series', result: 'correct' },
+                ],
+            },
+            {
+                id: 'h3', subject: 'Digital Electronics', subjectCode: 'EC201',
+                date: '2024-12-10', semester: 2, marks: 91, totalMarks: 100,
+                grade: 'O', status: 'Pass',
+                questions: [
+                    { q: 'Q1 - Logic Gates', result: 'correct' }, { q: 'Q2 - Flip Flops', result: 'correct' },
+                    { q: 'Q3 - Counters', result: 'correct' }, { q: 'Q4 - Multiplexers', result: 'correct' },
+                    { q: 'Q5 - ADC/DAC', result: 'skip' },
+                ],
+            },
+            {
+                id: 'h4', subject: 'Data Structures', subjectCode: 'CS201',
+                date: '2025-04-22', semester: 3, marks: 78, totalMarks: 100,
+                grade: 'A', status: 'Pass',
+                questions: [
+                    { q: 'Q1 - Arrays', result: 'correct' }, { q: 'Q2 - Linked List', result: 'wrong' },
+                    { q: 'Q3 - Stacks', result: 'correct' }, { q: 'Q4 - Trees', result: 'correct' },
+                    { q: 'Q5 - Graphs', result: 'wrong' },
+                ],
+            },
+            {
+                id: 'h5', subject: 'Computer Organization', subjectCode: 'CS202',
+                date: '2025-04-25', semester: 3, marks: 55, totalMarks: 100,
+                grade: 'C', status: 'Pass',
+                questions: [
+                    { q: 'Q1 - CPU Architecture', result: 'correct' }, { q: 'Q2 - Memory', result: 'wrong' },
+                    { q: 'Q3 - I/O', result: 'wrong' }, { q: 'Q4 - Pipelining', result: 'wrong' },
+                    { q: 'Q5 - ISA', result: 'correct' },
+                ],
+            },
+            {
+                id: 'h6', subject: 'Theory of Computation', subjectCode: 'CS305',
+                date: '2025-05-02', semester: 3, marks: 38, totalMarks: 100,
+                grade: 'F', status: 'Fail',
+                questions: [
+                    { q: 'Q1 - DFA', result: 'wrong' }, { q: 'Q2 - NFA', result: 'wrong' },
+                    { q: 'Q3 - Context Free', result: 'skip' }, { q: 'Q4 - Pushdown', result: 'wrong' },
+                    { q: 'Q5 - Turing Machine', result: 'skip' },
+                ],
+            },
+        ];
+
+        /* ╔══════════════════════════════════════════════════════════════
+           TOAST HELPER
+           ══════════════════════════════════════════════════════════════ */
+        function dfToast(msg, type = 'info', duration = 4000) {
+            const c = document.getElementById('df-toast-container');
+            const t = document.createElement('div');
+            t.className = `df-toast ${type}`;
+            const icons = { info: 'fa-info-circle', success: 'fa-check-circle', warn: 'fa-exclamation-triangle' };
+            t.innerHTML = `<i class="fas ${icons[type] || 'fa-info-circle'}"></i><span>${msg}</span>`;
+            c.appendChild(t);
+            setTimeout(() => t.remove(), duration);
+        }
+
+        /* ╔══════════════════════════════════════════════════════════════
+           SECTION 1: EXAM SCHEDULE CALENDAR
+           ══════════════════════════════════════════════════════════════ */
+        let calCurrentDate = new Date();
+        let calViewMode = 'calendar'; // 'calendar' | 'list'
+        const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+        const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+        // Exam dates lookup for fast calendar rendering
+        const examDateMap = {};
+        EXAM_SCHEDULE.forEach(ex => {
+            examDateMap[ex.date] = (examDateMap[ex.date] || []);
+            examDateMap[ex.date].push(ex);
+        });
+
+        function setCalView(mode) {
+            calViewMode = mode;
+            document.getElementById('calendarView').style.display = mode === 'calendar' ? 'block' : 'none';
+            document.getElementById('listView').style.display = mode === 'list' ? 'block' : 'none';
+            document.getElementById('btnCalView').classList.toggle('active', mode === 'calendar');
+            document.getElementById('btnListView').classList.toggle('active', mode === 'list');
+            if (mode === 'calendar') renderCalendar();
+            else renderList();
+        }
+
+        function changeMonth(delta) {
+            calCurrentDate.setMonth(calCurrentDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const year = calCurrentDate.getFullYear();
+            const month = calCurrentDate.getMonth();
+            const today = new Date();
+            document.getElementById('calMonthLabel').textContent = `${MONTHS[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMon = new Date(year, month + 1, 0).getDate();
+            const grid = document.getElementById('calGrid');
+            let html = DAYS.map(d => `<div class="cal-day-label">${d}</div>`).join('');
+
+            for (let i = 0; i < firstDay; i++) html += `<div class="cal-cell empty"></div>`;
+            for (let d = 1; d <= daysInMon; d++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const isToday = (d === today.getDate() && month === today.getMonth() && year === today.getFullYear());
+                const hasExam = !!examDateMap[dateStr];
+                let cls = 'cal-cell';
+                if (isToday) cls += ' today';
+                if (hasExam) cls += ' has-exam';
+                html += `<div class="${cls}" onclick="onCalCellClick('${dateStr}')">
+            ${d}
+            ${hasExam ? '<div class="exam-dot"></div>' : ''}
+        </div>`;
+            }
+            grid.innerHTML = html;
+        }
+
+        function onCalCellClick(dateStr) {
+            const exams = examDateMap[dateStr];
+            if (!exams || !exams.length) return;
+            if (exams.length === 1) openExamModal(exams[0]);
+            else {
+                // If multiple exams on same day, open first (can be extended to a list)
+                openExamModal(exams[0]);
+            }
+        }
+
+        function renderList() {
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            const sorted = [...EXAM_SCHEDULE].sort((a, b) => new Date(a.date) - new Date(b.date));
+            const upcoming = sorted.filter(ex => new Date(ex.date) >= today);
+            const el = document.getElementById('examListEl');
+
+            if (!upcoming.length) {
+                el.innerHTML = `<div class="empty-state"><i class="fas fa-calendar-check"></i><p>No upcoming exams. Great job! 🎉</p></div>`;
+                return;
+            }
+
+            el.innerHTML = upcoming.map(ex => {
+                const d = new Date(ex.date);
+                const mon = MONTHS[d.getMonth()].substring(0, 3).toUpperCase();
+                const day = d.getDate();
+                const yr = d.getFullYear();
+                const isToday = d.toDateString() === new Date().toDateString();
+                const diff = Math.ceil((d - new Date().setHours(0, 0, 0, 0)) / 86400000);
+                const countdown = diff === 0 ? '📅 Today!'
+                    : diff === 1 ? '⏰ Tomorrow!'
+                        : `🗓️ In ${diff} days`;
+
+                const typeClass = ex.type.toLowerCase().replace('-', '');
+                return `
+        <div class="exam-list-item ${isToday ? 'today-exam' : ''}" onclick="openExamModal(window._examMap['${ex.id}'])">
+            <div class="exam-date-block">
+                <div class="month">${mon}</div>
+                <div class="day">${day}</div>
+                <div class="year">${yr}</div>
+            </div>
+            <div class="exam-list-meta">
+                <h4>${ex.subject}</h4>
+                <span class="badge ${typeClass}">${ex.type}</span>
+                <div class="exam-meta-row">
+                    <span class="meta-chip"><i class="fas fa-clock"></i> ${ex.time}</span>
+                    <span class="meta-chip"><i class="fas fa-hourglass-half"></i> ${ex.duration} min</span>
+                    <span class="meta-chip"><i class="fas fa-map-marker-alt"></i> ${ex.venue}</span>
+                    <span class="meta-chip"><i class="fas fa-tag"></i> ${ex.subjectCode}</span>
+                </div>
+                <div class="exam-countdown">${countdown}</div>
+            </div>
+            <div style="display:flex;align-items:center">
+                <i class="fas fa-chevron-right" style="color:var(--text-muted);font-size:13px"></i>
+            </div>
+        </div>`;
+            }).join('');
+        }
+
+        // Make exam data globally accessible for onclick handlers
+        window._examMap = {};
+        EXAM_SCHEDULE.forEach(ex => { window._examMap[ex.id] = ex; });
+
+        function openExamModal(ex) {
+            if (!ex) return;
+            document.getElementById('em-title').textContent = ex.subject;
+            document.getElementById('em-sub').textContent = `${ex.subjectCode} • ${ex.type} Examination`;
+
+            const typeClass = ex.type.toLowerCase().replace('-', '');
+            document.getElementById('em-info-grid').innerHTML = `
+        <div class="modal-info-item"><div class="mil">Date</div><div class="miv">${formatDate(ex.date)}</div></div>
+        <div class="modal-info-item"><div class="mil">Time</div><div class="miv">${ex.time}</div></div>
+        <div class="modal-info-item"><div class="mil">Duration</div><div class="miv">${ex.duration} minutes</div></div>
+        <div class="modal-info-item"><div class="mil">Venue</div><div class="miv">${ex.venue}</div></div>
+        <div class="modal-info-item"><div class="mil">Exam Type</div><div class="miv"><span class="badge ${typeClass}">${ex.type}</span></div></div>
+        <div class="modal-info-item"><div class="mil">Days Left</div><div class="miv" style="color:var(--warn)">${Math.ceil((new Date(ex.date) - new Date().setHours(0, 0, 0, 0)) / 86400000)} days</div></div>
+    `;
+
+            document.getElementById('em-topics').innerHTML = ex.syllabus
+                .map(t => `<li><i class="fas fa-circle"></i> ${t}</li>`).join('');
+
+            document.getElementById('em-instr').textContent = ex.instructions;
+
+            const htEl = document.getElementById('em-ht-status');
+            htEl.className = `ht-status ${ex.hallTicketReady ? 'available' : 'pending'}`;
+            htEl.innerHTML = ex.hallTicketReady
+                ? '<i class="fas fa-check-circle"></i> Available — Download Now'
+                : '<i class="fas fa-clock"></i> Not Yet Available';
+
+            document.getElementById('examModal').classList.add('show');
+        }
+
+        function closeExamModal() {
+            document.getElementById('examModal').classList.remove('show');
+        }
+
+        // Close modal on backdrop click
+        document.getElementById('examModal').addEventListener('click', function (e) {
+            if (e.target === this) closeExamModal();
+        });
+
+        /* ─ Reminder Notifications ─ */
+        function buildReminders() {
+            const now = new Date();
+            const reminders = [];
+
+            EXAM_SCHEDULE.forEach(ex => {
+                const examDT = new Date(`${ex.date}T${convertTo24(ex.time)}`);
+                const diffMs = examDT - now;
+                const diffH = diffMs / 3600000;
+
+                if (diffH > 0 && diffH <= 26) {
+                    // Within 24-26h window — show 24h reminder
+                    reminders.push({ exam: ex, type: '24h', label: `Exam tomorrow: ${ex.subject}`, unread: diffH <= 25 });
+                }
+                if (diffH > 0 && diffH <= 2) {
+                    // Within 1-2h window — show 1h reminder
+                    reminders.push({ exam: ex, type: '1h', label: `Exam in ~1 hour: ${ex.subject}`, unread: true });
+                }
+                if (diffH > 25 && diffH <= 48) {
+                    // Preview upcoming
+                    reminders.push({ exam: ex, type: 'soon', label: `Upcoming: ${ex.subject} on ${formatDate(ex.date)}`, unread: false });
+                }
+            });
+
+            return reminders;
+        }
+
+        function toggleReminderDropdown() {
+            const dd = document.getElementById('reminderDropdown');
+            dd.classList.toggle('open');
+            if (dd.classList.contains('open')) renderReminderList();
+        }
+
+        function renderReminderList() {
+            const reminders = buildReminders();
+            const el = document.getElementById('reminderList');
+            if (!reminders.length) {
+                el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">No upcoming reminders</div>`;
+                return;
+            }
+            el.innerHTML = reminders.map(r => `
+        <div class="reminder-item ${r.unread ? 'unread' : ''}" onclick="openExamModal(window._examMap['${r.exam.id}'])">
+            <div class="ri-icon">${r.type === '1h' ? '🔔' : r.type === '24h' ? '⏰' : '📅'}</div>
+            <div class="ri-text">
+                <div class="ri-title">${r.label}</div>
+                <div class="ri-time">${formatDate(r.exam.date)} • ${r.exam.time} • ${r.exam.venue}</div>
+            </div>
+        </div>
+    `).join('');
+        }
+
+        function updateBellBadge() {
+            const reminders = buildReminders();
+            const unread = reminders.filter(r => r.unread).length;
+            const badge = document.getElementById('bellBadge');
+            badge.textContent = unread;
+            badge.style.display = unread > 0 ? 'flex' : 'none';
+        }
+
+        // Close reminder dropdown when clicking outside
+        document.addEventListener('click', e => {
+            const btn = document.getElementById('bellBtn');
+            const dd = document.getElementById('reminderDropdown');
+            if (!btn.contains(e.target) && !dd.contains(e.target)) dd.classList.remove('open');
+        });
+
+        // Browser Notification API
+        function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().then(perm => {
+                    if (perm === 'granted') {
+                        dfToast('🔔 Exam reminders enabled!', 'success');
+                        checkBrowserNotifications();
+                    }
+                });
+            } else if (Notification.permission === 'granted') {
+                checkBrowserNotifications();
+            }
+        }
+
+        function checkBrowserNotifications() {
+            const now = new Date();
+            EXAM_SCHEDULE.forEach(ex => {
+                const examDT = new Date(`${ex.date}T${convertTo24(ex.time)}`);
+                const diffH = (examDT - now) / 3600000;
+
+                // Show browser notification if within 1–2h (would normally be stored in localStorage to avoid repeat)
+                const key24 = `notif_24h_${ex.id}`;
+                const key1h = `notif_1h_${ex.id}`;
+
+                if (diffH > 23 && diffH <= 25 && !localStorage.getItem(key24)) {
+                    new Notification(`📚 Exam Tomorrow: ${ex.subject}`, {
+                        body: `${formatDate(ex.date)} at ${ex.time} — ${ex.venue}`,
+                        icon: 'dsu_logo.png',
+                        tag: key24,
+                    });
+                    localStorage.setItem(key24, '1');
+                }
+                if (diffH > 0 && diffH <= 1.5 && !localStorage.getItem(key1h)) {
+                    new Notification(`⏰ Exam Starting Soon: ${ex.subject}`, {
+                        body: `In about 1 hour at ${ex.time} — ${ex.venue}`,
+                        icon: 'dsu_logo.png',
+                        tag: key1h,
+                    });
+                    localStorage.setItem(key1h, '1');
+                }
+            });
+        }
+
+        /* ─ Helpers ─ */
+        function formatDate(str) {
+            const d = new Date(str + 'T00:00:00');
+            return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function convertTo24(timeStr) {
+            // Converts "09:30 AM" → "09:30:00" or "02:00 PM" → "14:00:00"
+            const [time, meridian] = timeStr.split(' ');
+            let [h, m] = time.split(':').map(Number);
+            if (meridian === 'PM' && h !== 12) h += 12;
+            if (meridian === 'AM' && h === 12) h = 0;
+            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00`;
+        }
+
+        /* ╔══════════════════════════════════════════════════════════════
+           SECTION 2: HALL TICKET
+           ══════════════════════════════════════════════════════════════ */
+        function renderHallTicket() {
+            const p = STUDENT_PROFILE;
+            document.getElementById('htName').textContent = p.name;
+            document.getElementById('htRoll').textContent = p.rollNo;
+            document.getElementById('htReg').textContent = p.regNo;
+            document.getElementById('htSem').textContent = p.semester;
+            document.getElementById('htDept').textContent = p.department;
+            document.getElementById('htYear').textContent = p.academicYear;
+            document.getElementById('htGenDate').textContent = new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+            // Photo
+            if (p.photo) {
+                document.getElementById('htPhotoEl').innerHTML = `<img src="${p.photo}" alt="Student Photo">`;
+            }
+
+            // Availability check — 3 days before first exam
+            const sorted = [...EXAM_SCHEDULE].sort((a, b) => new Date(a.date) - new Date(b.date));
+            const firstExam = sorted[0];
+            const availDate = new Date(firstExam.date);
+            availDate.setDate(availDate.getDate() - 3);
+            const isAvailable = new Date() >= availDate;
+
+            const btn = document.getElementById('htDownloadBtn');
+            if (!isAvailable) {
+                btn.disabled = true;
+                btn.title = `Hall ticket will be available ${availDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}`;
+                document.getElementById('htAvailNote').style.display = 'block';
+                document.getElementById('htAvailDate').textContent = availDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+            }
+
+            // Build table
+            const tbody = document.getElementById('htTableBody');
+            tbody.innerHTML = EXAM_SCHEDULE.map(ex => {
+                const typeClass = ex.type.toLowerCase().replace('-', '');
+                return `<tr>
+            <td>${ex.subject}</td>
+            <td>${ex.subjectCode}</td>
+            <td>${formatDate(ex.date)}</td>
+            <td>${ex.time}</td>
+            <td>${ex.venue}</td>
+            <td><span class="badge ${typeClass}">${ex.type}</span></td>
+        </tr>`;
+            }).join('');
+        }
+
+        /**
+         * Downloads the Hall Ticket as a real PDF using jsPDF + autoTable
+         */
+        function downloadHallTicketPDF() {
+            if (!window.jspdf) { dfToast('PDF library loading...', 'warn'); return; }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const p = STUDENT_PROFILE;
+            const W = doc.internal.pageSize.getWidth();
+
+            // ─ Header Band ─
+            doc.setFillColor(108, 99, 255);
+            doc.rect(0, 0, W, 36, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16); doc.setFont('helvetica', 'bold');
+            doc.text('Dayananda Sagar University', W / 2, 13, { align: 'center' });
+            doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+            doc.text('Hosur Rd, Kudlu Gate, Bengaluru — 560068 | www.dsu.edu.in | Dsu.loganathanm.in', W / 2, 19, { align: 'center' });
+            doc.setFontSize(12); doc.setFont('helvetica', 'bold');
+            doc.text('EXAMINATION HALL TICKET', W / 2, 30, { align: 'center' });
+
+            // ─ Student Details ─
+            doc.setTextColor(0, 0, 0);
+            let y = 46;
+            doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+            doc.text('Student Details', 14, y); y += 6;
+            doc.setLineWidth(.3); doc.setDrawColor(200, 200, 200);
+            doc.line(14, y, W - 14, y); y += 5;
+
+            const details = [
+                ['Name', p.name],
+                ['Roll Number', p.rollNo],
+                ['Register Number', p.regNo],
+                ['Semester', p.semester],
+                ['Department', p.department],
+                ['Academic Year', p.academicYear],
+            ];
+            doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+            details.forEach(([lbl, val]) => {
+                doc.setTextColor(120, 120, 120); doc.text(lbl + ':', 14, y);
+                doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'bold');
+                doc.text(val, 55, y);
+                doc.setFont('helvetica', 'normal');
+                y += 7;
+            });
+
+            // ─ Exam Table ─
+            y += 4;
+            doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text('Examination Schedule', 14, y); y += 3;
+
+            doc.autoTable({
+                startY: y + 3,
+                head: [['Subject', 'Code', 'Date', 'Time', 'Venue', 'Type']],
+                body: EXAM_SCHEDULE.map(ex => [
+                    ex.subject, ex.subjectCode, formatDate(ex.date), ex.time, ex.venue, ex.type
+                ]),
+                styles: { fontSize: 9, cellPadding: 3 },
+                headStyles: { fillColor: [108, 99, 255], textColor: 255, fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [248, 248, 255] },
+                margin: { left: 14, right: 14 },
+            });
+
+            // ─ Instructions ─
+            const tableEndY = doc.lastAutoTable.finalY + 8;
+            doc.setFillColor(255, 248, 248);
+            doc.setDrawColor(239, 68, 68);
+            doc.rect(14, tableEndY, W - 28, 38, 'FD');
+            doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+            doc.setTextColor(239, 68, 68);
+            doc.text('Important Instructions:', 18, tableEndY + 6);
+            doc.setFont('helvetica', 'normal'); doc.setTextColor(80, 80, 80);
+            const instrs = [
+                '1. Bring this hall ticket + a valid government photo ID card to every examination.',
+                '2. Report at the exam hall at least 15 minutes before the scheduled start time.',
+                '3. Electronic devices (mobile phones, smartwatches, etc.) are strictly prohibited.',
+                '4. This hall ticket must be produced to the invigilator on demand.',
+            ];
+            instrs.forEach((line, i) => doc.text(line, 18, tableEndY + 13 + i * 6));
+
+            // ─ Footer ─
+            const pageH = doc.internal.pageSize.getHeight();
+            doc.setFillColor(240, 240, 240);
+            doc.rect(0, pageH - 14, W, 14, 'F');
+            doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+            doc.setTextColor(120, 120, 120);
+            doc.text(`Generated: ${new Date().toLocaleString('en-IN')} | ExamPro DSU — dsu.loganathanm.in`, W / 2, pageH - 5, { align: 'center' });
+
+            doc.save(`HallTicket_${p.regNo}_${new Date().getFullYear()}.pdf`);
+            dfToast('✅ Hall ticket PDF downloaded!', 'success');
+        }
+
+        /* ╔══════════════════════════════════════════════════════════════
+           SECTION 3: EXAM HISTORY
+           ══════════════════════════════════════════════════════════════ */
+        let filteredHistory = [...EXAM_HISTORY];
+        let expandedRowId = null;
+        let historySortKey = 'date';
+        let historySortAsc = false;
+
+        function renderHistoryStats() {
+            const total = EXAM_HISTORY.length;
+            const avg = total ? Math.round(EXAM_HISTORY.reduce((s, h) => s + (h.marks / h.totalMarks) * 100, 0) / total) : 0;
+            const passed = EXAM_HISTORY.filter(h => h.status === 'Pass').length;
+            const best = EXAM_HISTORY.reduce((b, h) => (h.marks / h.totalMarks) > (b.marks / b.totalMarks) ? h : b, EXAM_HISTORY[0] || { subject: '—', marks: 0, totalMarks: 1 });
+
+            const colors = {
+                avg: avg >= 75 ? '#10b981' : avg >= 50 ? '#f59e0b' : '#ef4444',
+            };
+
+            document.getElementById('historyStats').innerHTML = `
+        <div class="hstat">
+            <div class="hstat-val" style="color:${colors.avg}">${avg}%</div>
+            <div class="hstat-lbl">Overall Average</div>
+        </div>
+        <div class="hstat">
+            <div class="hstat-val" style="color:var(--primary)">${total}</div>
+            <div class="hstat-lbl">Total Exams Taken</div>
+        </div>
+        <div class="hstat">
+            <div class="hstat-val" style="color:var(--success)">${passed}</div>
+            <div class="hstat-lbl">Passed</div>
+        </div>
+        <div class="hstat">
+            <div class="hstat-val" style="color:var(--danger)">${total - passed}</div>
+            <div class="hstat-lbl">Failed</div>
+        </div>
+        <div class="hstat">
+            <div class="hstat-val" style="color:var(--accent);font-size:14px;font-weight:700;margin-top:4px">${best.subject || '—'}</div>
+            <div class="hstat-lbl">Best Subject</div>
+        </div>
+    `;
+        }
+
+        function populateSubjectFilter() {
+            const subjects = [...new Set(EXAM_HISTORY.map(h => h.subject))];
+            const sel = document.getElementById('filterSubject');
+            subjects.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s; opt.textContent = s;
+                sel.appendChild(opt);
+            });
+        }
+
+        function applyFilters() {
+            const sem = document.getElementById('filterSem').value;
+            const subject = document.getElementById('filterSubject').value;
+            const status = document.getElementById('filterStatus').value;
+            const sortVal = document.getElementById('sortBy').value;
+
+            filteredHistory = EXAM_HISTORY.filter(h => {
+                if (sem !== 'all' && String(h.semester) !== sem) return false;
+                if (subject !== 'all' && h.subject !== subject) return false;
+                if (status !== 'all' && h.status !== status) return false;
+                return true;
+            });
+
+            const [sortK, sortD] = sortVal.split('-');
+            const asc = sortD === 'asc';
+            filteredHistory.sort((a, b) => {
+                if (sortK === 'date') return asc ? new Date(a.date) - new Date(b.date) : new Date(b.date) - new Date(a.date);
+                if (sortK === 'score') return asc ? (a.marks / a.totalMarks) - (b.marks / b.totalMarks) : (b.marks / b.totalMarks) - (a.marks / a.totalMarks);
+                if (sortK === 'subject') return asc ? a.subject.localeCompare(b.subject) : b.subject.localeCompare(a.subject);
+                return 0;
+            });
+
+            renderHistoryTable();
+        }
+
+        function resetFilters() {
+            document.getElementById('filterSem').value = 'all';
+            document.getElementById('filterSubject').value = 'all';
+            document.getElementById('filterStatus').value = 'all';
+            document.getElementById('sortBy').value = 'date-desc';
+            applyFilters();
+        }
+
+        function sortHistory(key) {
+            if (historySortKey === key) historySortAsc = !historySortAsc;
+            else { historySortKey = key; historySortAsc = false; }
+            filteredHistory.sort((a, b) => {
+                let av, bv;
+                if (key === 'date') { av = new Date(a.date); bv = new Date(b.date); }
+                else if (key === 'score') { av = a.marks / a.totalMarks; bv = b.marks / b.totalMarks; }
+                else if (key === 'semester') { av = a.semester; bv = b.semester; }
+                else { av = a[key]; bv = b[key]; }
+                return historySortAsc ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
+            });
+            renderHistoryTable();
+        }
+
+        function renderHistoryTable() {
+            const tbody = document.getElementById('historyBody');
+            const emptyEl = document.getElementById('historyEmpty');
+
+            if (!filteredHistory.length) {
+                tbody.innerHTML = '';
+                emptyEl.style.display = 'block';
+                return;
+            }
+            emptyEl.style.display = 'none';
+
+            tbody.innerHTML = filteredHistory.map(h => {
+                const pct = Math.round((h.marks / h.totalMarks) * 100);
+                const barColor = pct >= 75 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
+                const gradeClass = `grade-${h.grade.toLowerCase()}`;
+                const isExpanded = expandedRowId === h.id;
+
+                // Question breakdown chips
+                const qChips = (h.questions || []).map(q =>
+                    `<div class="q-chip ${q.result}">
+                <div class="qc-num">${q.q}</div>
+                <div class="qc-res">${q.result === 'correct' ? '✓ Correct' : q.result === 'wrong' ? '✗ Wrong' : '— Skipped'}</div>
+            </div>`
+                ).join('');
+
+                return `
+        <tr onclick="toggleExpandRow('${h.id}')">
+            <td>${h.subject}<br><span style="font-size:11px;color:var(--text-muted)">${h.subjectCode}</span></td>
+            <td>${formatDate(h.date)}</td>
+            <td>Sem ${h.semester}</td>
+            <td>
+                <span style="font-weight:700;color:${barColor}">${h.marks}</span>
+                <span style="color:var(--text-muted)">/${h.totalMarks}</span>
+                <div style="font-size:11px;color:${barColor}">${pct}%</div>
+                <div class="score-bar"><div class="score-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>
+            </td>
+            <td><span class="badge ${gradeClass}">${h.grade}</span></td>
+            <td><span class="badge ${h.status === 'Pass' ? 'pass' : 'fail'}">${h.status}</span></td>
+            <td><i class="fas fa-chevron-${isExpanded ? 'up' : 'down'}" style="color:var(--text-muted);font-size:12px"></i></td>
+        </tr>
+        <tr class="expand-row ${isExpanded ? 'open' : ''}" id="expand-${h.id}">
+            <td class="expand-cell" colspan="7">
+                <div class="expand-content">${qChips || '<div style="color:var(--text-muted);font-size:12px;padding:8px">No question breakdown available.</div>'}</div>
+            </td>
+        </tr>`;
+            }).join('');
+        }
+
+        function toggleExpandRow(id) {
+            if (expandedRowId === id) {
+                expandedRowId = null;
+            } else {
+                expandedRowId = id;
+            }
+            renderHistoryTable();
+        }
+
+        /**
+         * Exports Exam History as a styled PDF report using jsPDF
+         */
+        function exportHistoryPDF() {
+            if (!window.jspdf) { dfToast('PDF library loading...', 'warn'); return; }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            const W = doc.internal.pageSize.getWidth();
+            const p = STUDENT_PROFILE;
+
+            // Header
+            doc.setFillColor(108, 99, 255);
+            doc.rect(0, 0, W, 28, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(16); doc.setFont('helvetica', 'bold');
+            doc.text('ExamPro DSU — Exam History Report', W / 2, 11, { align: 'center' });
+            doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+            doc.text(`${p.name}  |  ${p.rollNo}  |  ${p.department}  |  ${p.semester}`, W / 2, 20, { align: 'center' });
+
+            // Stats row
+            const total = EXAM_HISTORY.length;
+            const avg = total ? Math.round(EXAM_HISTORY.reduce((s, h) => s + (h.marks / h.totalMarks) * 100, 0) / total) : 0;
+            const passed = EXAM_HISTORY.filter(h => h.status === 'Pass').length;
+            doc.setTextColor(0, 0, 0); doc.setFontSize(9);
+            doc.text(`Generated: ${new Date().toLocaleString('en-IN')}  |  Total: ${total}  |  Passed: ${passed}  |  Overall Avg: ${avg}%`, 14, 34);
+
+            // Table
+            doc.autoTable({
+                startY: 38,
+                head: [['Subject', 'Code', 'Date', 'Semester', 'Marks', '%', 'Grade', 'Status']],
+                body: filteredHistory.map(h => [
+                    h.subject, h.subjectCode, formatDate(h.date),
+                    `Sem ${h.semester}`, `${h.marks}/${h.totalMarks}`,
+                    `${Math.round((h.marks / h.totalMarks) * 100)}%`,
+                    h.grade, h.status,
+                ]),
+                styles: { fontSize: 9, cellPadding: 3 },
+                headStyles: { fillColor: [108, 99, 255], textColor: 255, fontStyle: 'bold' },
+                alternateRowStyles: { fillColor: [248, 248, 255] },
+                didParseCell: data => {
+                    if (data.column.index === 7) {
+                        if (data.cell.raw === 'Pass') data.cell.styles.textColor = [16, 185, 129];
+                        else data.cell.styles.textColor = [239, 68, 68];
+                    }
+                },
+                margin: { left: 14, right: 14 },
+            });
+
+            // Footer
+            const pH = doc.internal.pageSize.getHeight();
+            doc.setFontSize(8); doc.setTextColor(150, 150, 150);
+            doc.text('ExamPro DSU — dsu.loganathanm.in | This is an auto-generated report.', W / 2, pH - 5, { align: 'center' });
+
+            doc.save(`ExamHistory_${p.regNo}_${new Date().getFullYear()}.pdf`);
+            dfToast('✅ History PDF exported!', 'success');
+        }
+
+        /* ╔══════════════════════════════════════════════════════════════
+           INIT — Run all sections on page load
+           ══════════════════════════════════════════════════════════════ */
+        (function init() {
+            // Section 1: Schedule
+            renderCalendar();
+            updateBellBadge();
+            requestNotificationPermission();
+
+            // Section 2: Hall Ticket
+            renderHallTicket();
+
+            // Section 3: History
+            renderHistoryStats();
+            populateSubjectFilter();
+            applyFilters();
+        })();
+    </script>
+</body>
+
+</html>
+

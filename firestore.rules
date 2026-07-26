@@ -1,0 +1,111 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== Admin Checks =====
+    function isSuperAdmin() {
+      return request.auth != null && (
+        request.auth.token.email in ['admin@dsu.edu','loganathan@dsu.edu','mloganathan082008@gmail.com'] ||
+        (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'super')
+      );
+    }
+    
+    function isDeptAdmin(dept) {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) && 
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'department' && 
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.department == dept;
+    }
+
+    function isAnyAdmin() {
+      return isSuperAdmin() || (request.auth != null && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+    }
+
+    // ===== Admins Collection =====
+    match /admins/{uid} {
+      allow read: if request.auth != null; // Needed for client-side checks
+      allow write: if isSuperAdmin();
+    }
+
+    // ===== OTP Verifications =====
+    match /otpVerifications/{uid} {
+      allow read, create, update, delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // ===== Students Collection =====
+    match /students/{studentId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.auth.uid == studentId;
+      allow update: if request.auth != null && (request.auth.uid == studentId || isSuperAdmin() || isDeptAdmin(resource.data.department));
+      allow delete: if isSuperAdmin();
+      
+      // Subcollection: Login History
+      match /loginHistory/{entryId} {
+        allow read, create, delete: if request.auth != null && request.auth.uid == studentId;
+        allow update: if false;
+      }
+    }
+
+    // ===== Direct Messages =====
+    match /directMessages/{msgId} {
+      allow read, update: if request.auth != null && (resource.data.studentId == request.auth.uid || isAnyAdmin());
+      allow create, delete: if isAnyAdmin();
+    }
+
+    // ===== Feedback Collection =====
+    match /feedback/{feedbackId} {
+      allow create: if request.auth != null; // Anonymous submission
+      allow read, update, delete: if isAnyAdmin();
+    }
+
+    // ===== Tests Collection =====
+    match /tests/{testId} {
+      allow read: if request.auth != null;
+      allow create: if isSuperAdmin() || isDeptAdmin(request.resource.data.department);
+      allow update, delete: if isSuperAdmin() || isDeptAdmin(resource.data.department);
+    }
+
+    // ===== Results Collection =====
+    match /results/{resultId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.studentId == request.auth.uid;
+      allow update, delete: if isSuperAdmin() || isDeptAdmin(resource.data.department);
+    }
+
+    // ===== Malpractice Logs =====
+    match /malpracticeLogs/{logId} {
+      allow read: if isAnyAdmin();
+      allow create: if request.auth != null;
+      allow update, delete: if isSuperAdmin();
+    }
+
+    // ===== Courses Collection =====
+    match /courses/{courseId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if isAnyAdmin();
+    }
+
+    // ===== Announcements / Notice Board / Exam Schedule =====
+    match /announcements/{id} { allow read: if request.auth != null; allow write: if isAnyAdmin(); }
+    match /notices/{id} { allow read: if request.auth != null; allow write: if isAnyAdmin(); }
+    match /exam_schedule/{id} { allow read: if request.auth != null; allow write: if isAnyAdmin(); }
+
+    // ===== Notifications =====
+    match /notifications/{notifId} {
+      allow read: if request.auth != null;
+      allow create: if isAnyAdmin() || (request.auth != null && request.resource.data.targetUID == request.auth.uid);
+      allow update, delete: if isAnyAdmin();
+    }
+
+    // ===== Staff Collection =====
+    match /staff/{staffId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if isAnyAdmin();
+    }
+
+    // ===== Deny all other access =====
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

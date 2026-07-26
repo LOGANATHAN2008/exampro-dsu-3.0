@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Profile | ExamPro DSU</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="theme.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
+        :root {
+            --primary: #6c63ff;
+            --primary-dark: #4f46e5;
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: var(--bg-main, #000000);
+            --glass: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text: var(--text-main, #e2e8f0);
+            --text-muted: #94a3b8;
+            --radius: 16px;
+        }
+
+        /* --- DESKTOP (DEFAULT) STYLES --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px;
+        }
+        
+        .bg-glow {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background: radial-gradient(ellipse at top left, rgba(108, 99, 255, .15) 0%, transparent 50%);
+        }
+        
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .back-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all .25s;
+        }
+        .back-btn:hover {
+            background: rgba(255, 255, 255, .1);
+            color: var(--text);
+        }
+
+        .settings-btn, .change-photo-badge {
+            display: none !important;
+        }
+        
+        .desktop-header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mobile-header-title {
+            display: none;
+        }
+
+        .profile-hero {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 36px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-hero::before {
+            content: '';
+            position: absolute;
+            top: -80px;
+            right: -80px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(108, 99, 255, .2) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .profile-top {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .avatar-wrap {
+            width: 100px;
+            height: 100px;
+            border-radius: 24px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #fff;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 12px 30px rgba(108, 99, 255, .4);
+        }
+
+        .avatar-wrap img { width: 100%; height: 100%; object-fit: cover; }
+
+        .avatar-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, .5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #fff;
+        }
+        .avatar-wrap:hover .avatar-overlay { display: flex; }
+
+        .change-photo-btn {
+            font-size: 12px;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .profile-name { font-size: 28px; font-weight: 850; margin-bottom: 4px; color: var(--text); }
+        .profile-reg { font-size: 14px; color: var(--text-muted); margin-bottom: 12px; }
+
+        .profile-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin: 16px 0 24px;
+        }
+
+        .chip {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text);
+        }
+
+        .chip-icon-box { display: none; }
+        .chip-label { display: none; }
+        .chip-value { font-weight: 500; color: var(--text); display: flex; align-items: center; gap: 8px;}
+        .chip i { color: var(--primary); font-size: 14px; }
+
+        .profile-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+        
+        .profile-actions-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            transition: all .3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary { 
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark)); 
+            color: #fff; 
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, var(--primary-dark), #3b28cc);
+            z-index: -1;
+            clip-path: circle(0% at 50% 50%);
+            transition: clip-path 0.4s ease-out;
+        }
+        .btn-primary:hover::before {
+            clip-path: circle(150% at 50% 50%);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(108, 99, 255, .4); }
+        .btn-outline { 
+            background: var(--glass); 
+            border: 1px solid var(--glass-border); 
+            color: var(--text); 
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .btn-outline::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--glass-border);
+            z-index: -1;
+            clip-path: circle(0% at 50% 50%);
+            transition: clip-path 0.4s ease-out;
+        }
+        .btn-outline:hover::before {
+            clip-path: circle(150% at 50% 50%);
+        }
+        .btn-danger { background: rgba(239, 68, 68, .15); border: 1px solid rgba(239, 68, 68, .3); color: var(--danger); }
+
+        /* --- MOBILE (iOS PREMIUM) STYLES --- */
+        @media (max-width: 768px) {
+            body {
+                background: var(--bg);
+                color: var(--text);
+            }
+            .bg-glow { display: none; }
+            .desktop-header-title { display: none !important; }
+            
+            .page-header { 
+                justify-content: space-between; 
+                position: relative; 
+            }
+            .mobile-header-title {
+                display: block;
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                font-weight: 800;
+                font-size: 19px;
+                color: var(--text);
+            }
+            .back-btn { background: var(--glass); border: 1px solid var(--glass-border); box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 50%; color: var(--text); }
+            .settings-btn { display: flex !important; width: 42px; height: 42px; background: var(--glass); border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 50%; color: var(--text); cursor: pointer; align-items: center; justify-content: center; padding: 0; }
+            
+            .profile-hero {
+                background: var(--glass);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid var(--glass-border);
+                border-radius: 24px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            }
+            .profile-hero::before { display: none; }
+            
+            .avatar-wrap {
+                border-radius: 50%;
+                border: 3px solid var(--bg);
+                box-shadow: 0 0 20px rgba(108, 99, 255, 0.5);
+            }
+            
+            .change-photo-btn { display: none !important; }
+            .change-photo-badge { display: flex !important; position: absolute; bottom: 0; right: 0; width: 32px; height: 32px; background: var(--glass); border-radius: 50%; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); color: var(--primary); cursor: pointer; font-size: 14px; }
+            
+            .profile-name { color: var(--text); }
+            .profile-reg { background: var(--glass-border); color: var(--primary); padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 12px; margin-top: 4px; display: inline-block; border: none; }
+            
+            .profile-chips {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+                width: 100%;
+                max-width: 500px;
+                margin: 24px auto;
+                text-align: left;
+            }
+            .chip-full { grid-column: 1 / -1; }
+            @media (max-width: 400px) { .profile-chips { grid-template-columns: 1fr; } }
+            
+            .chip {
+                background: transparent; border: none; padding: 8px 0; align-items: center; gap: 12px; display: flex; justify-content: flex-start;
+            }
+            .chip-icon-box { display: flex !important; width: 40px; height: 40px; border-radius: 10px; background: rgba(108, 99, 255, 0.1); align-items: center; justify-content: center; color: var(--primary); font-size: 16px; }
+            .chip-value i { display: none !important; }
+            .chip-icon-box i { display: block !important; }
+            .chip-text-col { display: flex; flex-direction: column; }
+            .chip-label { display: block !important; font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 2px; text-transform: none; letter-spacing: 0; }
+            .chip-value { font-size: 13px; color: var(--text); font-weight: 700; display: inline-block; }
+            
+            .profile-actions { flex-direction: column; align-items: center; width: 100%; max-width: 500px; }
+            .profile-actions-row { width: 100%; }
+            .profile-actions-row .btn { flex: 1; justify-content: center; }
+            
+            .btn-primary { 
+                background: linear-gradient(135deg, #6c63ff, #8b5cf6); 
+                border-radius: 14px; 
+                box-shadow: 0 4px 15px rgba(108, 99, 255, 0.3); 
+                position: relative;
+                overflow: hidden;
+                z-index: 1;
+            }
+            .btn-primary::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: linear-gradient(135deg, #8b5cf6, #c084fc);
+                z-index: -1;
+                clip-path: circle(0% at 50% 50%);
+                transition: clip-path 0.4s ease-out;
+            }
+            .btn-primary:active::before {
+                clip-path: circle(150% at 50% 50%);
+            }
+            .btn-outline { 
+                background: var(--glass); border: 2px solid var(--glass-border); color: var(--text); 
+                border-radius: 14px; 
+                position: relative;
+                overflow: hidden;
+                z-index: 1;
+            }
+            .btn-outline::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                background: var(--glass-border);
+                z-index: -1;
+                clip-path: circle(0% at 50% 50%);
+                transition: clip-path 0.4s ease-out;
+            }
+            .btn-outline:active::before {
+                clip-path: circle(150% at 50% 50%);
+            }
+            .btn-danger { width: 100%; justify-content: center; background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 14px; }
+        }
+
+        /* Edit Form */
+
+        #editSection {
+            display: none;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full {
+            grid-column: 1/-1;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .input-wrap input,
+        .input-wrap select {
+            width: 100%;
+            padding: 11px 12px 11px 36px;
+            background: rgba(255, 255, 255, .07);
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            transition: all .3s;
+            outline: none;
+        }
+
+        .input-wrap input:focus,
+        .input-wrap select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, .2);
+        }
+
+        .input-wrap select option {
+            background: #111111;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-val {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .stat-lbl {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Chart */
+        .chart-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .chart-wrap {
+            position: relative;
+            height: 200px;
+        }
+
+        /* Upload progress */
+        .upload-progress {
+            display: none;
+            background: rgba(255, 255, 255, .05);
+            border-radius: 8px;
+            height: 6px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .upload-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width .3s;
+        }
+
+        .spinner-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 15, 35, .95);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .spinner-big {
+            width: 52px;
+            height: 52px;
+            border: 4px solid rgba(108, 99, 255, .3);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: toastIn .3s ease;
+            max-width: 300px;
+        }
+
+        .toast.success {
+            background: rgba(16, 185, 129, .9);
+            color: #fff;
+        }
+
+        .toast.error {
+            background: rgba(239, 68, 68, .9);
+            color: #fff;
+        }
+
+        .toast.info {
+            background: rgba(108, 99, 255, .9);
+            color: #fff;
+        }
+
+        @keyframes toastIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1
+            }
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 13px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        @media(max-width:640px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full {
+                grid-column: auto;
+            }
+
+            body {
+                padding: 14px;
+            }
+
+            .profile-top {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .profile-chips {
+                justify-content: center;
+            }
+        }
+    </style>
+    <script src="theme.js"></script>
+<script>if(sessionStorage.getItem('appLoaded')) document.documentElement.classList.add('no-loader');</script>
+</head>
+
+<body>
+    <div class="bg-glow"></div>
+
+    <!-- Mass Loader -->
+    <div class="spinner-overlay" id="loader" style="display: none !important;">
+        <div class="loader-mass">
+            <div class="loader-ring"></div>
+            <img src="dsu_logo.png" alt="DSU" class="loader-logo">
+        </div>
+        <p class="loader-text">Loading Profile...</p>
+    </div>
+
+    <div class="container">
+        <div class="page-header">
+            <a class="back-btn" href="dashboard.html"><i class="fas fa-chevron-left"></i></a>
+            <div class="mobile-header-title">Profile</div>
+            <div class="desktop-header-title">
+                <img src="dsu_logo.png" alt="DSU Logo" style="height: 35px; width: auto;">
+                <div>
+                    <div style="font-size:20px;font-weight:800">My Profile</div>
+                    <div style="color:var(--text-muted);font-size:13px">Manage your account</div>
+                </div>
+            </div>
+            <button class="settings-btn" onclick="toggleEdit()"><i class="fas fa-gear"></i></button>
+        </div>
+
+        <!-- Profile Hero -->
+        <div class="profile-hero">
+            <div class="profile-top">
+                <div class="avatar-section" style="position: relative;">
+                    <div style="position: relative;">
+                        <div class="avatar-wrap" onclick="triggerUpload()">
+                            <div id="avatarContent"><i class="fas fa-user"></i></div>
+                        </div>
+                        <div class="change-photo-badge" onclick="triggerUpload()">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                    </div>
+                    <span class="change-photo-btn" onclick="triggerUpload()"><i class="fas fa-camera"></i> Change Photo</span>
+                    <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="uploadPhoto(this)" />
+                    <div class="upload-progress" id="uploadProgress">
+                        <div class="upload-bar" id="uploadBar"></div>
+                    </div>
+                </div>
+                <div class="profile-info">
+                    <div class="profile-name" id="profileName">Loading...</div>
+                    <div class="profile-reg-pill" id="profileReg" style="background: var(--glass-border); color: var(--primary); padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 12px; margin-top: 4px;">Reg No: -</div>
+                    <div class="profile-chips" id="profileChips"></div>
+                    <div class="profile-actions" style="width: 100%; max-width: 500px;">
+                        <div class="profile-actions-row" style="width: 100%;">
+                            <button class="btn btn-primary" onclick="toggleEdit()" style="flex: 1; justify-content: center;"><i class="fas fa-edit"></i> Edit Profile</button>
+                            <button class="btn btn-outline" onclick="window.location.href='result.html'" style="flex: 1; justify-content: center;"><i class="fas fa-chart-bar"></i> Results</button>
+                        </div>
+                        <button class="btn btn-danger" onclick="handleLogout()" style="width: 100%; justify-content: center;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Section -->
+        <div id="editSection">
+            <h3 style="font-size:15px;font-weight:700;margin-bottom:20px"><i class="fas fa-edit"
+                    style="color:var(--primary)"></i> Edit Profile</h3>
+            <div class="form-grid">
+                <div class="form-group full">
+                    <label>Full Name</label>
+                    <div class="input-wrap"><i class="fas fa-user"></i><input type="text" id="editName"
+                            placeholder="Full Name" /></div>
+                </div>
+                <div class="form-group">
+                    <label>College</label>
+                    <div class="input-wrap"><i class="fas fa-university"></i><input type="text" id="editCollege"
+                            placeholder="College Name" /></div>
+                </div>
+                <div class="form-group">
+                    <label>Branch</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-code-branch"></i>
+                        <select id="editBranch">
+                            <option value="">Select Campus</option>
+                            <option>Main Campus (Harohalli)</option>
+                            <option>City Innovation (Kudlu Gate)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-building"></i>
+                        <select id="editDept">
+                            <option value="" disabled selected>Select Course</option>
+                            <option>BCA</option>
+                            <option>MCA</option>
+                            <option>BSc CS</option>
+                            <option>BSc IT</option>
+                            <option>BBA</option>
+                            <option>BCom</option>
+                            <option>BTech</option>
+                            <option>MTech</option>
+                            <option>MBA</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Section</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-users"></i>
+                        <select id="editSection2">
+                            <option value="">Select</option>
+                            <option>A</option>
+                            <option>B</option>
+                            <option>C</option>
+                            <option>D</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Register Number</label>
+                    <div class="input-wrap"><i class="fas fa-id-card"></i><input type="text" id="editRegNo"
+                            placeholder="Register Number" /></div>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <div class="input-wrap"><i class="fas fa-phone"></i><input type="tel" id="editPhone"
+                            placeholder="Phone Number" /></div>
+                </div>
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <div class="input-wrap"><i class="fas fa-calendar"></i><input type="date" id="editDob" /></div>
+                </div>
+                <div class="form-group">
+                    <label>Roll Number</label>
+                    <div class="input-wrap"><i class="fas fa-hashtag"></i><input type="text" id="editRollNo"
+                            placeholder="Roll Number" /></div>
+                </div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;">
+                <button class="btn btn-primary" onclick="saveProfile()"><i class="fas fa-save"></i> Save
+                    Changes</button>
+                <button class="btn btn-outline" onclick="toggleEdit()">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-val" id="sTests">-</div>
+                <div class="stat-lbl">Tests Taken</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" style="color:var(--success)" id="sPassed">-</div>
+                <div class="stat-lbl">Passed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" style="color:var(--danger)" id="sFailed">-</div>
+                <div class="stat-lbl">Failed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-val" style="color:var(--accent)" id="sAvg">-</div>
+                <div class="stat-lbl">Avg Score</div>
+            </div>
+        </div>
+
+        <!-- Performance Chart -->
+        <div class="chart-card" style="margin-bottom: 20px;">
+            <div class="chart-title"><i class="fas fa-chart-bar" style="color:var(--primary)"></i> Performance Analysis
+            </div>
+            <div class="chart-wrap"><canvas id="perfChart"></canvas></div>
+        </div>
+
+        <!-- Security & Preferences -->
+        <div class="chart-card" style="margin-bottom: 20px;">
+            <div class="chart-title"><i class="fas fa-shield-alt" style="color:var(--primary)"></i> Security & Preferences</div>
+            <div style="display:flex; flex-direction:column; gap:15px; padding:10px;">
+                <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                    <input type="checkbox" id="twoFactorEnabled" style="width:18px; height:18px; accent-color:var(--primary);" onchange="togglePreference('twoFactorEnabled', this.checked)">
+                    <span style="font-weight:600;">Enable Email Two-Factor Authentication (OTP)</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+                    <input type="checkbox" id="smsEnabled" style="width:18px; height:18px; accent-color:var(--primary);" onchange="togglePreference('smsEnabled', this.checked)">
+                    <span style="font-weight:600;">Enable SMS Alerts (Requires valid phone number)</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Login Activity -->
+        <div class="chart-card" style="margin-bottom: 20px;">
+            <div class="chart-title"><i class="fas fa-history" style="color:var(--accent)"></i> Login Activity</div>
+            <div id="loginActivityList" style="display:flex; flex-direction:column; gap:10px; padding:10px;">
+                <div style="color:var(--text-muted); font-size:13px; text-align:center;">Loading activity...</div>
+            </div>
+        </div>
+
+        <footer>Developed by <a href="https://loganathanm.in" target="_blank">Loganathan</a></footer>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, setDoc, collection, query, where, onSnapshot, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
+            authDomain: "dsu-exam-system.firebaseapp.com",
+            projectId: "dsu-exam-system",
+            storageBucket: "dsu-exam-system.firebasestorage.app",
+            messagingSenderId: "155083834622",
+            appId: "1:155083834622:web:ff0a9780b88bad0b8811af",
+            measurementId: "G-1TPT1BR6GD"
+        };
+        // Cloudinary config
+        const CLOUDINARY_CLOUD_NAME = "dxsa93rr2"; 
+        const CLOUDINARY_UPLOAD_PRESET = "DSU EXAM"; 
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        let currentUser = null;
+        let studentData = {};
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = 'login.html'; return; }
+            currentUser = user;
+            await loadProfile(user);
+        });
+
+        async function loadProfile(user) {
+            try {
+                const snap = await getDoc(doc(db, 'students', user.uid));
+                if (snap.exists()) {
+                    studentData = snap.data();
+                } else {
+                    studentData = {
+                        name: user.displayName || 'Student',
+                        email: user.email || ''
+                    };
+                }
+                renderProfile(studentData);
+
+                // Realtime results
+                const q = query(collection(db, 'results'), where('studentId', '==', user.uid));
+                onSnapshot(q, (snap) => {
+                    const results = snap.docs.map(d => d.data());
+                    updateResultStats(results);
+                    renderProfileChart(results);
+                });
+
+                if (studentData.twoFactorEnabled) document.getElementById('twoFactorEnabled').checked = true;
+                if (studentData.smsEnabled) document.getElementById('smsEnabled').checked = true;
+
+                // Load Login Activity
+                try {
+                    const histQ = query(collection(db, 'students', user.uid, 'loginHistory'), orderBy('timestamp', 'desc'), limit(10));
+                    onSnapshot(histQ, (snap) => {
+                        const listEl = document.getElementById('loginActivityList');
+                        if (snap.empty) {
+                            listEl.innerHTML = '<div style="color:var(--text-muted); font-size:13px; text-align:center;">No login activity found.</div>';
+                            return;
+                        }
+                        let html = '';
+                        snap.forEach(d => {
+                            const data = d.data();
+                            const timeStr = data.timestamp ? timeAgo(data.timestamp.seconds * 1000) : 'Just now';
+                            html += `
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:8px;">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <i class="fas fa-desktop" style="color:var(--primary)"></i>
+                                    <span style="font-weight:600; font-size:14px;">${data.approxDevice || 'Unknown Device'}</span>
+                                </div>
+                                <div style="font-size:12px; color:var(--text-muted);">${timeStr}</div>
+                            </div>`;
+                        });
+                        listEl.innerHTML = html;
+                    }, (err) => {
+                        console.error('Login activity snapshot error:', err);
+                        const listEl = document.getElementById('loginActivityList');
+                        // Fallback: try without orderBy (no index needed)
+                        getDocs(collection(db, 'students', user.uid, 'loginHistory')).then(snap => {
+                            if (snap.empty) {
+                                listEl.innerHTML = '<div style="color:var(--text-muted); font-size:13px; text-align:center;">No login activity yet. Log out and log back in to start tracking.</div>';
+                                return;
+                            }
+                            const docs = snap.docs.map(d => ({...d.data()})).sort((a,b) => (b.timestamp?.seconds||0) - (a.timestamp?.seconds||0)).slice(0,10);
+                            let html = '';
+                            docs.forEach(data => {
+                                const timeStr = data.timestamp ? timeAgo(data.timestamp.seconds * 1000) : 'Just now';
+                                html += `
+                                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05); border-radius:8px;">
+                                    <div style="display:flex; align-items:center; gap:10px;">
+                                        <i class="fas fa-desktop" style="color:var(--primary)"></i>
+                                        <span style="font-weight:600; font-size:14px;">${data.approxDevice || 'Unknown Device'}</span>
+                                    </div>
+                                    <div style="font-size:12px; color:var(--text-muted);">${timeStr}</div>
+                                </div>`;
+                            });
+                            listEl.innerHTML = html;
+                        }).catch(() => {
+                            listEl.innerHTML = '<div style="color:var(--text-muted); font-size:13px; text-align:center;">No login activity yet. Log out and log back in to start tracking.</div>';
+                        });
+                    });
+                } catch(histErr) {
+                    console.error('Login history error:', histErr);
+                    document.getElementById('loginActivityList').innerHTML = '<div style="color:var(--text-muted); font-size:13px; text-align:center;">No login activity yet. Log out and log back in to start tracking.</div>';
+                }
+
+                document.getElementById('loader').style.display = 'none';
+            } catch (err) {
+                document.getElementById('loader').style.display = 'none';
+                showToast('Error loading profile', 'error');
+            }
+        }
+
+        function renderProfile(data) {
+            document.getElementById('profileName').textContent = data.name || 'Student';
+            document.getElementById('profileReg').textContent = `Reg No: ${data.registerNumber || '-'}`;
+
+            const chips = [
+                data.college && `<div class="chip"><div class="chip-icon-box"><i class="fas fa-university"></i></div><div class="chip-text-col"><span class="chip-label">University</span><span class="chip-value"><i class="fas fa-university"></i>${data.college}</span></div></div>`,
+                data.branch && `<div class="chip"><div class="chip-icon-box"><i class="fas fa-map-marker-alt"></i></div><div class="chip-text-col"><span class="chip-label">Campus</span><span class="chip-value"><i class="fas fa-map-marker-alt"></i>${data.branch}</span></div></div>`,
+                data.department && `<div class="chip"><div class="chip-icon-box"><i class="fas fa-book"></i></div><div class="chip-text-col"><span class="chip-label">Course</span><span class="chip-value"><i class="fas fa-book"></i>${data.department}</span></div></div>`,
+                data.section && `<div class="chip"><div class="chip-icon-box"><i class="fas fa-users"></i></div><div class="chip-text-col"><span class="chip-label">Section</span><span class="chip-value"><i class="fas fa-users"></i>${data.section}</span></div></div>`,
+                data.year && `<div class="chip"><div class="chip-icon-box"><i class="fas fa-calendar-alt"></i></div><div class="chip-text-col"><span class="chip-label">Year</span><span class="chip-value"><i class="fas fa-calendar-alt"></i>${data.year}</span></div></div>`,
+                data.email && `<div class="chip chip-full"><div class="chip-icon-box"><i class="fas fa-envelope"></i></div><div class="chip-text-col"><span class="chip-label">Email</span><span class="chip-value" style="word-break: break-word;"><i class="fas fa-envelope"></i>${data.email}</span></div></div>`,
+                data.phone && `<div class="chip"><div class="chip-icon-box"><i class="fas fa-phone"></i></div><div class="chip-text-col"><span class="chip-label">Phone</span><span class="chip-value"><i class="fas fa-phone"></i>${data.phone}</span></div></div>`,
+            ].filter(Boolean);
+            document.getElementById('profileChips').innerHTML = chips.join('');
+
+            if (data.photoURL) {
+                localStorage.setItem('userPhoto', data.photoURL);
+                document.getElementById('avatarContent').innerHTML = `<img src="${data.photoURL}" alt="Avatar">`;
+            } else {
+                localStorage.removeItem('userPhoto');
+                document.getElementById('avatarContent').innerHTML = `<i class="fas fa-user"></i>`;
+                const bottomNavProfile = document.querySelector('.mobile-bottom-nav a[href="profile.html"]');
+                if (bottomNavProfile) {
+                    bottomNavProfile.innerHTML = '<i class="fas fa-user"></i><span class="nav-text">Profile</span>';
+                }
+            }
+
+            // Pre-fill edit form
+            document.getElementById('editName').value = data.name || '';
+            document.getElementById('editCollege').value = data.college || '';
+            document.getElementById('editBranch').value = data.branch || '';
+            document.getElementById('editDept').value = data.department || '';
+            document.getElementById('editSection2').value = data.section || '';
+            document.getElementById('editRegNo').value = data.registerNumber || '';
+            document.getElementById('editPhone').value = data.phone || '';
+            document.getElementById('editDob').value = data.dob || '';
+            document.getElementById('editRollNo').value = data.rollNumber || '';
+        }
+
+        function updateResultStats(results) {
+            const pass = results.filter(r => (r.percentage || 0) >= 60).length;
+            const fail = results.length - pass;
+            const avg = results.length > 0 ? Math.round(results.reduce((s, r) => s + (r.percentage || 0), 0) / results.length) : 0;
+            document.getElementById('sTests').textContent = results.length;
+            document.getElementById('sPassed').textContent = pass;
+            document.getElementById('sFailed').textContent = fail;
+            document.getElementById('sAvg').textContent = avg + '%';
+        }
+
+        function renderProfileChart(results) {
+            const sorted = [...results].sort((a, b) => (a.submittedAt?.seconds || 0) - (b.submittedAt?.seconds || 0));
+            const ctx = document.getElementById('perfChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(r => r.testTitle || 'Test'),
+                    datasets: [{
+                        label: 'Score %',
+                        data: sorted.map(r => r.percentage || 0),
+                        backgroundColor: sorted.map(r => (r.percentage || 0) >= 60 ? 'rgba(16,185,129,.7)' : 'rgba(239,68,68,.7)'),
+                        borderRadius: 8, borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
+                        y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,.05)' }, min: 0, max: 100 }
+                    }
+                }
+            });
+        }
+
+        window.toggleEdit = function () {
+            const el = document.getElementById('editSection');
+            el.style.display = el.style.display === 'none' || !el.style.display ? 'block' : 'none';
+            if (el.style.display === 'block') {
+                document.getElementById('editName').value = studentData.name || '';
+                document.getElementById('editCollege').value = studentData.college || '';
+                document.getElementById('editBranch').value = studentData.branch || '';
+                document.getElementById('editDept').value = studentData.department || '';
+                document.getElementById('editSection2').value = studentData.section || '';
+                document.getElementById('editRegNo').value = studentData.registerNumber || '';
+                document.getElementById('editPhone').value = studentData.phone || '';
+                document.getElementById('editDob').value = studentData.dob || '';
+                document.getElementById('editRollNo').value = studentData.rollNumber || '';
+            }
+        };
+
+        function timeAgo(ms) {
+            const diff = Date.now() - ms;
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return Math.floor(diff/60000) + 'm ago';
+            if (diff < 86400000) return Math.floor(diff/3600000) + 'h ago';
+            return Math.floor(diff/86400000) + 'd ago';
+        }
+
+        window.togglePreference = async function (key, value) {
+            if (!currentUser) return;
+            try {
+                await updateDoc(doc(db, 'students', currentUser.uid), {
+                    [key]: value
+                });
+                showToast('Preference updated successfully', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('Failed to update preference', 'error');
+            }
+        };
+
+        window.saveProfile = async function () {
+            const updates = {
+                name: document.getElementById('editName').value.trim(),
+                college: document.getElementById('editCollege').value.trim(),
+                branch: document.getElementById('editBranch').value,
+                department: document.getElementById('editDept').value.trim(),
+                section: document.getElementById('editSection2').value,
+                registerNumber: document.getElementById('editRegNo').value.trim(),
+                phone: document.getElementById('editPhone').value.trim(),
+                dob: document.getElementById('editDob').value,
+                rollNumber: document.getElementById('editRollNo').value.trim()
+            };
+            try {
+                await setDoc(doc(db, 'students', currentUser.uid), updates, { merge: true });
+                Object.assign(studentData, updates);
+                renderProfile(studentData);
+                document.getElementById('editSection').style.display = 'none';
+                showToast('Profile updated successfully!', 'success');
+            } catch (err) {
+                showToast('Error saving profile.', 'error');
+            }
+        };
+
+        window.triggerUpload = function () { document.getElementById('photoInput').click(); };
+
+        window.uploadPhoto = async function (input) {
+            const file = input.files[0];
+            if (!file) return;
+            const progress = document.getElementById('uploadProgress');
+            const bar = document.getElementById('uploadBar');
+            progress.style.display = 'block';
+            bar.style.width = '30%';
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            formData.append('folder', 'exampro-avatars');
+
+            try {
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!res.ok) throw new Error('Upload failed');
+                
+                const data = await res.json();
+                const photoURL = data.secure_url;
+                
+                bar.style.width = '100%';
+                
+                // Update Firestore
+                await setDoc(doc(db, 'students', currentUser.uid), { photoURL }, { merge: true });
+                
+                // Update UI
+                localStorage.setItem('userPhoto', photoURL);
+                document.getElementById('avatarContent').innerHTML = `<img src="${photoURL}" alt="Avatar">`;
+                
+                // Update bottom nav instantly
+                const bottomNavProfile = document.querySelector('.mobile-bottom-nav a[href="profile.html"]');
+                if (bottomNavProfile) {
+                    bottomNavProfile.innerHTML = `<img src="${photoURL}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; margin-bottom: 2px;"><span class="nav-text">Profile</span>`;
+                }
+                showToast('Profile picture updated!', 'success');
+                
+                setTimeout(() => {
+                    progress.style.display = 'none';
+                    bar.style.width = '0%';
+                }, 2000);
+            } catch (err) {
+                console.error(err);
+                showToast('Upload failed. Check console for details.', 'error');
+                progress.style.display = 'none';
+            }
+        };
+
+        window.handleLogout = async function() {
+            try {
+                await signOut(auth);
+                window.location.href = 'login.html';
+            } catch(err) {
+                showToast('Logout failed', 'error');
+            }
+        };
+    </script>
+
+    <script>
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12') { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.key === 'U') { e.preventDefault(); return false; }
+        });
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle' };
+            toast.innerHTML = `<i class="fas ${icons[type]}"></i> ${msg}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3500);
+        }
+        window.showToast = showToast;
+    </script>
+</body>
+</html>
+
+
+

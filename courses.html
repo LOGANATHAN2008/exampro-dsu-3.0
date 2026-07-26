@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Courses | ExamPro DSU</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --primary: #6c63ff;
+            --primary-dark: #4f46e5;
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #000000;
+            --glass: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --radius: 16px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .bg-glow {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background: radial-gradient(ellipse at top right, rgba(6, 182, 212, .15) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .back-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: all .25s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, .1);
+            color: var(--text);
+        }
+
+        .header-left {
+            flex: 1;
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .filter-btn {
+            padding: 8px 18px;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass);
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .25s;
+            font-family: 'Inter', sans-serif;
+            opacity: 0;
+            animation: slideDownFadeCard 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        }
+        
+        .filter-btn:nth-child(1) { animation-delay: 0.1s; }
+        .filter-btn:nth-child(2) { animation-delay: 0.2s; }
+        .filter-btn:nth-child(3) { animation-delay: 0.3s; }
+        .filter-btn:nth-child(4) { animation-delay: 0.4s; }
+        .filter-btn:nth-child(5) { animation-delay: 0.5s; }
+
+        @keyframes slideDownFadeCard {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(108, 99, 255, .3);
+        }
+
+        .filter-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, .07);
+            color: var(--text);
+        }
+
+        /* Search */
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 10px 16px;
+            max-width: 360px;
+            flex: 1;
+        }
+
+        .search-box input {
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--text);
+            font-size: 13px;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Featured */
+        .featured-banner {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .featured-banner::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, .1);
+            border-radius: 50%;
+        }
+
+        .featured-banner h2 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .featured-banner p {
+            color: rgba(255, 255, 255, .8);
+            font-size: 14px;
+        }
+
+        .featured-btn {
+            padding: 12px 24px;
+            background: #fff;
+            color: var(--primary);
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all .3s;
+            white-space: nowrap;
+        }
+
+        .featured-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Courses grid */
+        .section-title {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i {
+            color: var(--primary);
+        }
+
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .course-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all .3s;
+        }
+
+        .course-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .4);
+            border-color: var(--primary);
+        }
+
+        .course-thumb {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+            background: linear-gradient(135deg, #111111, #2d2d5e);
+        }
+
+        .course-thumb-placeholder {
+            width: 100%;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .course-body {
+            padding: 18px;
+        }
+
+        .course-category {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .8px;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+
+        .course-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .course-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .course-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .meta-tag {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .course-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .instructor {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .inst-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .inst-name {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .start-btn {
+            padding: 7px 16px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .start-btn:hover {
+            box-shadow: 0 4px 12px rgba(108, 99, 255, .4);
+        }
+
+        .progress-bar-track {
+            height: 3px;
+            background: rgba(255, 255, 255, .1);
+            border-radius: 2px;
+            margin-bottom: 14px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        /* Course Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .85);
+            backdrop-filter: blur(10px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: rgba(26, 26, 62, .99);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            position: relative;
+        }
+
+        .modal-img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 24px 24px 0 0;
+        }
+
+        .modal-img-placeholder {
+            width: 100%;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 64px;
+            border-radius: 24px 24px 0 0;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, .6);
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-body h2 {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .modal-body .desc {
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            transition: all .3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+            flex: 2;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 8px 20px rgba(108, 99, 255, .4);
+        }
+
+        .btn-outline {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--text);
+            flex: 1;
+        }
+
+        .curriculum-list {
+            margin-top: 16px;
+        }
+
+        .curriculum-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, .05);
+            font-size: 13px;
+        }
+
+        .curriculum-item:last-child {
+            border-bottom: none;
+        }
+
+        .curriculum-item i {
+            color: var(--primary);
+            width: 16px;
+            text-align: center;
+        }
+
+        .spinner-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 15, 35, .95);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .spinner-big {
+            width: 52px;
+            height: 52px;
+            border: 4px solid rgba(108, 99, 255, .3);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 13px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        @media(max-width:640px) {
+            .courses-grid {
+                grid-template-columns: 1fr;
+            }
+
+            body {
+                padding: 14px;
+            }
+
+            .featured-banner {
+                padding: 20px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
+<script>if(sessionStorage.getItem('appLoaded')) document.documentElement.classList.add('no-loader');</script>
+</head>
+
+<body>
+    <div class="bg-glow"></div>
+
+        <!-- Mass Loader -->
+    <div class="spinner-overlay" id="loader" style="display: none !important;">
+        <div class="loader-mass">
+            <div class="loader-ring"></div>
+            <img src="dsu_logo.png" alt="DSU" class="loader-logo">
+        </div>
+        <p class="loader-text">Loading Courses...</p>
+    </div>
+
+    <div class="container">
+        <div class="page-header">
+            <a class="back-btn" href="dashboard.html"><i class="fas fa-arrow-left"></i></a>
+            <div class="header-left">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <img src="dsu_logo.png" alt="DSU Logo" style="height: 35px; width: auto;">
+                    <div style="font-size:22px;font-weight:800">Course Library</div>
+                </div>
+                <div style="color:var(--text-muted);font-size:13px">Explore and learn</div>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search" style="color:var(--text-muted)"></i>
+                <input type="text" placeholder="Search courses..." id="courseSearch"
+                    oninput="filterCourses(this.value)" />
+            </div>
+        </div>
+
+        <!-- Library Hero -->
+        <div class="featured-banner" style="background: linear-gradient(135deg, rgba(108, 99, 255, 0.2), rgba(6, 182, 212, 0.2)), url('dsu_campus.jpg'); background-size: cover; background-position: center; position: relative; overflow: hidden; border: 1px solid var(--glass-border);">
+            <div style="position: absolute; inset: 0; background: rgba(15, 15, 35, 0.85); z-index: 0;"></div>
+            <div style="position: relative; z-index: 1;">
+                <span style="background: var(--primary); color: #fff; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; margin-bottom: 12px; display: inline-block; letter-spacing: 1px;">Learning Management System</span>
+                <h2 style="font-size: 32px; font-weight: 850; margin-bottom: 10px; line-height: 1.2;">Digital Course <span style="background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Library</span></h2>
+                <p style="opacity: 0.7; font-size: 15px; max-width: 500px; margin-bottom: 24px;">Unlock your potential with our comprehensive collection of academic resources, video lectures, and interactive modules.</p>
+                <div style="display: flex; gap: 12px;">
+                    <button class="featured-btn" style="background: var(--primary); color: #fff; padding: 12px 24px; border: none; font-weight: 600;" onclick="document.getElementById('courseSearch').focus()">
+                        <i class="fas fa-search" style="margin-right: 8px;"></i> Start Learning
+                    </button>
+                    <button class="featured-btn" style="background: rgba(255, 255, 255, 0.1); border: 1px solid var(--glass-border); padding: 12px 24px;" onclick="window.open('https://ums.mydsi.org/StudentPanel/LMS/LMS_ContentStudentDashboard.aspx')">
+                        <i class="fas fa-external-link-alt" style="margin-right: 8px;"></i> External LMS
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 32px;">
+            <div style="font-weight: 700; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">Quick Access Categories</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
+                <div class="filter-btn active" style="padding: 18px; text-align: center; border-radius: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px;" onclick="setFilter(this,'all')">
+                    <i class="fas fa-th-large" style="font-size: 20px;"></i> All
+                </div>
+                <div class="filter-btn" style="padding: 18px; text-align: center; border-radius: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px;" onclick="setFilter(this,'cs')">
+                    <i class="fas fa-laptop-code" style="font-size: 20px;"></i> Computing
+                </div>
+                <div class="filter-btn" style="padding: 18px; text-align: center; border-radius: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px;" onclick="setFilter(this,'math')">
+                    <i class="fas fa-infinity" style="font-size: 20px;"></i> Mathematics
+                </div>
+                <div class="filter-btn" style="padding: 18px; text-align: center; border-radius: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px;" onclick="setFilter(this,'electronics')">
+                    <i class="fas fa-bolt" style="font-size: 20px;"></i> Electronics
+                </div>
+                <div class="filter-btn" style="padding: 18px; text-align: center; border-radius: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px;" onclick="setFilter(this,'lab')">
+                    <i class="fas fa-flask" style="font-size: 20px;"></i> Lab Sessions
+                </div>
+            </div>
+        </div>
+            <!-- Content Header -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+            <div style="font-size: 20px; font-weight: 850;">Available Content</div>
+            <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;" id="courseCount">0 Resources</div>
+        </div>
+
+        <div class="section-title"><i class="fas fa-book-open"></i> All Courses</div>
+
+        <div class="courses-grid" id="coursesGrid">
+            <div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--text-muted)">Loading courses...
+            </div>
+        </div>
+
+        <footer>Developed by <a href="https://loganathanm.in" target="_blank">Loganathan</a></footer>
+    </div>
+
+    <!-- Course Modal -->
+    <div class="modal-overlay" id="courseModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-img-placeholder" id="modalImgPlaceholder"
+                    style="background:linear-gradient(135deg,#111111,#2d2d5e)">📚</div>
+                <button class="close-modal" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--primary);margin-bottom:6px"
+                    id="modalCategory"></div>
+                <h2 id="modalTitle"></h2>
+                <p class="desc" id="modalDesc"></p>
+                <div id="modalMeta" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px"></div>
+                <div class="curriculum-list" id="modalCurriculum"></div>
+                <div class="modal-actions">
+                    <button class="btn btn-outline" onclick="closeModal()">Back</button>
+                    <button class="btn btn-primary" id="modalStartBtn"><i class="fas fa-play"></i> Start
+                        Learning</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+             apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
+             authDomain: "dsu-exam-system.firebaseapp.com",
+             projectId: "dsu-exam-system",
+             storageBucket: "dsu-exam-system.firebasestorage.app",
+             messagingSenderId: "155083834622",
+             appId: "1:155083834622:web:ff0a9780b88bad0b8811af",
+            measurementId: "G-1TPT1BR6GD"
+     };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        let allCourses = [];
+        let currentFilter = 'all';
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) { window.location.href = 'login.html'; return; }
+            loadCourses();
+        });
+
+        function loadCourses() {
+            const emojis = { cs: '💻', math: '📐', electronics: '🔌', lab: '🧪', default: '📚' };
+            const colors = [
+                'linear-gradient(135deg,#6c63ff,#4f46e5)',
+                'linear-gradient(135deg,#10b981,#059669)',
+                'linear-gradient(135deg,#f59e0b,#d97706)',
+                'linear-gradient(135deg,#06b6d4,#0891b2)',
+                'linear-gradient(135deg,#ef4444,#dc2626)',
+                'linear-gradient(135deg,#8b5cf6,#7c3aed)'
+            ];
+
+            onSnapshot(collection(db, 'courses'), (snap) => {
+                allCourses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                // If no courses in DB, show sample ones
+                if (!allCourses.length) {
+                    allCourses = getSampleCourses();
+                }
+
+                window._allCourses = allCourses;
+                document.getElementById('courseCount').textContent = allCourses.length + ' Resources';
+                renderCourses(allCourses, colors, emojis);
+                document.getElementById('loader').style.display = 'none';
+            });
+        }
+
+        function getSampleCourses() {
+            return [
+                { id: '1', title: 'Data Structures & Algorithms', category: 'cs', instructor: 'Prof. Sharma', duration: '40 hrs', lessons: 32, level: 'Intermediate', progress: 65, description: 'Master DSA concepts from arrays to graphs. Essential for competitive programming and interviews.', topics: ['Arrays & Strings', 'Linked Lists', 'Trees & Graphs', 'Sorting & Searching', 'Dynamic Programming'] },
+                { id: '2', title: 'Operating Systems', category: 'cs', instructor: 'Dr. Rajan', duration: '35 hrs', lessons: 28, level: 'Advanced', progress: 30, description: 'Deep dive into OS concepts including process management, memory management, file systems.', topics: ['Process Management', 'Memory Management', 'File Systems', 'I/O Management', 'Virtual Memory'] },
+                { id: '3', title: 'Database Management Systems', category: 'cs', instructor: 'Prof. Verma', duration: '30 hrs', lessons: 24, level: 'Beginner', progress: 80, description: 'Learn SQL, normalization, transactions, and database design principles.', topics: ['SQL Basics', 'Normalization', 'Transactions', 'Indexing', 'NoSQL Introduction'] },
+                { id: '4', title: 'Computer Networks', category: 'cs', instructor: 'Dr. Naik', duration: '38 hrs', lessons: 30, level: 'Intermediate', progress: 45, description: 'Understand the OSI model, TCP/IP, routing protocols, and network security.', topics: ['OSI Model', 'TCP/IP', 'Routing', 'Transport Layer', 'Network Security'] },
+                { id: '5', title: 'Discrete Mathematics', category: 'math', instructor: 'Prof. Kumar', duration: '28 hrs', lessons: 22, level: 'Beginner', progress: 20, description: 'Set theory, logic, graph theory, and combinatorics for computer science students.', topics: ['Set Theory', 'Logic & Proofs', 'Graph Theory', 'Combinatorics', 'Number Theory'] },
+                { id: '6', title: 'Digital Electronics', category: 'electronics', instructor: 'Dr. Patel', duration: '32 hrs', lessons: 26, level: 'Intermediate', progress: 0, description: 'Logic gates, combinational circuits, sequential circuits, and FPGA programming.', topics: ['Logic Gates', 'Boolean Algebra', 'Flip Flops', 'Counters', 'FPGA Basics'] },
+            ];
+        }
+
+        window.renderCourses = function (courses, clrs, emojis) {
+            const c = clrs || ['linear-gradient(135deg,#6c63ff,#4f46e5)', 'linear-gradient(135deg,#10b981,#059669)', 'linear-gradient(135deg,#f59e0b,#d97706)', 'linear-gradient(135deg,#06b6d4,#0891b2)'];
+            const em = emojis || {};
+            const grid = document.getElementById('coursesGrid');
+            if (!courses.length) {
+                grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--text-muted)"><i class="fas fa-book-open" style="font-size:48px;opacity:.3;display:block;margin-bottom:16px"></i>No courses found.</div>`;
+                return;
+            }
+            grid.innerHTML = courses.map((course, i) => `
+        <div class="course-card" id="course-${course.id}" onclick="openCourse('${course.id}')">
+          ${course.imageUrl
+                    ? `<img class="course-thumb" src="${course.imageUrl}" alt="${course.title}" onerror="this.style.display='none'">`
+                    : `<div class="course-thumb-placeholder" style="background:${c[i % c.length]}">${em[course.category] || em.default || '📚'}</div>`
+                }
+          <div class="course-body">
+            <div class="course-category">${course.category || 'General'}</div>
+            <div class="course-title">${course.title}</div>
+            <div class="course-desc">${course.description || 'Comprehensive course for students.'}</div>
+            <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${course.progress || 0}%"></div></div>
+            <div class="course-meta">
+              <span class="meta-tag"><i class="fas fa-clock"></i> ${course.duration || '30 hrs'}</span>
+              <span class="meta-tag"><i class="fas fa-play-circle"></i> ${course.lessons || 0} lessons</span>
+              <span class="meta-tag"><i class="fas fa-signal"></i> ${course.level || 'All Levels'}</span>
+            </div>
+            <div class="course-footer">
+              <div class="instructor">
+                <div class="inst-avatar">${(course.instructor || 'T')[0]}</div>
+                <span class="inst-name">${course.instructor || 'Instructor'}</span>
+              </div>
+              <button class="start-btn" onclick="event.stopPropagation();openCourse('${course.id}')">
+                ${(course.progress || 0) > 0 ? 'Continue' : 'Start'} <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+        };
+
+        window.openCourse = function (id) {
+            const c = window._allCourses?.find(x => x.id === id);
+            if (!c) return;
+            document.getElementById('modalCategory').textContent = c.category || 'Course';
+            document.getElementById('modalTitle').textContent = c.title;
+            document.getElementById('modalDesc').textContent = c.description || '';
+            document.getElementById('modalImgPlaceholder').textContent = '📚';
+            document.getElementById('modalMeta').innerHTML = [
+                `<span style="font-size:12px;color:var(--text-muted)"><i class="fas fa-clock" style="color:var(--primary)"></i> ${c.duration || '30 hrs'}</span>`,
+                `<span style="font-size:12px;color:var(--text-muted)"><i class="fas fa-signal" style="color:var(--primary)"></i> ${c.level || 'All Levels'}</span>`,
+                `<span style="font-size:12px;color:var(--text-muted)"><i class="fas fa-play-circle" style="color:var(--primary)"></i> ${c.lessons || 0} lessons</span>`,
+            ].join('');
+            document.getElementById('modalCurriculum').innerHTML = c.topics ? `
+        <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px">Topics Covered</div>
+        ${c.topics.map(t => `<div class="curriculum-item"><i class="fas fa-check-circle"></i> ${t}</div>`).join('')}
+      ` : '';
+            document.getElementById('modalStartBtn').onclick = () => {
+                closeModal();
+                showToast(`Starting: ${c.title}`, 'success');
+            };
+            document.getElementById('courseModal').classList.add('active');
+        };
+
+        window.closeModal = function () { document.getElementById('courseModal').classList.remove('active'); };
+
+        window.filterCourses = function (val) {
+            const filtered = window._allCourses?.filter(c =>
+                c.title?.toLowerCase().includes(val.toLowerCase()) ||
+                c.description?.toLowerCase().includes(val.toLowerCase())
+            ) || [];
+            window.renderCourses(filtered);
+        };
+
+        window.setFilter = function (btn, cat) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = cat;
+            const filtered = cat === 'all' ? window._allCourses : window._allCourses?.filter(c => c.category === cat);
+            window.renderCourses(filtered || []);
+        };
+    </script>
+
+    <script>
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === 'F12') { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) { e.preventDefault(); return false; }
+            if (e.ctrlKey && e.key === 'U') { e.preventDefault(); return false; }
+        });
+
+        function showToast(msg, type = 'info') {
+            let c = document.getElementById('tc');
+            if (!c) { c = document.createElement('div'); c.id = 'tc'; c.style = 'position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px'; document.body.appendChild(c); }
+            const t = document.createElement('div');
+            t.style = `padding:12px 18px;border-radius:12px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;animation:toastIn .3s ease;max-width:300px;backdrop-filter:blur(10px);background:${type === 'success' ? 'rgba(16,185,129,.9)' : type === 'error' ? 'rgba(239,68,68,.9)' : 'rgba(108,99,255,.9)'};color:#fff;font-family:'Inter',sans-serif`;
+            t.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : 'info'}-circle"></i> ${msg}`;
+            c.appendChild(t);
+            setTimeout(() => t.remove(), 3500);
+        }
+        window.showToast = showToast;
+    </script>
+</body>
+
+</html>
+
+

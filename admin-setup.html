@@ -1,0 +1,346 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Admin Setup | ExamPro DSU</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #000000;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, .07);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, .15);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, .5);
+        }
+
+        .icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: #fff;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 30px rgba(239, 68, 68, .4);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        p.sub {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 13px;
+            margin-bottom: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px 14px 13px 42px;
+            background: rgba(255, 255, 255, .07);
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 12px;
+            color: #e2e8f0;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: all .3s;
+        }
+
+        input:focus {
+            border-color: #6c63ff;
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, .2);
+        }
+
+        input::placeholder {
+            color: #64748b;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all .3s;
+            margin-top: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(239, 68, 68, .5);
+        }
+
+        .btn:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            display: none;
+            text-align: center;
+        }
+
+        .status.success {
+            display: block;
+            background: rgba(16, 185, 129, .15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, .3);
+        }
+
+        .status.error {
+            display: block;
+            background: rgba(239, 68, 68, .15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, .3);
+        }
+
+        .note {
+            margin-top: 20px;
+            background: rgba(108, 99, 255, .1);
+            border: 1px solid rgba(108, 99, 255, .2);
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 12px;
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+
+        .note b {
+            color: #6c63ff;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, .4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .warn {
+            background: rgba(245, 158, 11, .1);
+            border: 1px solid rgba(245, 158, 11, .2);
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 12px;
+            color: #f59e0b;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+    </style>
+    <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
+</head>
+
+<body>
+    <div class="card">
+        <div class="icon"><i class="fas fa-shield-alt"></i></div>
+        <h1>🔐 Admin Account Setup</h1>
+        <p class="sub">Create your admin account for ExamPro DSU</p>
+
+        <div class="warn"><i class="fas fa-exclamation-triangle"></i> This page creates admin account. Delete this file
+            after setup!</div>
+
+        <div class="form-group">
+            <label>Admin Email</label>
+            <div class="input-wrap">
+                <i class="fas fa-envelope"></i>
+                <input type="email" id="email" placeholder="admin@dsu.edu" value="admin@dsu.edu" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <div class="input-wrap">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="Min 8 characters" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Admin Name</label>
+            <div class="input-wrap">
+                <i class="fas fa-user-shield"></i>
+                <input type="text" id="name" placeholder="Admin Name" value="Admin" />
+            </div>
+        </div>
+
+        <button class="btn" id="createBtn" onclick="createAdmin()">
+            <i class="fas fa-user-plus"></i> Create Admin Account
+        </button>
+
+        <div class="status" id="status"></div>
+
+        <div class="note">
+            <b>📌 How it works:</b><br>
+            1. Enter email, password & name above<br>
+            2. Click "Create Admin Account"<br>
+            3. Account is created in Firebase Auth<br>
+            4. Go to <b>login.html</b> → Admin tab → Login<br>
+            5. You'll be redirected to <b>admin.html</b> panel<br><br>
+            <b>⚠️ Delete this file after creating admin!</b>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
+            authDomain: "dsu-exam-system.firebaseapp.com",
+            projectId: "dsu-exam-system",
+            storageBucket: "dsu-exam-system.firebasestorage.app",
+            messagingSenderId: "155083834622",
+            appId: "1:155083834622:web:ff0a9780b88bad0b8811af",
+            measurementId: "G-1TPT1BR6GD"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+
+        window.createAdmin = async function () {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const name = document.getElementById('name').value.trim();
+            const btn = document.getElementById('createBtn');
+            const status = document.getElementById('status');
+
+            if (!email || !password) {
+                status.className = 'status error';
+                status.textContent = '❌ Email and password required!';
+                return;
+            }
+            if (password.length < 8) {
+                status.className = 'status error';
+                status.textContent = '❌ Password must be at least 8 characters!';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Creating Admin...';
+            status.style.display = 'none';
+
+            try {
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(cred.user, { displayName: name });
+
+                await setDoc(doc(db, 'students', cred.user.uid), {
+                    uid: cred.user.uid,
+                    name: name,
+                    email: email,
+                    registerNumber: 'ADMIN',
+                    college: 'Dayananda Sagar University',
+                    branch: 'Administration',
+                    department: 'Admin',
+                    section: '-',
+                    year: '-',
+                    photoURL: '',
+                    role: 'admin',
+                    createdAt: serverTimestamp(),
+                    lastLogin: serverTimestamp()
+                });
+
+                status.className = 'status success';
+                status.innerHTML = `✅ <b>Admin account created!</b><br><br>
+        📧 Email: <b>${email}</b><br>
+        🔑 Password: <b>••••••••</b><br><br>
+        👉 Now go to <a href="login.html" style="color:#10b981;font-weight:700">login.html</a> → Admin tab → Login!`;
+
+                btn.innerHTML = '<i class="fas fa-check"></i> Admin Created!';
+                btn.style.background = 'linear-gradient(135deg,#10b981,#059669)';
+
+            } catch (err) {
+                let msg = '❌ Failed: ' + err.message;
+                if (err.code === 'auth/email-already-in-use') {
+                    msg = '⚠️ This email is already registered! Go to login.html → Admin tab to login.';
+                    status.className = 'status success';
+                } else {
+                    status.className = 'status error';
+                }
+                status.textContent = msg;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-plus"></i> Create Admin Account';
+            }
+        };
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,157 @@
+# ExamPro DSU - robots.txt
+# Student Portal & Exam Management System
+# https://dsu.loganathanm.in/
+# Last updated: 2026-07-23
+
+# ─────────────────────────────────────────────────────────────
+#  GENERAL CRAWLERS (Google, Bing, Yahoo, Yandex, DuckDuckGo)
+# ─────────────────────────────────────────────────────────────
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /login.html
+Allow: /register.html
+Allow: /about.html
+Allow: /courses.html
+Allow: /dsu_logo.png
+Allow: /theme.css
+Allow: /sitemap.xml
+Allow: /manifest.json
+
+# Block authenticated/private pages from public indexing
+Disallow: /dashboard.html
+Disallow: /result.html
+Disallow: /admin.html
+Disallow: /admin-setup.html
+Disallow: /profile.html
+Disallow: /test.html
+Disallow: /js/
+Disallow: /firestore.rules
+
+# ─────────────────────────────────────────────────────────────
+#  GOOGLE
+# ─────────────────────────────────────────────────────────────
+User-agent: Googlebot
+Allow: /
+Disallow: /dashboard.html
+Disallow: /result.html
+Disallow: /admin.html
+Disallow: /admin-setup.html
+Disallow: /profile.html
+Disallow: /test.html
+Disallow: /js/
+Crawl-delay: 1
+
+User-agent: Googlebot-Image
+Allow: /dsu_logo.png
+
+# ─────────────────────────────────────────────────────────────
+#  BING / MICROSOFT
+# ─────────────────────────────────────────────────────────────
+User-agent: Bingbot
+Allow: /
+Disallow: /dashboard.html
+Disallow: /result.html
+Disallow: /admin.html
+Disallow: /admin-setup.html
+Disallow: /profile.html
+Disallow: /test.html
+Disallow: /js/
+Crawl-delay: 1
+
+# Microsoft Copilot
+User-agent: MicrosoftPreview
+Allow: /
+Disallow: /dashboard.html
+Disallow: /result.html
+Disallow: /admin.html
+
+# ─────────────────────────────────────────────────────────────
+#  AI SEARCH CRAWLERS (AEO + GEO Optimization)
+# ─────────────────────────────────────────────────────────────
+
+# OpenAI / ChatGPT Search
+User-agent: GPTBot
+Allow: /
+Allow: /index.html
+Allow: /login.html
+Allow: /register.html
+Allow: /about.html
+Disallow: /dashboard.html
+Disallow: /result.html
+Disallow: /admin.html
+Disallow: /js/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /dashboard.html
+Disallow: /result.html
+Disallow: /admin.html
+
+# Anthropic / Claude AI
+User-agent: anthropic-ai
+Allow: /
+Allow: /index.html
+Allow: /login.html
+Allow: /register.html
+Allow: /about.html
+Disallow: /dashboard.html
+Disallow: /result.html
+Disallow: /admin.html
+Disallow: /js/
+
+User-agent: Claude-Web
+Allow: /
+Disallow: /dashboard.html
+Disallow: /result.html
+Disallow: /admin.html
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+Allow: /index.html
+Allow: /login.html
+Allow: /register.html
+Allow: /about.html
+Disallow: /dashboard.html
+Disallow: /result.html
+Disallow: /admin.html
+Disallow: /js/
+
+# Google AI / Gemini
+User-agent: Google-Extended
+Allow: /
+Allow: /index.html
+Allow: /login.html
+Allow: /register.html
+Allow: /about.html
+Disallow: /dashboard.html
+Disallow: /result.html
+Disallow: /admin.html
+Disallow: /js/
+
+# Brave Search
+User-agent: Brave
+Allow: /
+Disallow: /dashboard.html
+Disallow: /result.html
+Disallow: /admin.html
+
+# DuckDuckGo
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /dashboard.html
+Disallow: /result.html
+Disallow: /admin.html
+
+# Yandex
+User-agent: YandexBot
+Allow: /
+Disallow: /dashboard.html
+Disallow: /result.html
+Disallow: /admin.html
+
+# ─────────────────────────────────────────────────────────────
+#  SITEMAP LOCATION
+# ─────────────────────────────────────────────────────────────
+Sitemap: https://dsu.loganathanm.in/sitemap.xml

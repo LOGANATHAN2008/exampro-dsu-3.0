@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="//www.google.com/schemas/sitemap.xsl"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+                            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!--  ExamPro DSU Sitemap                                             -->
+    <!--  Student Portal & Exam Management System                         -->
+    <!--  https://dsu.loganathanm.in/                                    -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+
+    <!-- HOME PAGE -->
+    <url>
+        <loc>https://dsu.loganathanm.in/</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dsu.loganathanm.in/"/>
+        <image:image>
+            <image:loc>https://dsu.loganathanm.in/dsu_logo.png</image:loc>
+            <image:title>ExamPro DSU Student Portal Logo</image:title>
+            <image:caption>ExamPro DSU - Student Portal for Registration, Hall Ticket, Results and Internal Marks</image:caption>
+        </image:image>
+    </url>
+
+    <!-- STUDENT LOGIN -->
+    <url>
+        <loc>https://dsu.loganathanm.in/login.html</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dsu.loganathanm.in/login.html"/>
+    </url>
+
+    <!-- STUDENT REGISTRATION -->
+    <url>
+        <loc>https://dsu.loganathanm.in/register.html</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.9</priority>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dsu.loganathanm.in/register.html"/>
+    </url>
+
+    <!-- ABOUT US -->
+    <url>
+        <loc>https://dsu.loganathanm.in/about.html</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dsu.loganathanm.in/about.html"/>
+    </url>
+
+    <!-- COURSES -->
+    <url>
+        <loc>https://dsu.loganathanm.in/courses.html</loc>
+        <lastmod>2026-07-23</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dsu.loganathanm.in/courses.html"/>
+    </url>
+
+    <!-- NOTE: dashboard.html, result.html, admin.html, profile.html are -->
+    <!-- authenticated pages and are intentionally excluded from sitemap  -->
+
+</urlset>
