@@ -787,9 +787,7 @@
 
                         await setDoc(otpDocRef, { verified: true }, { merge: true });
                         showToast('Welcome back! Redirecting...', 'success');
-                        setTimeout(() => {
-                            window.location.href = isAdmin ? 'admin.html' : 'dashboard.html';
-                        }, 800);
+                        window.location.replace(isAdmin ? 'admin.html' : 'dashboard.html');
                     };
 
                     resetBtn();
@@ -797,9 +795,7 @@
                 }
 
                 showToast('Welcome back! Redirecting...', 'success');
-                setTimeout(() => {
-                    window.location.href = isAdmin ? 'admin.html' : 'dashboard.html';
-                }, 800);
+                window.location.replace(isAdmin ? 'admin.html' : 'dashboard.html');
 
             } catch (err) {
                 console.error(err);
