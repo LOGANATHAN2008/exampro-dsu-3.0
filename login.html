@@ -435,7 +435,7 @@
                     onmouseout="this.style.color='var(--text-muted)'">About</a>
             </div>
 
-            <div class="form-container">
+            <div class="form-container" id="loginContent" style="opacity: 0; pointer-events: none; transition: opacity 0.4s ease;">
                 <div class="form-header">
                     <img src="dsu_logo.png" alt="DSU Logo">
                 </div>
@@ -557,7 +557,12 @@
                     }
                 } catch(e) {
                     console.error("Auth check failed", e);
+                    document.getElementById('loginContent').style.opacity = '1';
+                    document.getElementById('loginContent').style.pointerEvents = 'auto';
                 }
+            } else {
+                document.getElementById('loginContent').style.opacity = '1';
+                document.getElementById('loginContent').style.pointerEvents = 'auto';
             }
         });
 
