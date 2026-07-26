@@ -545,6 +545,22 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Auto-redirect if already logged in
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+                    if (adminDoc.exists()) {
+                        window.location.replace('admin.html');
+                    } else {
+                        window.location.replace('dashboard.html');
+                    }
+                } catch(e) {
+                    console.error("Auth check failed", e);
+                }
+            }
+        });
+
         let userType = 'student';
         const ADMIN_EMAILS = ['admin@dsu.edu', 'loga@dsu.edu'];
 
