@@ -2320,6 +2320,15 @@
             const readState = JSON.parse(localStorage.getItem(`readMsgs_${currentUser.uid}`) || '[]');
             const unreadCount = msgs.filter(m => !readState.includes(m.id)).length;
             
+            let hasNewMsg = false;
+            if (window.lastMsgIds) {
+                msgs.forEach(m => {
+                    if (!window.lastMsgIds.has(m.id)) hasNewMsg = true;
+                });
+            }
+            window.lastMsgIds = new Set(msgs.map(m => m.id));
+            if (hasNewMsg && msgs.length > 0) showToast("You received a new message from Admin!", "success");
+            
             if (msgs.length > 0) {
                 list.innerHTML = msgs.map(m => {
                     const isUnread = !readState.includes(m.id);
@@ -2357,6 +2366,15 @@
             window.currentNotifIds = notifs.map(n => n.id);
             const readState = JSON.parse(localStorage.getItem(`readNotifs_${uid}`) || '[]');
             const unreadCount = notifs.filter(n => !readState.includes(n.id)).length;
+            
+            let hasNewNotif = false;
+            if (window.lastNotifIds) {
+                notifs.forEach(n => {
+                    if (!window.lastNotifIds.has(n.id)) hasNewNotif = true;
+                });
+            }
+            window.lastNotifIds = new Set(notifs.map(n => n.id));
+            if (hasNewNotif && notifs.length > 0) showToast("You have a new notification!", "info");
 
             if (notifs.length > 0) {
                 list.innerHTML = notifs.map(n => {
