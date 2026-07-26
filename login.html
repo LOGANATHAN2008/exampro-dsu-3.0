@@ -789,7 +789,7 @@
                         showToast('Welcome back! Redirecting...', 'success');
                         setTimeout(() => {
                             window.location.replace(isAdmin ? 'admin.html' : 'dashboard.html');
-                        }, 600);
+                        }, 3000);
                     };
 
                     resetBtn();
@@ -799,7 +799,7 @@
                 showToast('Welcome back! Redirecting...', 'success');
                 setTimeout(() => {
                     window.location.replace(isAdmin ? 'admin.html' : 'dashboard.html');
-                }, 600);
+                }, 3000);
 
             } catch (err) {
                 console.error(err);
