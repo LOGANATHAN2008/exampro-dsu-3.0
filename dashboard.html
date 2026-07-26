@@ -124,7 +124,7 @@
             top: 0;
             width: var(--sidebar-w);
             height: 100vh;
-            background: rgba(15, 15, 35, 0.95);
+            background: var(--bg);
             backdrop-filter: blur(20px);
             border-right: 1px solid var(--glass-border);
             display: flex;
@@ -870,7 +870,7 @@
             right: -360px;
             width: 360px;
             height: 100vh;
-            background: rgba(15, 15, 35, 0.98);
+            background: var(--bg);
             backdrop-filter: blur(20px);
             border-left: 1px solid var(--glass-border);
             z-index: 200;
@@ -964,7 +964,7 @@
             justify-content: space-between;
             padding: 10px 16px;
             margin: 12px 16px;
-            background: rgba(15, 15, 35, 0.6);
+            background: var(--glass);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1101,7 +1101,7 @@
             bottom: 100px;
             right: 24px;
             width: 340px;
-            background: rgba(15, 15, 35, .98);
+            background: var(--bg);
             backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border);
             border-radius: 20px;
@@ -2789,6 +2789,9 @@
         }
         function closeSidebar() {
             document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('notifPanel').classList.remove('open');
+            const msgPanel = document.getElementById('msgPanel');
+            if (msgPanel) msgPanel.classList.remove('open');
             document.getElementById('overlay').classList.remove('active');
         }
         window.toggleSidebar = toggleSidebar;
@@ -2796,7 +2799,17 @@
         window.toggleNotifications = function() {
             const panel = document.getElementById('notifPanel');
             panel.classList.toggle('open');
-            document.getElementById('msgPanel').classList.remove('open');
+            document.getElementById('sidebar').classList.remove('open');
+            const msgPanel = document.getElementById('msgPanel');
+            if (msgPanel) msgPanel.classList.remove('open');
+            
+            if (window.innerWidth <= 768) {
+                if (panel.classList.contains('open')) {
+                    document.getElementById('overlay').classList.add('active');
+                } else {
+                    document.getElementById('overlay').classList.remove('active');
+                }
+            }
             if (panel.classList.contains('open') && currentUser) {
                 const readState = JSON.parse(localStorage.getItem(`readNotifs_${currentUser.uid}`) || '[]');
                 if (navBadge) navBadge.textContent = '0';
