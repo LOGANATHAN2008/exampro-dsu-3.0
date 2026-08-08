@@ -1555,15 +1555,7 @@
 
 <body>
     <!-- Loader -->
-        <!-- Mass Loader -->
-    <div class="spinner-overlay" id="loader" style="display: none !important;">
-        <div class="loader-mass">
-            <div class="loader-ring"></div>
-            <img src="dsu_logo.png" alt="DSU" class="loader-logo">
-        </div>
-        <p class="loader-text">Loading Dashboard...</p>
-    </div>
-    <!-- Mobile Header -->
+<!-- Mobile Header -->
     <div class="mobile-header">
         <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation menu"><i class="fas fa-bars"></i></button>
         <div class="mobile-logo" onclick="window.location.href='dashboard.html'">
@@ -2649,13 +2641,9 @@
                     const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                     renderAnnouncements(list);
                 });
-
-                document.getElementById('loader').style.display = 'none';
-
-            } catch (err) {
+} catch (err) {
                 console.error("Dashboard Load Global Error:", err);
-                document.getElementById('loader').style.display = 'none';
-                showToast('Error loading dashboard: ' + (err.message || 'Unknown error'), 'error');
+showToast('Error loading dashboard: ' + (err.message || 'Unknown error'), 'error');
             }
         }
 

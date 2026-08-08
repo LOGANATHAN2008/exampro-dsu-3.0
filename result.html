@@ -538,17 +538,7 @@
 
 <body>
     <div class="bg-glow"></div>
-
-        <!-- Mass Loader -->
-    <div class="spinner-overlay" id="loader" style="display: none !important;">
-        <div class="loader-mass">
-            <div class="loader-ring"></div>
-            <img src="dsu_logo.png" alt="DSU" class="loader-logo">
-        </div>
-        <p class="loader-text">Loading Results...</p>
-    </div>
-
-    <div class="container">
+<div class="container">
         <div class="page-header">
             <a class="back-btn" href="dashboard.html"><i class="fas fa-arrow-left"></i></a>
             <div>
@@ -639,8 +629,7 @@
                 window.allResultsData = results;
                 renderHistory(results);
                 renderCharts(results);
-                document.getElementById('loader').style.display = 'none';
-            });
+});
         }
 
         function renderLatestResult(pct, correct, wrong, score, total) {

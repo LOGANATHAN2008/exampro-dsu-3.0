@@ -648,17 +648,7 @@
 
 <body>
     <div class="bg-glow"></div>
-
-    <!-- Mass Loader -->
-    <div class="spinner-overlay" id="loader" style="display: none !important;">
-        <div class="loader-mass">
-            <div class="loader-ring"></div>
-            <img src="dsu_logo.png" alt="DSU" class="loader-logo">
-        </div>
-        <p class="loader-text">Loading Profile...</p>
-    </div>
-
-    <div class="container">
+<div class="container">
         <div class="page-header">
             <a class="back-btn" href="dashboard.html"><i class="fas fa-chevron-left"></i></a>
             <div class="mobile-header-title">Profile</div>
@@ -952,11 +942,8 @@
                     console.error('Login history error:', histErr);
                     document.getElementById('loginActivityList').innerHTML = '<div style="color:var(--text-muted); font-size:13px; text-align:center;">No login activity yet. Log out and log back in to start tracking.</div>';
                 }
-
-                document.getElementById('loader').style.display = 'none';
-            } catch (err) {
-                document.getElementById('loader').style.display = 'none';
-                showToast('Error loading profile', 'error');
+} catch (err) {
+showToast('Error loading profile', 'error');
             }
         }
 

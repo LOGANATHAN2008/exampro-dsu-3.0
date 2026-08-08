@@ -1267,15 +1267,7 @@
 </head>
 
 <body>
-        <!-- Mass Loader -->
-    <div class="spinner-overlay" id="loader" style="display: none !important;">
-        <div class="loader-mass">
-            <div class="loader-ring"></div>
-            <img src="dsu_logo.png" alt="DSU" class="loader-logo">
-        </div>
-        <p class="loader-text">Loading Admin Panel...</p>
-    </div>
-    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 
     <!-- SIDEBAR -->
     <nav class="sidebar" id="sidebar">
@@ -2715,13 +2707,9 @@
                 document.getElementById('oAvg').textContent = avg + '%';
                 renderResults(allResults);
                 renderCharts(allResults);
-                const loader = document.getElementById('loader');
-                if (loader) loader.style.display = 'none';
-            }, error => {
+}, error => {
                 console.error("Results listener error:", error);
-                const loader = document.getElementById('loader');
-                if (loader) loader.style.display = 'none';
-                const body = document.getElementById('resultsBody');
+const body = document.getElementById('resultsBody');
                 if (body) body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)">No results records found.</td></tr>`;
             });
 

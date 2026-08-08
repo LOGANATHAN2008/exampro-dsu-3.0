@@ -1417,13 +1417,10 @@
                         timestamp: serverTimestamp()
                     });
                 }
-
-                document.getElementById('loader').style.display = 'none';
-                // Redirect to result
+// Redirect to result
                 window.location.href = `result.html?testId=${selectedTest.id}&score=${score}&total=${totalMarks}&correct=${correct}&wrong=${wrong}&pct=${percentage}`;
             } catch (err) {
-                document.getElementById('loader').style.display = 'none';
-                showToast('Error submitting test. Please try again.', 'error');
+showToast('Error submitting test. Please try again.', 'error');
             }
         };
     </script>

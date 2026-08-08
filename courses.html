@@ -577,17 +577,7 @@
 
 <body>
     <div class="bg-glow"></div>
-
-        <!-- Mass Loader -->
-    <div class="spinner-overlay" id="loader" style="display: none !important;">
-        <div class="loader-mass">
-            <div class="loader-ring"></div>
-            <img src="dsu_logo.png" alt="DSU" class="loader-logo">
-        </div>
-        <p class="loader-text">Loading Courses...</p>
-    </div>
-
-    <div class="container">
+<div class="container">
         <div class="page-header">
             <a class="back-btn" href="dashboard.html"><i class="fas fa-arrow-left"></i></a>
             <div class="header-left">
@@ -730,8 +720,7 @@
                 window._allCourses = allCourses;
                 document.getElementById('courseCount').textContent = allCourses.length + ' Resources';
                 renderCourses(allCourses, colors, emojis);
-                document.getElementById('loader').style.display = 'none';
-            });
+});
         }
 
         function getSampleCourses() {
