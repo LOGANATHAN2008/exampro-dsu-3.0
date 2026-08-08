@@ -1370,11 +1370,15 @@
                     document.getElementById('sidebarDept').textContent = (currentStudent.department || 'Student') + (currentStudent.semester ? ` • Sem ${currentStudent.semester}` : '');
                     localStorage.setItem('userName', name);
                     
-                    // Pre-select student's department in filter if valid
+                    // Pre-select and lock student's department in filter if valid
                     if (currentStudent.department) {
                         const deptSelect = document.getElementById('filterDept');
                         if ([...deptSelect.options].some(o => o.value === currentStudent.department)) {
                             deptSelect.value = currentStudent.department;
+                            deptSelect.disabled = true; // Lock the dropdown
+                            deptSelect.style.opacity = '0.7';
+                            deptSelect.style.cursor = 'not-allowed';
+                            deptSelect.title = 'Department is fixed to your profile';
                         }
                     }
                     if (currentStudent.photoURL) {
