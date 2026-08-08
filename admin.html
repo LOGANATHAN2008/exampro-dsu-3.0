@@ -4547,6 +4547,12 @@
         }
 
         window.searchStudents = function (val) {
+            if (val && val.trim().length > 0) {
+                const studentsTabBtn = document.querySelector('.nav-item[onclick*="students"]');
+                if (studentsTabBtn && !document.getElementById('section-students').classList.contains('active')) {
+                    showSection('students', studentsTabBtn);
+                }
+            }
             const lowerVal = val.toLowerCase();
             const filtered = allStudents.filter(s =>
                 (s.name || '').toLowerCase().includes(lowerVal) ||
