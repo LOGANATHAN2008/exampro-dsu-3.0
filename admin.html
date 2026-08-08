@@ -4275,7 +4275,7 @@
                     <td><span class="nav-badge" style="${typeClass}">${escapeHtml(m.type || 'Resource')}</span></td>
                     <td style="font-size:11px;color:var(--text-muted)">${escapeHtml(m.fileSize || '-')}</td>
                     <td>
-                        <button type="button" class="btn-download-count" onclick="openDownloadersModal('${m.id}', '${escapeAttr(m.title)}', ${m.downloadCount || 0})" title="Click to view students who downloaded this">
+                        <button type="button" class="btn-download-count" onclick="openDownloadersModal('${m.id}')" title="Click to view students who downloaded this">
                             <i class="fas fa-download"></i> ${m.downloadCount || 0}
                             <i class="fas fa-chevron-right" style="font-size:9px;opacity:0.6;margin-left:2px"></i>
                         </button>
@@ -4298,8 +4298,11 @@
         let currentMaterialDownloaders = [];
         let currentViewingMaterialTitle = '';
 
-        window.openDownloadersModal = async function(materialId, materialTitle, count) {
-            currentViewingMaterialTitle = materialTitle || 'Study Material';
+        window.openDownloadersModal = async function(materialId) {
+            const mat = allMaterials.find(x => x.id === materialId) || {};
+            currentViewingMaterialTitle = mat.title || 'Study Material';
+            const count = mat.downloadCount || 0;
+
             document.getElementById('dlModalTitle').textContent = currentViewingMaterialTitle;
             document.getElementById('dlModalTitle').title = currentViewingMaterialTitle;
             document.getElementById('dlModalCountBadge').innerHTML = `<i class="fas fa-spinner fa-spin"></i> Loading...`;
@@ -4319,7 +4322,7 @@
                 const snap = await getDocs(collection(db, 'studyMaterials', materialId, 'downloads'));
                 currentMaterialDownloaders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-                document.getElementById('dlModalCountBadge').innerHTML = `<i class="fas fa-users"></i> ${currentMaterialDownloaders.length} Student${currentMaterialDownloaders.length === 1 ? '' : 's'} (${count || 0} Total Downloads)`;
+                document.getElementById('dlModalCountBadge').innerHTML = `<i class="fas fa-users"></i> ${currentMaterialDownloaders.length} Student${currentMaterialDownloaders.length === 1 ? '' : 's'} (${count} Total Downloads)`;
                 
                 renderDownloadersList(currentMaterialDownloaders, count);
             } catch(err) {
@@ -4492,6 +4495,11 @@
         function escapeHtml(str) {
             if (!str) return '';
             return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        function escapeAttr(str) {
+            if (!str) return '';
+            return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
         }
 
         window.searchStudents = function (val) {
