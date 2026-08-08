@@ -78,6 +78,17 @@ window.addEventListener('DOMContentLoaded', () => {
     // Do not inject navigation on authentication or standalone pages
     if (['', 'index.html', 'about.html', 'login.html', 'register.html', 'admin.html', 'faculty.html'].includes(currentPage.split('?')[0])) return;
     
+    // Background Page Prefetching for Ultra-Fast Instant Transitions
+    const prefetchPages = ['dashboard.html', 'materials.html', 'test.html', 'result.html', 'profile.html'];
+    prefetchPages.forEach(p => {
+        if (p !== currentPage) {
+            const link = document.createElement('link');
+            link.rel = 'prefetch';
+            link.href = p;
+            document.head.appendChild(link);
+        }
+    });
+
     const nav = document.createElement('nav');
     nav.className = 'mobile-bottom-nav';
 
@@ -90,6 +101,12 @@ window.addEventListener('DOMContentLoaded', () => {
         if (currentPage === item.url || (currentPage === '' && item.url === 'dashboard.html')) {
             a.classList.add('active');
         }
+
+        // Instant visual active state on tap (0ms latency response)
+        a.addEventListener('click', (e) => {
+            document.querySelectorAll('.mobile-bottom-nav .nav-item').forEach(el => el.classList.remove('active'));
+            a.classList.add('active');
+        });
 
         let iconHtml = '<i class="fas ' + item.icon + '"></i>';
         if (item.name === 'Profile') {
@@ -134,7 +151,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const yDiff = touchendY - touchstartY;
             
             // Ensure the swipe is mostly horizontal, not a vertical scroll
-            if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > 50) { // Reduced threshold slightly
+            if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > 50) {
                 // Swiped Right (finger moved right) -> User wants to go to NEXT page
                 if (xDiff > 0) {
                     if (currentIndex < pages.length - 1) {
@@ -163,30 +180,25 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// 6. Staggered Sidebar Animation Delays
+// 6. Staggered Sidebar Animation Delays (Fast 15ms waterfall)
 window.addEventListener('DOMContentLoaded', () => {
     const animateElements = document.querySelectorAll('.sidebar .nav-label, .sidebar .nav-item, .sidebar-user');
     animateElements.forEach((el, index) => {
-        // Create a waterfall delay effect
-        el.style.animationDelay = (0.1 + (index * 0.06)) + 's';
+        el.style.animationDelay = (index * 0.015) + 's';
     });
 });
 
-
-// 7. Staggered Card Delays (Dynamic for Firebase)
-// We use a MutationObserver to catch elements loaded from Firebase asynchronously!
+// 7. Staggered Card Delays (Ultra Snappy micro-delays)
 const cardObserver = new MutationObserver((mutations) => {
     let addedCards = [];
     mutations.forEach(m => {
         m.addedNodes.forEach(node => {
             if (node.nodeType === 1) {
-                // If the node itself is a card
-                if (node.matches && node.matches('.stat-card, .course-card, .test-card, .chart-card, .history-card, .review-card, .dsh-card, .result-hero, .stats-row')) {
+                if (node.matches && node.matches('.stat-card, .course-card, .test-card, .chart-card, .history-card, .review-card, .dsh-card, .result-hero, .stats-row, .material-card')) {
                     addedCards.push(node);
                 }
-                // If the node contains cards
                 if (node.querySelectorAll) {
-                    const children = node.querySelectorAll('.stat-card, .course-card, .test-card, .chart-card, .history-card, .review-card, .dsh-card, .result-hero, .stats-row');
+                    const children = node.querySelectorAll('.stat-card, .course-card, .test-card, .chart-card, .history-card, .review-card, .dsh-card, .result-hero, .stats-row, .material-card');
                     children.forEach(c => addedCards.push(c));
                 }
             }
@@ -195,7 +207,7 @@ const cardObserver = new MutationObserver((mutations) => {
     
     if (addedCards.length > 0) {
         addedCards.forEach((card, index) => {
-            card.style.animationDelay = (0.1 + (index * 0.1)) + 's';
+            card.style.animationDelay = (Math.min(index * 0.025, 0.12)) + 's';
         });
     }
 });
@@ -208,17 +220,17 @@ if (document.body) {
     });
 }
 
-// Also run once for static elements already in the DOM
+// Static elements already in DOM
 window.addEventListener('DOMContentLoaded', () => {
-    const cards = document.querySelectorAll('.stat-card, .course-card, .test-card, .chart-card, .history-card, .review-card, .dsh-card, .result-hero, .stats-row');
+    const cards = document.querySelectorAll('.stat-card, .course-card, .test-card, .chart-card, .history-card, .review-card, .dsh-card, .result-hero, .stats-row, .material-card');
     cards.forEach((card, index) => {
         if (!card.style.animationDelay) {
-            card.style.animationDelay = (0.1 + (index * 0.1)) + 's';
+            card.style.animationDelay = (Math.min(index * 0.025, 0.12)) + 's';
         }
     });
 });
 
-// Mark app as loaded for subsequent navigations
+// Mark app as loaded
 window.addEventListener('load', () => {
     sessionStorage.setItem('appLoaded', 'true');
 });

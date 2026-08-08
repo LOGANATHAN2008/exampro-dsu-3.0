@@ -1,5 +1,17 @@
+/* Fast 0ms Tap & Hardware-Accelerated Performance */
+html, body, *, *::before, *::after {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+a, button, input, select, textarea, .nav-item, .pill-btn, .quick-btn, .card, .material-card, .btn-view, .filter-select, .close-btn, .icon-btn, .theme-toggle, .mobile-toggle {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+}
+
 body {
-    transition: background-color 0.4s ease, color 0.4s ease;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .light-mode {
@@ -649,9 +661,12 @@ body {
         color: rgba(255, 255, 255, 0.65) !important;
         padding: 8px 12px !important;
         border-radius: 9999px !important;
-        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
         gap: 6px !important;
         font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif !important;
+        cursor: pointer !important;
+        user-select: none !important;
+        -webkit-user-select: none !important;
     }
 
     .light-mode .mobile-bottom-nav .nav-item {
@@ -660,7 +675,7 @@ body {
 
     .mobile-bottom-nav .nav-item i {
         font-size: 17px !important;
-        transition: transform 0.25s ease;
+        transition: transform 0.15s ease;
     }
 
     .mobile-bottom-nav .nav-item .nav-text {
@@ -670,7 +685,7 @@ body {
         overflow: hidden !important;
         opacity: 0 !important;
         white-space: nowrap !important;
-        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
 
     /* Active State Pill */
@@ -688,7 +703,7 @@ body {
     }
 
     .mobile-bottom-nav .nav-item.active i {
-        transform: scale(1.08);
+        transform: scale(1.06);
     }
 
     .mobile-bottom-nav .nav-item.active .nav-text {
@@ -698,7 +713,8 @@ body {
     }
 
     .mobile-bottom-nav .nav-item:active {
-        transform: scale(0.92) !important;
+        transform: scale(0.88) !important;
+        transition: transform 0.06s ease !important;
     }
     
     /* Move Chatbot above bottom nav on mobile */

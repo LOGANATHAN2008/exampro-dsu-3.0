@@ -65,23 +65,32 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Security Shield: Hide body until auth is verified */
+        /* Fast Instant Rendering */
         body {
             opacity: 0;
-            transition: opacity 0.4s ease;
-            transition-delay: 0.1s;
+            transition: opacity 0.15s ease;
         }
 
         body.auth-verified {
             opacity: 1;
         }
-
+    </style>
+    <script>
+        if (localStorage.getItem('currentUser') || sessionStorage.getItem('appLoaded')) {
+            document.addEventListener('DOMContentLoaded', () => {
+                document.body.classList.add('auth-verified');
+            });
+        }
+    </script>
+    <style>
         *,
         *::before,
         *::after {
             box-sizing: border-box;
             margin: 0;
-            padding: 0
+            padding: 0;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
 
         :root {
