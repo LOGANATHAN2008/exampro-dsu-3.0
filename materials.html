@@ -1225,7 +1225,8 @@
                     }
                 }
             } catch(e) {
-                console.warn("Failed to record download count/student details:", e);
+                console.error("Failed to record download count/student details:", e);
+                showToast("Failed to log download details: " + e.message, "error");
             }
 
             // Trigger file download / open in new tab
