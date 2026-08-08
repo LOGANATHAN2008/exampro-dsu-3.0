@@ -392,10 +392,119 @@
             margin-bottom: 16px;
         }
 
+        .test-card-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .meta-chip {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255, 255, 255, .05);
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        /* Subjects Grid & Subject Cards */
+        .subjects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+
+        .subject-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .subject-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(108, 99, 255, 0.4);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(108, 99, 255, 0.15);
+            background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+        }
+
+        .subject-card-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(108, 99, 255, 0.2), rgba(6, 182, 212, 0.2));
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: inset 0 0 10px rgba(108, 99, 255, 0.1);
+        }
+
+        .subject-card-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .subject-card-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .subject-card-meta {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-to-subjects {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+        }
+
+        .back-to-subjects:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-3px);
+        }
+
         .q-number {
             font-size: 12px;
-            font-weight: 700;
             color: var(--primary);
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: .5px;
             margin-bottom: 8px;
@@ -754,11 +863,18 @@
             <a class="back-btn" href="dashboard.html"><i class="fas fa-arrow-left"></i></a>
             <div>
                 <div class="page-title">Available Tests</div>
-                <div class="page-subtitle">Choose a test to begin</div>
+                <div class="page-subtitle">Choose a subject to begin</div>
             </div>
         </div>
-        <div id="testsList" class="tests-list">
-            <div class="brand-loader-container">
+
+        <!-- Back Button (Hidden by default) -->
+        <button id="backToTestSubjectsBtn" class="back-to-subjects" style="display: none;" onclick="goBackToTestSubjects()">
+            <i class="fas fa-arrow-left"></i> Back to Subjects
+        </button>
+
+        <!-- Subjects Grid -->
+        <div id="testSubjectsGrid" class="subjects-grid">
+            <div class="brand-loader-container" style="grid-column:1/-1;">
                 <div class="brand-logo-loader">
                     <div class="brand-loader-ring"></div>
                     <img src="dsu_logo.png" alt="DSU Logo" class="brand-loader-img">
@@ -766,6 +882,12 @@
                 <div class="brand-loader-label">Loading available tests...</div>
             </div>
         </div>
+
+        <!-- Tests List (Hidden by default) -->
+        <div id="testsList" class="tests-list" style="display: none;">
+            <!-- Rendered by JS -->
+        </div>
+        
         <footer>Developed by <a href="https://loganathanm.in" target="_blank">Loganathan</a></footer>
     </div>
 
@@ -892,11 +1014,34 @@
             document.getElementById('loader').style.display = 'none';
         });
 
+        let allTestsCache = [];
+        let currentTestView = 'SUBJECTS';
+        let currentTestSubject = null;
+
+        window.openTestSubject = function(subj) {
+            currentTestSubject = subj;
+            currentTestView = 'TESTS';
+            document.getElementById('testSubjectsGrid').style.display = 'none';
+            document.getElementById('testsList').style.display = 'grid';
+            document.getElementById('backToTestSubjectsBtn').style.display = 'inline-flex';
+            renderTestsList();
+        };
+
+        window.goBackToTestSubjects = function() {
+            currentTestView = 'SUBJECTS';
+            currentTestSubject = null;
+            document.getElementById('testsList').style.display = 'none';
+            document.getElementById('backToTestSubjectsBtn').style.display = 'none';
+            document.getElementById('testSubjectsGrid').style.display = 'grid';
+            renderTestsList();
+        };
+
         function loadTests() {
+            const sGrid = document.getElementById('testSubjectsGrid');
             const testsList = document.getElementById('testsList');
             onSnapshot(collection(db, 'tests'), (snap) => {
                 if (snap.empty) {
-                    testsList.innerHTML = `<div style="text-align:center;padding:48px;color:var(--text-muted)"><i class="fas fa-clipboard-list" style="font-size:48px;opacity:.3;display:block;margin-bottom:16px"></i>No tests available right now.</div>`;
+                    sGrid.innerHTML = `<div style="text-align:center;padding:48px;color:var(--text-muted);grid-column:1/-1;"><i class="fas fa-clipboard-list" style="font-size:48px;opacity:.3;display:block;margin-bottom:16px"></i>No tests available right now.</div>`;
                     return;
                 }
 
@@ -923,16 +1068,69 @@
                     return true;
                 });
 
-                if (!filteredDocs.length) {
-                    testsList.innerHTML = `<div style="text-align:center;padding:48px;color:var(--text-muted)"><i class="fas fa-clipboard-list" style="font-size:48px;opacity:.3;display:block;margin-bottom:16px"></i>No tests available for your department right now.</div>`;
+                allTestsCache = filteredDocs.map(d => ({id: d.id, ...d.data()}));
+                
+                // Keep window._tests populated for openConfirm logic
+                window._tests = {};
+                allTestsCache.forEach(t => window._tests[t.id] = t);
+
+                renderTestsList();
+            }, (err) => {
+                testsList.innerHTML = `<div style="text-align:center;padding:40px;color:var(--danger)"><i class="fas fa-times-circle"></i> Error loading tests.</div>`;
+            });
+        }
+
+        function renderTestsList() {
+            const escapeH = (str) => String(str).replace(/[&<>'"]/g, tag => ({'&': '&amp;','<': '&lt;','>': '&gt;',"'": '&#39;','"': '&quot;'}[tag]));
+            const sGrid = document.getElementById('testSubjectsGrid');
+            const tGrid = document.getElementById('testsList');
+
+            if (!allTestsCache.length) {
+                sGrid.innerHTML = `<div style="text-align:center;padding:48px;color:var(--text-muted);grid-column:1/-1;"><i class="fas fa-clipboard-list" style="font-size:48px;opacity:.3;display:block;margin-bottom:16px"></i>No tests available for your department right now.</div>`;
+                tGrid.innerHTML = '';
+                return;
+            }
+
+            if (currentTestView === 'SUBJECTS') {
+                const subjectsMap = {};
+                allTestsCache.forEach(t => {
+                    const subj = t.subject || 'General / Miscellaneous';
+                    if (!subjectsMap[subj]) {
+                        subjectsMap[subj] = { name: subj, count: 0 };
+                    }
+                    subjectsMap[subj].count++;
+                });
+
+                const sortedSubjects = Object.values(subjectsMap).sort((a, b) => a.name.localeCompare(b.name));
+                const subjectIcons = ['fa-file-signature', 'fa-laptop-code', 'fa-calculator', 'fa-atom', 'fa-microscope', 'fa-globe', 'fa-chart-pie', 'fa-cogs', 'fa-language', 'fa-brain'];
+                
+                let html = '';
+                sortedSubjects.forEach((s, idx) => {
+                    const icon = subjectIcons[idx % subjectIcons.length];
+                    html += `
+                        <div class="subject-card" onclick="openTestSubject('${escapeH(s.name).replace(/'/g, "\\'")}')">
+                            <div class="subject-card-icon"><i class="fas ${icon}"></i></div>
+                            <div class="subject-card-info">
+                                <div class="subject-card-title">${escapeH(s.name)}</div>
+                                <div class="subject-card-meta"><i class="fas fa-file-alt"></i> ${s.count} Tests Available</div>
+                            </div>
+                            <i class="fas fa-chevron-right" style="color:var(--text-muted);opacity:0.5;font-size:14px;"></i>
+                        </div>
+                    `;
+                });
+                sGrid.innerHTML = html;
+            } else {
+                const subjectFiltered = allTestsCache.filter(t => (t.subject || 'General / Miscellaneous') === currentTestSubject);
+                const now = new Date();
+                const colors = [['#6c63ff', '#4f46e5'], ['#10b981', '#059669'], ['#f59e0b', '#d97706'], ['#06b6d4', '#0891b2'], ['#ef4444', '#dc2626']];
+                
+                if (!subjectFiltered.length) {
+                    tGrid.innerHTML = `<div style="text-align:center;padding:48px;color:var(--text-muted)"><i class="fas fa-file-excel" style="font-size:48px;opacity:.3;display:block;margin-bottom:16px"></i>No tests found.</div>`;
                     return;
                 }
 
-                const colors = [['#6c63ff', '#4f46e5'], ['#10b981', '#059669'], ['#f59e0b', '#d97706'], ['#06b6d4', '#0891b2'], ['#ef4444', '#dc2626']];
-                testsList.innerHTML = filteredDocs.map((d, i) => {
-                    const t = d.data();
+                tGrid.innerHTML = subjectFiltered.map((t, i) => {
                     const c = colors[i % colors.length];
-                    // Show remaining time if endTime exists
                     let timeInfo = '';
                     if (t.endTime) {
                         const end = t.endTime.toDate ? t.endTime.toDate() : new Date(t.endTime.seconds * 1000);
@@ -940,29 +1138,25 @@
                         timeInfo = `<span class="meta-chip" style="color:var(--danger)"><i class="fas fa-hourglass-half"></i> Closes in ${diff} min</span>`;
                     }
                     return `
-            <div class="test-card-full" onclick="openConfirm('${d.id}')">
+            <div class="test-card-full" onclick="openConfirm('${t.id}')">
               <div class="test-card-icon" style="background:linear-gradient(135deg,${c[0]}30,${c[0]}60)">
                 <i class="fas fa-file-alt" style="color:${c[0]}"></i>
               </div>
               <div class="test-card-info">
-                <h3>${t.title || 'Untitled Test'}</h3>
+                <h3>${escapeH(t.title || 'Untitled Test')}</h3>
                 <div class="test-card-meta">
                   <span class="meta-chip"><i class="fas fa-clock"></i> ${t.duration || 30} mins</span>
                   <span class="meta-chip"><i class="fas fa-question-circle"></i> ${t.questions?.length || 0} Questions</span>
                   <span class="meta-chip"><i class="fas fa-star"></i> ${t.totalMarks || 100} Marks</span>
-                  <span class="meta-chip"><i class="fas fa-tag"></i> ${t.subject || 'General'}</span>
+                  <span class="meta-chip"><i class="fas fa-tag"></i> ${escapeH(t.subject || 'General')}</span>
                   ${timeInfo}
                 </div>
-                <div class="test-desc">${t.description || 'Click to start the test.'}</div>
+                <div class="test-desc">${escapeH(t.description || 'Click to start the test.')}</div>
               </div>
               <button class="start-btn">Start <i class="fas fa-play"></i></button>
             </div>`;
                 }).join('');
-                window._tests = {};
-                filteredDocs.forEach(d => window._tests[d.id] = { id: d.id, ...d.data() });
-            }, (err) => {
-                testsList.innerHTML = `<div style="text-align:center;padding:40px;color:var(--danger)"><i class="fas fa-times-circle"></i> Error loading tests.</div>`;
-            });
+            }
         }
 
         window.openConfirm = function (testId) {
