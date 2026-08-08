@@ -812,6 +812,129 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* ===== LIGHT MODE OVERRIDES ===== */
+        .light-mode body {
+            background: #f0f4ff;
+            color: #1e293b;
+        }
+        .light-mode .sidebar {
+            background: #ffffff;
+            border-right: 1px solid #e2e8f0;
+        }
+        .light-mode .sidebar-logo span {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .light-mode .nav-item { color: #64748b; }
+        .light-mode .nav-item:hover { background: rgba(108, 99, 255, 0.1); color: var(--primary); border-color: rgba(108,99,255,0.2); }
+        .light-mode .nav-item.active { background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(79,70,229,0.1)); color: var(--primary); border-color: var(--primary); }
+        .light-mode .sidebar-user { background: #f8fafc; border-top: 1px solid #e2e8f0; }
+        .light-mode .user-info .name { color: #1e293b; }
+
+        .light-mode .page-title {
+            background: linear-gradient(135deg, #1e293b, #475569);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .light-mode .theme-toggle, .light-mode .mobile-toggle {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .light-mode .hero-banner {
+            background: linear-gradient(135deg, rgba(108,99,255,0.1), rgba(6,182,212,0.08));
+            border: 1px solid rgba(108,99,255,0.2);
+        }
+        .light-mode .hero-text h1 { color: #1e293b; }
+        .light-mode .hero-text p { color: #475569; }
+        .light-mode .hero-stat-box {
+            background: rgba(255,255,255,0.9);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        }
+
+        .light-mode .controls-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+        .light-mode .search-input-wrap input {
+            background: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
+            color: #1e293b !important;
+        }
+        .light-mode .search-input-wrap input::placeholder { color: #94a3b8; }
+        .light-mode .search-input-wrap input:focus {
+            border-color: var(--primary) !important;
+            background: #ffffff !important;
+            box-shadow: 0 0 0 3px rgba(108,99,255,0.15) !important;
+        }
+        .light-mode .select-filter {
+            background: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
+            color: #1e293b !important;
+        }
+        .light-mode .select-filter option { background: #fff; color: #1e293b; }
+
+        .light-mode .pill-btn {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+        }
+        .light-mode .pill-btn:hover { background: #e8edff; color: var(--primary); }
+        .light-mode .pill-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+            border-color: transparent;
+        }
+
+        .light-mode .material-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+        }
+        .light-mode .material-card:hover {
+            border-color: rgba(108,99,255,0.3);
+            box-shadow: 0 14px 30px rgba(0,0,0,0.1), 0 0 20px rgba(108,99,255,0.1);
+        }
+        .light-mode .card-title { color: #1e293b; }
+        .light-mode .dept-sem-tag { background: #f1f5f9; color: #64748b; }
+        .light-mode .card-meta { border-top: 1px solid #e2e8f0; color: #94a3b8; }
+        .light-mode .card-desc { color: #64748b; }
+
+        .light-mode .btn-view {
+            background: rgba(108,99,255,0.08);
+            border: 1px solid rgba(108,99,255,0.2);
+            color: var(--primary);
+        }
+        .light-mode .btn-view:hover { background: var(--primary); color: #fff; }
+
+        .light-mode .empty-state {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+        }
+        .light-mode .empty-state h3 { color: #1e293b; }
+
+        .light-mode .pdf-modal {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.2);
+        }
+        .light-mode .pdf-modal-header {
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .light-mode .pdf-modal-title { color: #1e293b; }
+        .light-mode .pdf-modal-body { background: #f1f5f9; }
+        .light-mode .modal-btn {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+        }
+        .light-mode .modal-btn:hover { background: #e2e8f0; color: #1e293b; }
     </style>
 </head>
 
