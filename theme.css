@@ -147,13 +147,14 @@ body {
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
 
-/* 2. Standardized Sidebar Overlay */
+/* 2. Standardized Sidebar & Backdrop Overlay */
 .overlay {
     position: fixed !important;
     inset: 0 !important;
-    background: rgba(0, 0, 0, 0.5) !important;
-    backdrop-filter: blur(4px) !important;
-    z-index: 998 !important; /* Just below sidebar which is usually 1000 */
+    background: rgba(0, 0, 0, 0.45) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    z-index: 995 !important; /* Behind sidebar (1000) and notif-panel (1050) */
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -164,6 +165,11 @@ body {
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
+}
+
+/* Ensure Sidebars properly layer */
+.sidebar {
+    z-index: 1000 !important;
 }
 
 /* 3. Table Responsiveness */
@@ -202,7 +208,7 @@ body {
     .sidebar {
         transform: translateX(-100%);
         position: fixed !important;
-        z-index: 999 !important;
+        z-index: 1000 !important;
         height: 100vh !important;
         box-shadow: 10px 0 30px rgba(0,0,0,0.5) !important;
     }
@@ -224,6 +230,117 @@ body {
     }
 }
 
+/* =========================================================
+   APPLE iOS LIQUID GLASS NOTIFICATION & MESSAGE PANELS
+   ========================================================= */
+.notif-panel {
+    position: fixed !important;
+    top: 0 !important;
+    right: -420px !important;
+    width: 380px !important;
+    max-width: calc(100vw - 32px) !important;
+    height: 100vh !important;
+    background: rgba(15, 23, 42, 0.94) !important;
+    backdrop-filter: blur(28px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: -12px 0 40px rgba(0, 0, 0, 0.6) !important;
+    z-index: 1050 !important; /* ALWAYS stays above overlay (995) */
+    transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    padding: 24px 20px !important;
+    overflow-y: auto !important;
+}
+
+.notif-panel.open {
+    right: 0 !important;
+}
+
+.notif-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 20px !important;
+    padding-bottom: 14px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.notif-header h3 {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: #f8fafc !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.notif-header .close-btn {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: none !important;
+    color: #94a3b8 !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    font-size: 14px !important;
+    transition: all 0.2s ease !important;
+}
+
+.notif-header .close-btn:hover {
+    background: rgba(255, 255, 255, 0.16) !important;
+    color: #ffffff !important;
+}
+
+.notif-item {
+    display: flex !important;
+    gap: 12px !important;
+    padding: 14px 16px !important;
+    border-radius: 14px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    margin-bottom: 10px !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-left: 4px solid var(--primary, #6366f1) !important;
+    transition: transform 0.2s ease, background 0.2s ease !important;
+}
+
+.notif-item:hover {
+    transform: translateY(-2px) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.notif-item.warn {
+    border-left-color: var(--warn, #f59e0b) !important;
+}
+
+.notif-item.success {
+    border-left-color: var(--success, #10b981) !important;
+}
+
+.notif-title {
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #f1f5f9 !important;
+    margin-bottom: 4px !important;
+}
+
+.notif-text {
+    font-size: 13px !important;
+    color: #cbd5e1 !important;
+    line-height: 1.4 !important;
+}
+
+.notif-time {
+    font-size: 11px !important;
+    color: #64748b !important;
+    margin-top: 4px !important;
+}
+
+.chatbot-window {
+    z-index: 1050 !important;
+}
+
 /* Fix Mobile Header in Light Mode */
 .light-mode .mobile-header {
     background: rgba(255, 255, 255, 0.7) !important;
@@ -234,15 +351,55 @@ body {
 }
 
 /* Fix Side Panels (Notifications & Chatbot) in Light Mode */
-.light-mode .notif-panel,
+.light-mode .notif-panel {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border-left: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: -12px 0 40px rgba(0, 0, 0, 0.15) !important;
+}
+
 .light-mode .chatbot-window {
     background: #ffffff !important;
     border-left: 1px solid var(--glass-border) !important;
 }
 
-.light-mode .notif-header .close-btn,
+.light-mode .notif-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
 .light-mode .notif-header h3 {
-    color: #1e293b !important;
+    color: #0f172a !important;
+}
+
+.light-mode .notif-header .close-btn {
+    background: rgba(0, 0, 0, 0.05) !important;
+    color: #64748b !important;
+}
+
+.light-mode .notif-header .close-btn:hover {
+    background: rgba(0, 0, 0, 0.1) !important;
+    color: #0f172a !important;
+}
+
+.light-mode .notif-item {
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-left: 4px solid var(--primary, #6366f1) !important;
+}
+
+.light-mode .notif-item:hover {
+    background: #f1f5f9 !important;
+}
+
+.light-mode .notif-title {
+    color: #0f172a !important;
+}
+
+.light-mode .notif-text {
+    color: #475569 !important;
+}
+
+.light-mode .notif-time {
+    color: #94a3b8 !important;
 }
 
 .light-mode .msg.bot {
