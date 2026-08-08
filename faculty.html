@@ -1230,14 +1230,14 @@
 
     <!-- Mobile Header -->
     <div class="mobile-header">
-        <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-        <div class="mobile-logo">
-            <img src="dsu_logo.png" alt="DSU Logo" style="height: 30px; width: auto; margin-right: 8px;">
-            ExamPro DSU
+        <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation menu"><i class="fas fa-bars"></i></button>
+        <div class="mobile-logo" onclick="window.location.href='faculty.html'">
+            <img src="dsu_logo.png" alt="DSU Logo">
+            <span>ExamPro <span style="background:linear-gradient(135deg,#6366f1,#8b5cf6);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;">DSU</span></span>
         </div>
-        <div style="display:flex;gap:8px">
-            <div class="icon-btn mobile-theme-toggle" onclick="toggleTheme()"><i class="fas fa-sun"></i></div>
-            <div class="icon-btn" onclick="toggleNotifications()"><i class="fas fa-bell"></i>
+        <div>
+            <div class="icon-btn mobile-theme-toggle" onclick="toggleTheme()" title="Toggle Theme"><i class="fas fa-sun"></i></div>
+            <div class="icon-btn" onclick="toggleNotifications()" title="Notifications"><i class="fas fa-bell"></i>
                 <div class="notif-dot"></div>
             </div>
         </div>

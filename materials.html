@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width,initial-scale=1.0" />
 
     <!-- PRIMARY SEO METADATA -->
-    <title>Study Materials & PYQs | ExamPro DSU</title>
-    <meta name="description" content="Access lecture notes, previous year question papers (PYQs), lab manuals, and syllabus for all departments at Dayananda Sagar University.">
-    <meta name="keywords" content="ExamPro DSU, DSU Notes, DSU PYQ, Previous Question Papers, Lab Manuals, BCA, MCA, BTech, DSU Study Materials">
+    <title>Study Materials | ExamPro DSU</title>
+    <meta name="description" content="Access lecture notes, question papers, lab manuals, and syllabus for all departments at Dayananda Sagar University.">
+    <meta name="keywords" content="ExamPro DSU, DSU Notes, Question Papers, Lab Manuals, BCA, MCA, BTech, DSU Study Materials">
     <meta name="author" content="ExamPro DSU Team">
     <meta name="robots" content="noindex, nofollow">
 
@@ -403,8 +403,13 @@
             display: flex;
             gap: 8px;
             overflow-x: auto;
-            padding-bottom: 4px;
-            scrollbar-width: thin;
+            padding-bottom: 6px;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        .category-pills::-webkit-scrollbar {
+            display: none;
         }
 
         .pill-btn {
@@ -803,7 +808,7 @@
             }
             .main-content {
                 margin-left: 0;
-                padding: 16px;
+                padding: 16px 16px 100px 16px;
             }
             .mobile-toggle {
                 display: flex;
@@ -991,7 +996,7 @@
             <div style="display:flex;align-items:center;gap:14px">
                 <button class="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
                 <div class="page-title">
-                    <i class="fas fa-book-reader" style="color:var(--primary)"></i> Study Materials & PYQs
+                    <i class="fas fa-book-reader" style="color:var(--primary)"></i> Study Materials
                 </div>
             </div>
 
@@ -1006,7 +1011,7 @@
         <div class="hero-banner">
             <div class="hero-text">
                 <h1>Academic Resource Vault 📚</h1>
-                <p>Download subject lecture notes, previous years' university question papers (PYQs), lab manuals, and syllabus directly uploaded by DSU faculty and academic coordinators.</p>
+                <p>Download subject lecture notes, previous years' question papers, lab manuals, and syllabus directly uploaded by DSU faculty and academic coordinators.</p>
             </div>
             <div class="hero-stats">
                 <div class="hero-stat-box">
@@ -1092,6 +1097,28 @@
                 <iframe id="pdfViewerFrame" src="about:blank"></iframe>
             </div>
         </div>
+    <!-- Mobile Bottom Navigation (iOS Liquid Glass Dock) -->
+    <div class="mobile-bottom-nav">
+        <a href="dashboard.html" class="mob-nav-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="materials.html" class="mob-nav-item active">
+            <i class="fas fa-book-reader"></i>
+            <span>Study</span>
+        </a>
+        <a href="courses.html" class="mob-nav-item">
+            <i class="fas fa-book-open"></i>
+            <span>Courses</span>
+        </a>
+        <a href="test.html" class="mob-nav-item">
+            <i class="fas fa-clipboard-check"></i>
+            <span>Tests</span>
+        </a>
+        <a href="profile.html" class="mob-nav-item">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
     </div>
 
     <div class="toast-container" id="toastContainer"></div>

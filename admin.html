@@ -1453,7 +1453,7 @@
         <!-- STUDY MATERIALS SECTION -->
         <section class="section" id="section-materials">
             <div class="section-header">
-                <div class="section-title"><i class="fas fa-book-reader" style="color:var(--primary)"></i> Study Materials &amp; PYQs</div>
+                <div class="section-title"><i class="fas fa-book-reader" style="color:var(--primary)"></i> Study Materials</div>
                 <div style="display:flex;gap:10px">
                     <button class="btn btn-primary btn-sm" onclick="openMaterialModal()"><i class="fas fa-upload"></i> Upload Material</button>
                 </div>
@@ -4574,7 +4574,7 @@
             document.getElementById('section-' + id).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            const titles = { overview: 'Dashboard', leaderboard: 'Top Performers', students: 'All Students', staff: 'Staff Management', materials: 'Study Materials & PYQs', tests: 'Tests', examschedule: 'Exam Schedule', results: 'Results', announcements: 'Broadcast Center', malpractice: 'Malpractice Logs', feedback: 'Feedback / Complaints', adminmgmt: 'Admin Management', approvals: 'Student Approvals', maintenance: 'Maintenance Mode' };
+            const titles = { overview: 'Dashboard', leaderboard: 'Top Performers', students: 'All Students', staff: 'Staff Management', materials: 'Study Materials', tests: 'Tests', examschedule: 'Exam Schedule', results: 'Results', announcements: 'Broadcast Center', malpractice: 'Malpractice Logs', feedback: 'Feedback / Complaints', adminmgmt: 'Admin Management', approvals: 'Student Approvals', maintenance: 'Maintenance Mode' };
             document.getElementById('pageTitle').textContent = titles[id] || id;
             if (window.innerWidth <= 768) closeSidebar();
         };
