@@ -773,8 +773,8 @@
                     console.error("Failed to log activity", e);
                 }
 
-                // OTP Logic for 2FA or Admins
-                if (isAdmin || userData.twoFactorEnabled === true) {
+                // OTP Logic only for accounts with 2FA explicitly enabled
+                if (userData.twoFactorEnabled === true) {
                     const otp = Math.floor(100000 + Math.random() * 900000).toString();
                     const expiresAt = new Date(Date.now() + 5 * 60000); // 5 mins
 
@@ -789,30 +789,25 @@
                     const templateID = 'template_loga';
                     const publicKey = 'dNb9eBTjrfv99xMqm';
 
-                    if (serviceID.startsWith('YOUR_') || templateID.startsWith('YOUR_') || publicKey.startsWith('YOUR_')) {
-                        console.warn('EmailJS not configured — showing OTP on screen for testing');
-                        showToast('DEV MODE — Your OTP: ' + otp, 'success');
-                    } else {
-                        try {
-                            await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    service_id: serviceID,
-                                    template_id: templateID,
-                                    user_id: publicKey,
-                                    template_params: {
-                                        to_email: finalEmail,
-                                        passcode: otp,
-                                        time: '5 minutes'
-                                    }
-                                })
-                            });
-                            showToast('OTP sent to ' + finalEmail, 'success');
-                        } catch (e) {
-                            console.error('EmailJS Error', e);
-                            showToast('OTP verification code: ' + otp, 'info');
-                        }
+                    try {
+                        await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                service_id: serviceID,
+                                template_id: templateID,
+                                user_id: publicKey,
+                                template_params: {
+                                    to_email: finalEmail,
+                                    passcode: otp,
+                                    time: '5 minutes'
+                                }
+                            })
+                        });
+                        showToast('OTP sent to ' + finalEmail, 'success');
+                    } catch (e) {
+                        console.error('EmailJS Error', e);
+                        showToast('OTP code: ' + otp, 'info');
                     }
 
                     document.getElementById('otpModal').style.display = 'flex';
@@ -852,7 +847,7 @@
                         showToast('Verified successfully! Redirecting...', 'success');
                         setTimeout(() => {
                             window.location.replace(isAdmin ? 'admin.html' : 'dashboard.html');
-                        }, 1500);
+                        }, 1000);
                     };
 
                     resetBtn();
@@ -862,7 +857,7 @@
                 showToast('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
                     window.location.replace(isAdmin ? 'admin.html' : 'dashboard.html');
-                }, 1500);
+                }, 1000);
 
             } catch (err) {
                 console.error(err);
