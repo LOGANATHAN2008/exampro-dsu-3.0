@@ -454,13 +454,13 @@
                     </div>
 
                     <div class="input-group">
-                        <label id="usernameLabel">Username <span>*</span></label>
-                        <input type="text" id="email" placeholder="Email / Register No. / Mobile No." required>
+                        <label id="usernameLabel">Email / Register No. / Mobile No. <span>*</span></label>
+                        <input type="text" id="email" placeholder="Email, Register No, or Mobile No" required autocomplete="username">
                     </div>
 
                     <div class="input-group">
                         <label>Password <span>*</span></label>
-                        <input type="password" id="password" placeholder="Password" required>
+                        <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
                     </div>
 
                     <div class="show-pass-row">
@@ -582,10 +582,66 @@
                     adminCodeInput.required = false;
                     adminCodeInput.value = '';
                 }
-                if (usernameLabel) usernameLabel.innerHTML = 'Username / USN / Reg No <span>*</span>';
-                if (emailInput) emailInput.placeholder = 'Email / Register No. / Mobile No.';
+                if (usernameLabel) usernameLabel.innerHTML = 'Email / Register No. / Mobile No. <span>*</span>';
+                if (emailInput) emailInput.placeholder = 'Email, Register No, or Mobile No';
             }
         };
+
+        // Fast Parallel Account Lookup by Email, Register No / USN, or Mobile / Phone No
+        async function findAccountsByIdentifier(identifier) {
+            const raw = (identifier || '').trim();
+            if (!raw) return [];
+            if (raw.includes('@')) return [raw.toLowerCase()];
+
+            const foundEmails = new Set();
+            const studentsRef = collection(db, 'students');
+            const queries = [];
+
+            // 1. Try Register Number / USN / RegNo variations
+            const regCandidates = Array.from(new Set([raw, raw.toUpperCase(), raw.toLowerCase()]));
+            const regFields = ['registerNumber', 'usn', 'regNo', 'regno', 'studentId'];
+
+            for (const field of regFields) {
+                for (const candidate of regCandidates) {
+                    queries.push(getDocs(query(studentsRef, where(field, '==', candidate))));
+                }
+            }
+
+            // 2. Try Mobile / Phone variations
+            const cleanDigits = raw.replace(/\D/g, '');
+            const phoneCandidates = [raw];
+            if (cleanDigits) {
+                phoneCandidates.push(cleanDigits);
+                if (cleanDigits.length >= 10) {
+                    const last10 = cleanDigits.slice(-10);
+                    phoneCandidates.push(last10);
+                    phoneCandidates.push('+91' + last10);
+                    phoneCandidates.push('+91 ' + last10);
+                    phoneCandidates.push('91' + last10);
+                    phoneCandidates.push('0' + last10);
+                }
+            }
+
+            const uniquePhoneCandidates = Array.from(new Set(phoneCandidates));
+            const phoneFields = ['phone', 'mobile', 'phoneNumber', 'contact', 'mobileNumber'];
+            for (const field of phoneFields) {
+                for (const candidate of uniquePhoneCandidates) {
+                    queries.push(getDocs(query(studentsRef, where(field, '==', candidate))));
+                }
+            }
+
+            const results = await Promise.allSettled(queries);
+            for (const res of results) {
+                if (res.status === 'fulfilled' && res.value && !res.value.empty) {
+                    res.value.forEach(docSnap => {
+                        const data = docSnap.data();
+                        if (data && data.email) foundEmails.add(data.email.trim().toLowerCase());
+                    });
+                }
+            }
+
+            return Array.from(foundEmails);
+        }
 
         window.togglePasswordVisibility = () => {
             const passInput = document.getElementById('password');
@@ -595,11 +651,20 @@
 
         window.handleLogin = async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value.trim();
+            const identifier = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const adminCodeInput = document.getElementById('adminCode');
             const adminCode = adminCodeInput ? adminCodeInput.value.trim() : '';
             const btn = document.getElementById('loginBtn');
+
+            if (!identifier) {
+                showToast('Please enter your Email, Register No, or Mobile No.', 'error');
+                return;
+            }
+            if (!password) {
+                showToast('Please enter your password.', 'error');
+                return;
+            }
 
             if (userType === 'admin') {
                 if (!adminCode) {
@@ -614,7 +679,7 @@
 
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
-            let finalEmail = email;
+            let finalEmail = identifier;
             try {
                 let foundAccounts = [];
                 // If input doesn't look like an email, try resolving it as Register Number or Phone
@@ -625,35 +690,15 @@
                         return;
                     }
 
-                    const studentsRef = collection(db, 'students');
+                    foundAccounts = await findAccountsByIdentifier(finalEmail);
 
-                    let q = query(studentsRef, where('registerNumber', '==', finalEmail));
-                    let snap = await getDocs(q);
-
-                    if (snap.empty) {
-                        q = query(studentsRef, where('registerNumber', '==', finalEmail.toUpperCase()));
-                        snap = await getDocs(q);
-                    }
-                    if (snap.empty) {
-                        q = query(studentsRef, where('registerNumber', '==', finalEmail.toLowerCase()));
-                        snap = await getDocs(q);
-                    }
-
-                    if (!snap.empty) {
-                        snap.forEach(doc => foundAccounts.push(doc.data().email.trim()));
-                    } else {
-                        q = query(studentsRef, where('phone', '==', finalEmail));
-                        snap = await getDocs(q);
-                        if (!snap.empty) {
-                            snap.forEach(doc => foundAccounts.push(doc.data().email.trim()));
-                        } else {
-                            showToast('Account not found with this Register/Mobile Number.', 'error');
-                            resetBtn();
-                            return;
-                        }
+                    if (foundAccounts.length === 0) {
+                        showToast('Account not found with this Register / Mobile Number.', 'error');
+                        resetBtn();
+                        return;
                     }
                 } else {
-                    foundAccounts.push(finalEmail.trim());
+                    foundAccounts.push(finalEmail.trim().toLowerCase());
                 }
 
                 let cred = null;
@@ -877,48 +922,22 @@
 
         window.forgotPassword = async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value.trim();
-            if (!email) { showToast('Please enter your email, register no, or phone.', 'info'); return; }
+            const identifier = document.getElementById('email').value.trim();
+            if (!identifier) { showToast('Please enter your Email, Register No, or Mobile No.', 'info'); return; }
 
             try {
-                let finalEmail = email;
+                let finalEmail = identifier;
                 if (!finalEmail.includes('@')) {
-                    const studentsRef = collection(db, 'students');
-                    let foundAccounts = [];
-
-                    let q = query(studentsRef, where('registerNumber', '==', finalEmail));
-                    let snap = await getDocs(q);
-
-                    if (snap.empty) {
-                        q = query(studentsRef, where('registerNumber', '==', finalEmail.toUpperCase()));
-                        snap = await getDocs(q);
+                    const foundAccounts = await findAccountsByIdentifier(finalEmail);
+                    if (foundAccounts.length === 0) {
+                        showToast('Account not found with this Register / Mobile Number.', 'error');
+                        return;
                     }
-                    if (snap.empty) {
-                        q = query(studentsRef, where('registerNumber', '==', finalEmail.toLowerCase()));
-                        snap = await getDocs(q);
-                    }
-
-                    if (!snap.empty) {
-                        snap.forEach(doc => foundAccounts.push(doc.data().email.trim()));
-                    } else {
-                        q = query(studentsRef, where('phone', '==', finalEmail));
-                        snap = await getDocs(q);
-                        if (!snap.empty) {
-                            snap.forEach(doc => foundAccounts.push(doc.data().email.trim()));
-                        } else {
-                            showToast('Account not found with this Register/Mobile Number.', 'error');
-                            return;
-                        }
-                    }
-
-                    // Use the first resolved account for password reset
-                    if (foundAccounts.length > 0) {
-                        finalEmail = foundAccounts[0];
-                    }
+                    finalEmail = foundAccounts[0];
                 }
 
                 await sendPasswordResetEmail(auth, finalEmail);
-                showToast(`Reset link sent to ${finalEmail}!`, 'success');
+                showToast(`Password reset link sent to ${finalEmail}!`, 'success');
             } catch (err) {
                 console.error(err);
                 let msg = 'Error sending reset link.';

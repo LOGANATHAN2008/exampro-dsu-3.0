@@ -199,7 +199,14 @@ const cardObserver = new MutationObserver((mutations) => {
         });
     }
 });
-cardObserver.observe(document.body, { childList: true, subtree: true });
+
+if (document.body) {
+    cardObserver.observe(document.body, { childList: true, subtree: true });
+} else {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (document.body) cardObserver.observe(document.body, { childList: true, subtree: true });
+    });
+}
 
 // Also run once for static elements already in the DOM
 window.addEventListener('DOMContentLoaded', () => {

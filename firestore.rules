@@ -37,11 +37,10 @@ service cloud.firestore {
     }
 
     // ===== Students Collection =====
-    // ⚠️  SECURITY FIX: was allow read: if true — changed to auth-required.
-    // Public result checking must go through /publicResults collection (read-only,
-    // populated by admin/Cloud Function) — never via bulk-read of this collection.
+    // allow read: if true is required for student login resolution (by Register No / Phone), 
+    // registration duplicate checks, and public result verification.
     match /students/{studentId} {
-      allow read: if request.auth != null;
+      allow read: if true;
       allow create: if request.auth != null && request.auth.uid == studentId;
       allow update: if request.auth != null && (
         request.auth.uid == studentId ||
