@@ -12,7 +12,7 @@ Allow: /index.html
 Allow: /login.html
 Allow: /register.html
 Allow: /about.html
-Allow: /courses.html
+Allow: /materials.html
 Allow: /dsu_logo.png
 Allow: /theme.css
 Allow: /sitemap.xml

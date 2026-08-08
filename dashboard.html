@@ -1586,7 +1586,6 @@
                 <div class="nav-label">Main</div>
                 <a class="nav-item active" href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
                 <a class="nav-item" href="materials.html"><i class="fas fa-book-reader"></i> Study Materials</a>
-                <a class="nav-item" href="courses.html"><i class="fas fa-book-open"></i> Course Library</a>
                 <a class="nav-item" href="faculty.html"><i class="fas fa-chalkboard-teacher"></i> Faculty</a>
                 <a class="nav-item" href="test.html"><i class="fas fa-clipboard-check"></i> Tests <span
                         class="nav-badge">3</span></a>
@@ -1743,8 +1742,8 @@
         <div class="quick-actions">
             <a class="quick-btn" href="test.html"><i class="fas fa-play-circle"
                     style="color:var(--primary)"></i><span>Take Test</span></a>
-            <a class="quick-btn" href="courses.html"><i class="fas fa-book-reader"
-                    style="color:var(--secondary)"></i><span>Course Library</span></a>
+            <a class="quick-btn" href="materials.html"><i class="fas fa-book-reader"
+                    style="color:var(--secondary)"></i><span>Study Materials</span></a>
             <a class="quick-btn" href="result.html"><i class="fas fa-chart-pie"
                     style="color:var(--success)"></i><span>Results</span></a>
             <a class="quick-btn" href="profile.html"><i class="fas fa-user-edit"
@@ -2969,8 +2968,8 @@
                     reply = "Please click the link below to view your upcoming exams and deadlines 👇<br><br><button class='chatbot-menu-btn' style='justify-content: center; color: var(--success); border-color: var(--success); background: rgba(16, 185, 129, 0.1); width: 100%;' onclick='smoothScroll(\"sec-schedule\"); toggleChatbot();'><i class='fas fa-external-link-alt'></i> Click Here</button>";
                 } else if (lowerMsg.includes('exam') || lowerMsg.includes('test')) {
                     reply = "To take an exam, click the link below to enter the test environment 👇<br><br><button class='chatbot-menu-btn' style='justify-content: center; color: var(--success); border-color: var(--success); background: rgba(16, 185, 129, 0.1); width: 100%;' onclick='window.location.href=\"test.html\";'><i class='fas fa-external-link-alt'></i> Click Here</button>";
-                } else if (lowerMsg.includes('library') || lowerMsg.includes('book')) {
-                    reply = "Please click the link below to open the Digital Library and access your study materials 👇<br><br><button class='chatbot-menu-btn' style='justify-content: center; color: var(--success); border-color: var(--success); background: rgba(16, 185, 129, 0.1); width: 100%;' onclick='window.location.href=\"courses.html\";'><i class='fas fa-external-link-alt'></i> Click Here</button>";
+                } else if (lowerMsg.includes('material') || lowerMsg.includes('library') || lowerMsg.includes('book') || lowerMsg.includes('study') || lowerMsg.includes('pdf')) {
+                    reply = "Please click the link below to open Study Materials and access your notes 👇<br><br><button class='chatbot-menu-btn' style='justify-content: center; color: var(--success); border-color: var(--success); background: rgba(16, 185, 129, 0.1); width: 100%;' onclick='window.location.href=\"materials.html\";'><i class='fas fa-external-link-alt'></i> Click Here</button>";
                 } else if (lowerMsg.includes('login') || lowerMsg.includes('register')) {
                     reply = "If you need help logging in, please use your official DSU email ID. You can reset your password from the main login screen.";
                 } else if (lowerMsg.includes('result') || lowerMsg.includes('marks') || lowerMsg.includes('score')) {

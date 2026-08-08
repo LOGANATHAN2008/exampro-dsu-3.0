@@ -65,7 +65,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Define the navigation items
     const navItems = [
         { name: 'Home', icon: 'fa-home', url: 'dashboard.html' },
-        { name: 'Courses', icon: 'fa-book-open', url: 'courses.html' },
+        { name: 'Materials', icon: 'fa-book-reader', url: 'materials.html' },
         { name: 'Tests', icon: 'fa-clipboard-check', url: 'test.html' },
         { name: 'Results', icon: 'fa-chart-bar', url: 'result.html' },
         { name: 'Profile', icon: 'fa-user', url: 'profile.html' }
@@ -110,7 +110,7 @@ window.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('DOMContentLoaded', () => {
     const pages = [
         'dashboard.html',
-        'courses.html',
+        'materials.html',
         'test.html',
         'result.html',
         'profile.html'

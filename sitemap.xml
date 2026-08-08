@@ -54,13 +54,13 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://dsu.loganathanm.in/about.html"/>
     </url>
 
-    <!-- COURSES -->
+    <!-- STUDY MATERIALS -->
     <url>
-        <loc>https://dsu.loganathanm.in/courses.html</loc>
-        <lastmod>2026-07-23</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.6</priority>
-        <xhtml:link rel="alternate" hreflang="en" href="https://dsu.loganathanm.in/courses.html"/>
+        <loc>https://dsu.loganathanm.in/materials.html</loc>
+        <lastmod>2026-08-08</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+        <xhtml:link rel="alternate" hreflang="en" href="https://dsu.loganathanm.in/materials.html"/>
     </url>
 
     <!-- NOTE: dashboard.html, result.html, admin.html, profile.html are -->
