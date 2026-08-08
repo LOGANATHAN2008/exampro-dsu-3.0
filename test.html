@@ -848,14 +848,6 @@
 
 <body>
 
-        <!-- Mass Loader -->
-    <div class="spinner-overlay" id="loader" style="display: none !important;">
-        <div class="loader-mass">
-            <div class="loader-ring"></div>
-            <img src="dsu_logo.png" alt="DSU" class="loader-logo">
-        </div>
-        <p class="loader-text">Loading Tests...</p>
-    </div>
 
     <!-- ===== Test Selection ===== -->
     <div id="testSelectionView">
@@ -1010,8 +1002,7 @@
                     studentProfile = studentDoc.data();
                 }
             } catch (err) { console.error('Could not fetch student profile:', err); }
-            await loadTests();
-            document.getElementById('loader').style.display = 'none';
+            loadTests();
         });
 
         let allTestsCache = [];
