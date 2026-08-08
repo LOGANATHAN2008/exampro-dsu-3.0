@@ -561,6 +561,136 @@
             display: flex;
         }
 
+        /* iOS Style Alert & Confirm Dialog */
+        .ios-dialog-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .ios-dialog-overlay.ios-active {
+            opacity: 1;
+        }
+
+        .ios-dialog {
+            width: 290px;
+            max-width: 90vw;
+            background: rgba(30, 30, 35, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(35px) saturate(190%);
+            -webkit-backdrop-filter: blur(35px) saturate(190%);
+            border-radius: 16px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55), 0 0 0 0.5px rgba(255, 255, 255, 0.15);
+            overflow: hidden;
+            transform: scale(1.08);
+            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Roboto, sans-serif;
+        }
+
+        .ios-dialog-overlay.ios-active .ios-dialog {
+            transform: scale(1);
+        }
+
+        .ios-dialog-content {
+            padding: 22px 18px 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .ios-dialog-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 12px;
+        }
+
+        .ios-dialog-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #ffffff;
+            line-height: 1.3;
+            margin-bottom: 6px;
+            letter-spacing: -0.4px;
+        }
+
+        .ios-dialog-text {
+            font-size: 13px;
+            font-weight: 400;
+            color: rgba(235, 235, 245, 0.7);
+            line-height: 1.45;
+            letter-spacing: -0.2px;
+        }
+
+        .ios-dialog-actions {
+            display: flex;
+            border-top: 0.5px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .ios-dialog-btn {
+            flex: 1;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 400;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #0a84ff;
+            font-family: inherit;
+            transition: background 0.15s;
+            user-select: none;
+            outline: none;
+        }
+
+        .ios-dialog-btn:active {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .ios-dialog-btn + .ios-dialog-btn {
+            border-left: 0.5px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .ios-dialog-btn.ios-cancel {
+            font-weight: 400;
+            color: #0a84ff;
+        }
+
+        .ios-dialog-btn.ios-confirm {
+            font-weight: 600;
+        }
+
+        .ios-dialog-btn.ios-destructive {
+            color: #ff453a !important;
+            font-weight: 600;
+        }
+
+        .ios-dialog-btn.ios-success {
+            color: #30d158 !important;
+            font-weight: 600;
+        }
+
+        .ios-dialog-btn.ios-warn {
+            color: #ff9f0a !important;
+            font-weight: 600;
+        }
+
         .modal {
             background: rgba(20, 20, 45, .99);
             border: 1px solid var(--glass-border);
@@ -2564,13 +2694,124 @@
             </tr>`).join('');
         }
 
+        // ===== iOS STYLE CONFIRM & ALERT HELPER =====
+        window.showIOSConfirm = function({
+            title = 'Confirmation',
+            message = '',
+            icon = '',
+            confirmText = 'OK',
+            cancelText = 'Cancel',
+            isDestructive = false,
+            confirmType = 'primary', // 'primary', 'success', 'warn', 'danger'
+            confirmColor = ''
+        } = {}) {
+            return new Promise((resolve) => {
+                const existing = document.getElementById('iosDialogContainer');
+                if (existing) existing.remove();
+
+                const overlay = document.createElement('div');
+                overlay.id = 'iosDialogContainer';
+                overlay.className = 'ios-dialog-overlay';
+
+                let iconHtml = '';
+                if (icon) {
+                    let iconBg = 'rgba(108, 99, 255, 0.15)';
+                    let iconCol = 'var(--primary)';
+                    if (confirmType === 'success' || confirmText === 'Accept') {
+                        iconBg = 'rgba(48, 209, 88, 0.15)';
+                        iconCol = '#30d158';
+                    } else if (confirmType === 'danger' || isDestructive || confirmText === 'Block' || confirmText === 'Delete') {
+                        iconBg = 'rgba(255, 69, 58, 0.15)';
+                        iconCol = '#ff453a';
+                    } else if (confirmType === 'warn' || confirmText === 'Reject') {
+                        iconBg = 'rgba(255, 159, 10, 0.15)';
+                        iconCol = '#ff9f0a';
+                    }
+                    iconHtml = `<div class="ios-dialog-icon" style="background:${iconBg}; color:${iconCol}"><i class="fas ${icon}"></i></div>`;
+                }
+
+                let confirmClass = 'ios-dialog-btn ios-confirm';
+                if (isDestructive || confirmType === 'danger' || confirmText === 'Delete') confirmClass += ' ios-destructive';
+                else if (confirmType === 'success' || confirmText === 'Accept') confirmClass += ' ios-success';
+                else if (confirmType === 'warn' || confirmText === 'Reject') confirmClass += ' ios-warn';
+
+                const customStyle = confirmColor ? `style="color:${confirmColor} !important"` : '';
+
+                overlay.innerHTML = `
+                    <div class="ios-dialog">
+                        <div class="ios-dialog-content">
+                            ${iconHtml}
+                            <div class="ios-dialog-title">${title}</div>
+                            ${message ? `<div class="ios-dialog-text">${message}</div>` : ''}
+                        </div>
+                        <div class="ios-dialog-actions">
+                            ${cancelText ? `<button class="ios-dialog-btn ios-cancel" id="iosCancelBtn">${cancelText}</button>` : ''}
+                            <button class="${confirmClass}" ${customStyle} id="iosConfirmBtn">${confirmText}</button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(overlay);
+
+                requestAnimationFrame(() => {
+                    overlay.classList.add('ios-active');
+                });
+
+                const cleanup = (result) => {
+                    overlay.classList.remove('ios-active');
+                    setTimeout(() => overlay.remove(), 220);
+                    resolve(result);
+                };
+
+                const cancelBtn = overlay.querySelector('#iosCancelBtn');
+                if (cancelBtn) cancelBtn.onclick = () => cleanup(false);
+                overlay.querySelector('#iosConfirmBtn').onclick = () => cleanup(true);
+
+                overlay.onclick = (e) => {
+                    if (e.target === overlay) cleanup(false);
+                };
+            });
+        };
+
         window.setApprovalStatus = async function(studentId, email, name, status) {
-            const messages = {
-                approved: 'Accept this student?',
-                rejected: 'Reject this registration?',
-                blocked: '⚠️ Block this account for spam/suspicious activity?'
+            const configs = {
+                approved: {
+                    title: 'Accept Student?',
+                    message: `Approve registration for <b>${name || 'Student'}</b> (${email})?`,
+                    confirmText: 'Accept',
+                    confirmType: 'success',
+                    icon: 'fa-user-check'
+                },
+                rejected: {
+                    title: 'Reject Registration?',
+                    message: `Reject registration for <b>${name || 'Student'}</b>? They will need to register again.`,
+                    confirmText: 'Reject',
+                    confirmType: 'warn',
+                    icon: 'fa-user-times'
+                },
+                blocked: {
+                    title: 'Block Student Account?',
+                    message: `Block <b>${name || 'Student'}</b> (${email}) for suspicious or spam activity?`,
+                    confirmText: 'Block',
+                    confirmType: 'danger',
+                    isDestructive: true,
+                    icon: 'fa-ban'
+                }
             };
-            if (!confirm(messages[status])) return;
+
+            const cfg = configs[status] || { title: 'Update Status', message: 'Proceed?', confirmText: 'OK', confirmType: 'primary', icon: 'fa-question-circle' };
+            const confirmed = await window.showIOSConfirm({
+                title: cfg.title,
+                message: cfg.message,
+                confirmText: cfg.confirmText,
+                cancelText: 'Cancel',
+                confirmType: cfg.confirmType,
+                isDestructive: cfg.isDestructive,
+                icon: cfg.icon
+            });
+
+            if (!confirmed) return;
+
             try {
                 await updateDoc(doc(db, 'students', studentId), {
                     approvalStatus: status,
@@ -2840,7 +3081,15 @@
         };
 
         window.deleteNotice = async function (id) {
-            if (!confirm('Delete this notice?')) return;
+            const confirmed = await window.showIOSConfirm({
+                title: 'Delete Notice?',
+                message: 'Are you sure you want to remove this notice? This action cannot be undone.',
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+                isDestructive: true,
+                icon: 'fa-trash-alt'
+            });
+            if (!confirmed) return;
             try {
                 await deleteDoc(doc(db, 'notices', id));
                 showToast('Notice deleted', 'success');
@@ -3045,13 +3294,29 @@
         window.closeStudentModal = () => document.getElementById('studentModal').classList.remove('active');
 
         window.deleteAdmin = async function(id) {
-            if(!confirm('Delete this admin?')) return;
+            const confirmed = await window.showIOSConfirm({
+                title: 'Revoke Admin Access?',
+                message: 'Are you sure you want to permanently delete this administrator account?',
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+                isDestructive: true,
+                icon: 'fa-user-slash'
+            });
+            if (!confirmed) return;
             try { await deleteDoc(doc(db, 'admins', id)); showToast('Admin deleted', 'success'); }
             catch(e) { showToast('Error deleting', 'error'); }
         };
         
         window.deleteFeedback = async function(id) {
-            if(!confirm('Delete this feedback?')) return;
+            const confirmed = await window.showIOSConfirm({
+                title: 'Delete Feedback?',
+                message: 'Are you sure you want to remove this feedback message?',
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+                isDestructive: true,
+                icon: 'fa-trash-alt'
+            });
+            if (!confirmed) return;
             try { await deleteDoc(doc(db, 'feedback', id)); showToast('Feedback deleted', 'success'); }
             catch(e) { showToast('Error deleting', 'error'); }
         };
@@ -3161,22 +3426,22 @@
             }
         };
 
-        window.deleteStudent = function (id) {
-            deleteTargetId = id;
-            document.getElementById('deleteModal').classList.add('active');
-        };
-
-        window.confirmDelete = async function () {
-            if (!deleteTargetId) return;
-            const btn = document.getElementById('deleteConfirmBtn');
-            btn.disabled = true; btn.textContent = 'Deleting...';
+        window.deleteStudent = async function (id) {
+            const student = allStudents.find(s => s.id === id);
+            const name = student?.name || 'Student';
+            const confirmed = await window.showIOSConfirm({
+                title: 'Delete Student?',
+                message: `Are you sure you want to permanently remove <b>${name}</b>? This action cannot be undone.`,
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+                isDestructive: true,
+                icon: 'fa-user-minus'
+            });
+            if (!confirmed) return;
             try {
-                await deleteDoc(doc(db, 'students', deleteTargetId));
-                document.getElementById('deleteModal').classList.remove('active');
+                await deleteDoc(doc(db, 'students', id));
                 showToast('Student deleted.', 'success');
-                deleteTargetId = null;
             } catch { showToast('Delete failed.', 'error'); }
-            btn.disabled = false; btn.innerHTML = 'Delete';
         };
 
         // Test Creation (Enhanced)
@@ -3314,7 +3579,17 @@
         };
 
         window.deleteTestById = async function (id) {
-            if (!confirm('Delete this test?')) return;
+            const test = allTests.find(t => t.id === id);
+            const title = test?.title || 'Test';
+            const confirmed = await window.showIOSConfirm({
+                title: 'Delete Exam / Test?',
+                message: `Are you sure you want to permanently delete <b>${title}</b> and all its questions?`,
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+                isDestructive: true,
+                icon: 'fa-trash-alt'
+            });
+            if (!confirmed) return;
             try { await deleteDoc(doc(db, 'tests', id)); showToast('Test deleted.', 'success'); }
             catch { showToast('Delete failed.', 'error'); }
         };
