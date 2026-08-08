@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Under Maintenance | ExamPro DSU</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="dsu_logo.png">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --primary: #6c63ff;
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --bg: #050510;
+            --glass: rgba(255,255,255,0.05);
+            --glass-border: rgba(255,255,255,0.1);
+            --text: #e2e8f0;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated background */
+        .bg-orbs {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.35;
+            animation: float 8s ease-in-out infinite;
+        }
+        .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, #6c63ff, transparent); top: -150px; left: -150px; animation-delay: 0s; }
+        .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, #06b6d4, transparent); bottom: -100px; right: -100px; animation-delay: -4s; }
+        .orb-3 { width: 300px; height: 300px; background: radial-gradient(circle, #f59e0b, transparent); top: 50%; left: 50%; transform: translate(-50%, -50%); animation-delay: -2s; }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.05); }
+            66% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 48px 32px;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        .logo-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin-bottom: 40px;
+        }
+        .logo-row img { width: 52px; height: auto; }
+        .logo-row span { font-size: 22px; font-weight: 800; background: linear-gradient(135deg, #6c63ff, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .wrench-icon {
+            font-size: 72px;
+            margin-bottom: 24px;
+            display: block;
+            animation: wobble 2s ease-in-out infinite;
+            filter: drop-shadow(0 0 24px rgba(108,99,255,0.5));
+        }
+        @keyframes wobble {
+            0%, 100% { transform: rotate(-12deg); }
+            50% { transform: rotate(12deg); }
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: 900;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, var(--text), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .tagline {
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 36px;
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        /* Glass card */
+        .glass-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 28px;
+            backdrop-filter: blur(12px);
+            margin-bottom: 24px;
+        }
+
+        /* Countdown */
+        .countdown-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .countdown-unit {
+            background: rgba(108,99,255,0.12);
+            border: 1px solid rgba(108,99,255,0.25);
+            border-radius: 14px;
+            padding: 16px 8px;
+        }
+        .countdown-num {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--primary);
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+        }
+        .countdown-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 6px;
+        }
+        .countdown-placeholder {
+            color: var(--text-muted);
+            font-size: 13px;
+            padding: 16px;
+        }
+
+        /* Progress bar */
+        .progress-section { margin-top: 20px; }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .progress-pct { color: var(--primary); font-size: 16px; font-weight: 800; }
+        .progress-track {
+            height: 10px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 99px;
+            transition: width 1s ease;
+            position: relative;
+        }
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0;
+            width: 40px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
+            animation: shimmer 1.5s ease-in-out infinite;
+        }
+        @keyframes shimmer { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
+        /* Info row */
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .info-row i { color: var(--primary); font-size: 14px; flex-shrink: 0; }
+        .info-row a { color: var(--secondary); text-decoration: none; }
+        .info-row a:hover { text-decoration: underline; }
+
+        /* Social links */
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .social-btn {
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        .social-btn:hover { background: rgba(108,99,255,0.2); color: var(--primary); transform: translateY(-2px); }
+
+        .thank-you {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 24px;
+        }
+
+        /* Particles */
+        .particle {
+            position: fixed;
+            width: 4px; height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0;
+            animation: rise 6s ease-in infinite;
+            pointer-events: none;
+        }
+        @keyframes rise {
+            0% { transform: translateY(100vh) scale(0); opacity: 0.8; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div class="container">
+        <div class="logo-row">
+            <img src="dsu_logo.png" alt="DSU Logo">
+            <span>ExamPro DSU</span>
+        </div>
+
+        <span class="wrench-icon">🚧</span>
+        <h1>Under Maintenance</h1>
+        <p class="tagline" id="maintMessage">Students-ku useful-aana pudhu features ready pannitu irukkom.</p>
+
+        <!-- Countdown Card -->
+        <div class="glass-card">
+            <div id="countdownSection">
+                <div class="countdown-grid" id="countdownGrid">
+                    <div class="countdown-unit"><div class="countdown-num" id="cd-days">--</div><div class="countdown-label">Days</div></div>
+                    <div class="countdown-unit"><div class="countdown-num" id="cd-hours">--</div><div class="countdown-label">Hours</div></div>
+                    <div class="countdown-unit"><div class="countdown-num" id="cd-mins">--</div><div class="countdown-label">Minutes</div></div>
+                    <div class="countdown-unit"><div class="countdown-num" id="cd-secs">--</div><div class="countdown-label">Seconds</div></div>
+                </div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px"><i class="fas fa-clock"></i> Estimated launch: <span id="launchLabel">calculating...</span></div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-section">
+                <div class="progress-header">
+                    <span><i class="fas fa-tasks" style="color:var(--primary)"></i> Development Progress</span>
+                    <span class="progress-pct" id="progressPct">0%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info rows -->
+        <div id="contactInfo" style="display:none">
+            <div class="info-row"><i class="fas fa-envelope"></i><span>Contact: <a id="contactEmailLink" href="#">admin@dsu.edu</a></span></div>
+        </div>
+
+        <div class="social-links" id="socialLinks"></div>
+
+        <p class="thank-you">🙏 Thank you for your patience. We'll be back soon!</p>
+    </div>
+
+    <!-- Floating particles -->
+    <script>
+        for (let i = 0; i < 12; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + 'vw';
+            p.style.animationDelay = Math.random() * 6 + 's';
+            p.style.animationDuration = (4 + Math.random() * 4) + 's';
+            p.style.width = p.style.height = (2 + Math.random() * 4) + 'px';
+            p.style.background = ['#6c63ff','#06b6d4','#f59e0b'][Math.floor(Math.random()*3)];
+            document.body.appendChild(p);
+        }
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
+            authDomain: "dsu-exam-system.firebaseapp.com",
+            projectId: "dsu-exam-system",
+            storageBucket: "dsu-exam-system.firebasestorage.app",
+            messagingSenderId: "155083834622",
+            appId: "1:155083834622:web:ff0a9780b88bad0b8811af"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let launchDate = null;
+        let countdownTimer = null;
+
+        // Admin bypass: if logged-in admin visits maintenance page, redirect them
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+                    if (adminDoc.exists()) {
+                        window.location.replace('admin.html');
+                        return;
+                    }
+                } catch(e) { /* continue showing maintenance */ }
+            }
+        });
+
+        // Live listener for maintenance settings
+        onSnapshot(doc(db, 'settings', 'maintenanceMode'), (snap) => {
+            if (!snap.exists()) return;
+            const data = snap.data();
+
+            // If maintenance is turned OFF, redirect to login/dashboard
+            if (!data.enabled) {
+                window.location.replace('login.html');
+                return;
+            }
+
+            // Update message
+            if (data.message) {
+                document.getElementById('maintMessage').textContent = data.message;
+            }
+
+            // Update progress bar
+            const pct = Math.min(100, Math.max(0, data.progressPercent || 0));
+            document.getElementById('progressPct').textContent = pct + '%';
+            document.getElementById('progressFill').style.width = pct + '%';
+
+            // Update contact email
+            if (data.contactEmail) {
+                document.getElementById('contactInfo').style.display = 'block';
+                const link = document.getElementById('contactEmailLink');
+                link.textContent = data.contactEmail;
+                link.href = 'mailto:' + data.contactEmail;
+            }
+
+            // Update social links
+            const socialLinks = document.getElementById('socialLinks');
+            const icons = {
+                instagram: { icon: 'fa-instagram', color: '#e1306c' },
+                twitter: { icon: 'fa-twitter', color: '#1da1f2' },
+                whatsapp: { icon: 'fa-whatsapp', color: '#25d366' }
+            };
+            let socialHTML = '';
+            if (data.socialLinks) {
+                for (const [platform, url] of Object.entries(data.socialLinks)) {
+                    if (url && icons[platform]) {
+                        socialHTML += `<a href="${url}" target="_blank" class="social-btn" title="${platform}" style="color:${icons[platform].color}"><i class="fab ${icons[platform].icon}"></i></a>`;
+                    }
+                }
+            }
+            socialLinks.innerHTML = socialHTML;
+
+            // Update countdown
+            if (data.launchDate) {
+                launchDate = data.launchDate.toDate ? data.launchDate.toDate() : new Date(data.launchDate.seconds * 1000);
+                document.getElementById('launchLabel').textContent = launchDate.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+                startCountdown();
+            }
+        });
+
+        function startCountdown() {
+            if (countdownTimer) clearInterval(countdownTimer);
+            updateCountdown();
+            countdownTimer = setInterval(updateCountdown, 1000);
+        }
+
+        function updateCountdown() {
+            if (!launchDate) return;
+            const now = new Date();
+            const diff = launchDate - now;
+
+            if (diff <= 0) {
+                document.getElementById('cd-days').textContent = '00';
+                document.getElementById('cd-hours').textContent = '00';
+                document.getElementById('cd-mins').textContent = '00';
+                document.getElementById('cd-secs').textContent = '00';
+                clearInterval(countdownTimer);
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+            document.getElementById('cd-days').textContent = String(days).padStart(2, '0');
+            document.getElementById('cd-hours').textContent = String(hours).padStart(2, '0');
+            document.getElementById('cd-mins').textContent = String(mins).padStart(2, '0');
+            document.getElementById('cd-secs').textContent = String(secs).padStart(2, '0');
+        }
+    </script>
+</body>
+</html>

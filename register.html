@@ -775,7 +775,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, serverTimestamp, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, serverTimestamp, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
@@ -858,12 +858,51 @@
                     college, branch, department, section, year,
                     photoURL: '',
                     role: 'student',
+                    approvalStatus: 'pending', // Section 2: must be approved by admin before login
                     createdAt: serverTimestamp(),
                     lastLogin: serverTimestamp()
                 });
 
-                showToast('Account created successfully!', 'success');
-                setTimeout(() => window.location.href = 'dashboard.html', 1500);
+                // Section 2: Notify admins of new registration
+                try {
+                    await addDoc(collection(db, 'notifications'), {
+                        type: 'new_registration',
+                        studentUID: cred.user.uid,
+                        name, email, phone, department, registerNumber,
+                        branch, section, year, college,
+                        targetRole: 'admin', // for admin inbox filtering
+                        approvalStatus: 'pending',
+                        timestamp: serverTimestamp(),
+                        read: false
+                    });
+                } catch (notifErr) {
+                    console.error('Failed to write registration notification', notifErr);
+                    // Non-fatal — account still created
+                }
+
+                showToast('✅ Account created! Waiting for admin approval...', 'success');
+                // Show pending message after 1.5s instead of going to dashboard
+                setTimeout(() => {
+                    // Replace page content with a friendly pending screen
+                    document.body.innerHTML = `
+                    <div style="min-height:100vh;background:#0a0a1a;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;">
+                        <div style="text-align:center;padding:48px 32px;max-width:480px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.5);">
+                            <div style="font-size:60px;margin-bottom:20px">⏳</div>
+                            <h2 style="color:#e2e8f0;font-size:22px;margin-bottom:12px">Registration Submitted!</h2>
+                            <p style="color:#94a3b8;font-size:14px;line-height:1.7;margin-bottom:24px">
+                                Your account has been created successfully.<br>
+                                <strong style="color:#6c63ff">Admin approval is pending.</strong><br>
+                                You'll receive an email once approved. This usually takes a few minutes.
+                            </p>
+                            <div style="background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.3);border-radius:10px;padding:14px;margin-bottom:24px;font-size:13px;color:#a78bfa">
+                                📧 Registered email: <strong>${email}</strong>
+                            </div>
+                            <a href="login.html" style="display:inline-block;padding:13px 32px;background:linear-gradient(135deg,#6c63ff,#4f46e5);color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px">
+                                Go to Login
+                            </a>
+                        </div>
+                    </div>`;
+                }, 1500);
             } catch (err) {
                 let msg = 'Registration failed.';
                 if (err.code === 'auth/email-already-in-use') msg = 'Email already registered. Please login.';

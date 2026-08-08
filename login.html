@@ -435,7 +435,7 @@
                     onmouseout="this.style.color='var(--text-muted)'">About</a>
             </div>
 
-            <div class="form-container" id="loginContent" style="opacity: 0; pointer-events: none; transition: opacity 0.4s ease;">
+            <div class="form-container" id="loginContent">
                 <div class="form-header">
                     <img src="dsu_logo.png" alt="DSU Logo">
                 </div>
@@ -443,18 +443,18 @@
                 <form id="loginForm" onsubmit="handleLogin(event)">
                     <div class="role-selection">
                         <label class="role-item">
-                            <input type="radio" name="role" value="staff" onchange="toggleUserType('admin')">
+                            <input type="radio" name="role" value="staff" id="roleStaffRadio" onchange="toggleUserType('admin')">
                             Role Staff
                         </label>
                         <label class="role-item">
-                            <input type="radio" name="role" value="student" checked
+                            <input type="radio" name="role" value="student" id="roleStudentRadio" checked
                                 onchange="toggleUserType('student')">
                             Student
                         </label>
                     </div>
 
                     <div class="input-group">
-                        <label>Username <span>*</span></label>
+                        <label id="usernameLabel">Username <span>*</span></label>
                         <input type="text" id="email" placeholder="Email / Register No. / Mobile No." required>
                     </div>
 
@@ -472,7 +472,7 @@
 
                     <div class="input-group" id="adminCodeGroup" style="display: none;">
                         <label>Admin Security Code <span>*</span></label>
-                        <input type="password" id="adminCode" placeholder="Enter security code">
+                        <input type="password" id="adminCode" placeholder="Enter 4-digit security code">
                     </div>
 
                     <div class="btn-group">
@@ -492,7 +492,7 @@
                 <!-- App Store Ad -->
                 <div style="margin-top: 25px; text-align: center;">
                     <a href="https://app.loganathanm.in/" target="_blank">
-                        <img src="loga_app_store_ad.png" alt="Get it on App Store"
+                        <img src="loga app store ad.png" alt="Get it on App Store"
                             style="max-width: 240px; width: 100%; height: auto; border-radius: 10px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); transition: transform 0.3s ease;"
                             onmouseover="this.style.transform='scale(1.04)'"
                             onmouseout="this.style.transform='scale(1)'">
@@ -545,37 +545,45 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Auto-redirect if already logged in
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                try {
-                    const adminDoc = await getDoc(doc(db, 'admins', user.uid));
-                    if (adminDoc.exists()) {
-                        window.location.replace('admin.html');
-                    } else {
-                        window.location.replace('dashboard.html');
-                    }
-                } catch(e) {
-                    console.error("Auth check failed", e);
-                    document.getElementById('loginContent').style.opacity = '1';
-                    document.getElementById('loginContent').style.pointerEvents = 'auto';
-                }
-            } else {
-                document.getElementById('loginContent').style.opacity = '1';
-                document.getElementById('loginContent').style.pointerEvents = 'auto';
+        // ============================================================
+        // BOOTSTRAP SUPER-ADMIN EMAIL LIST
+        // ============================================================
+        const ADMIN_EMAILS = ['admin@dsu.edu', 'loganathan@dsu.edu', 'mloganathan082008@gmail.com', 'exampro.loganathanm.in@gmail.com'];
+
+        // Do not auto-redirect on page load — allow user to manually choose role & enter credentials
+        onAuthStateChanged(auth, (user) => {
+            const loginContent = document.getElementById('loginContent');
+            if (loginContent) {
+                loginContent.style.opacity = '1';
+                loginContent.style.pointerEvents = 'auto';
             }
         });
 
         let userType = 'student';
-        const ADMIN_EMAILS = ['admin@dsu.edu', 'loga@dsu.edu'];
+
+        // DEV-ONLY: log which path resolved isAdmin (never runs on production)
+        const IS_DEV = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
         window.toggleUserType = (type) => {
             userType = type;
             const adminCodeGroup = document.getElementById('adminCodeGroup');
+            const usernameLabel = document.getElementById('usernameLabel');
+            const emailInput = document.getElementById('email');
+            const adminCodeInput = document.getElementById('adminCode');
+
             if (type === 'admin') {
                 adminCodeGroup.style.display = 'block';
+                if (adminCodeInput) adminCodeInput.required = true;
+                if (usernameLabel) usernameLabel.innerHTML = 'Staff / Admin Email <span>*</span>';
+                if (emailInput) emailInput.placeholder = 'admin@dsu.edu / staff email';
             } else {
                 adminCodeGroup.style.display = 'none';
+                if (adminCodeInput) {
+                    adminCodeInput.required = false;
+                    adminCodeInput.value = '';
+                }
+                if (usernameLabel) usernameLabel.innerHTML = 'Username / USN / Reg No <span>*</span>';
+                if (emailInput) emailInput.placeholder = 'Email / Register No. / Mobile No.';
             }
         };
 
@@ -590,20 +598,33 @@
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const adminCodeInput = document.getElementById('adminCode');
-            const adminCode = adminCodeInput ? adminCodeInput.value : '';
+            const adminCode = adminCodeInput ? adminCodeInput.value.trim() : '';
             const btn = document.getElementById('loginBtn');
 
-            if (userType === 'admin' && adminCode !== '2026') {
-                showToast('Invalid Admin Security Code!', 'error');
-                return;
+            if (userType === 'admin') {
+                if (!adminCode) {
+                    showToast('Please enter Admin Security Code!', 'error');
+                    return;
+                }
+                if (adminCode !== '2026') {
+                    showToast('Invalid Admin Security Code! Access Denied.', 'error');
+                    return;
+                }
             }
 
             btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
             let finalEmail = email;
             try {
                 let foundAccounts = [];
                 // If input doesn't look like an email, try resolving it as Register Number or Phone
                 if (!finalEmail.includes('@')) {
+                    if (userType === 'admin') {
+                        showToast('Staff/Admin login requires full email address.', 'error');
+                        resetBtn();
+                        return;
+                    }
+
                     const studentsRef = collection(db, 'students');
 
                     let q = query(studentsRef, where('registerNumber', '==', finalEmail));
@@ -654,29 +675,66 @@
                     throw lastErr;
                 }
 
+                // ============================================================
+                // Strict Role Validation
+                // Priority: admins/{uid} Firestore doc → ADMIN_EMAILS fallback
+                // ============================================================
+                let isAdminData = null;
+                let isSuperAdmin = ADMIN_EMAILS.includes(finalEmail.toLowerCase());
+                try {
+                    const adminDoc = await getDoc(doc(db, 'admins', cred.user.uid));
+                    if (adminDoc.exists()) {
+                        isAdminData = adminDoc.data();
+                    }
+                } catch (adminDocErr) {
+                    if (IS_DEV) console.warn('[DEV] admins doc fetch failed:', adminDocErr.message);
+                }
+
+                const isAdmin = (isAdminData !== null) || isSuperAdmin;
+
+                // 1. If Staff/Admin Role selected, but account is NOT Admin
+                if (userType === 'admin' && !isAdmin) {
+                    await signOut(auth);
+                    showToast('❌ Student account detected! Please select "Student" role to login.', 'error');
+                    resetBtn();
+                    return;
+                }
+
+                // 2. If Student Role selected, but account IS Admin
+                if (userType === 'student' && isAdmin) {
+                    await signOut(auth);
+                    showToast('⚠️ Admin / Staff account detected! Please select "Role Staff" to login.', 'error');
+                    resetBtn();
+                    return;
+                }
+
+                // 3. For Students: Check Approval Status
                 const userDoc = await getDoc(doc(db, 'students', cred.user.uid));
                 const userData = userDoc.exists() ? userDoc.data() : {};
 
-                // NEW: Role-based Admin check
-                const adminDoc = await getDoc(doc(db, 'admins', cred.user.uid));
-                const isAdminData = adminDoc.exists() ? adminDoc.data() : null;
-                const isAdmin = ADMIN_EMAILS.includes(finalEmail.toLowerCase()) || isAdminData !== null;
-
-                if (userType === 'admin' && !isAdmin) {
-                    await signOut(auth);
-                    showToast('Access denied. Admin account required.', 'error');
-                    resetBtn();
-                    return;
+                if (userType === 'student') {
+                    const approvalStatus = userData.approvalStatus || 'approved';
+                    if (approvalStatus === 'pending') {
+                        await signOut(auth);
+                        showToast('⏳ Registration approval pending from Admin. Please wait.', 'info');
+                        resetBtn();
+                        return;
+                    }
+                    if (approvalStatus === 'rejected') {
+                        await signOut(auth);
+                        showToast('❌ Registration rejected by Admin. Please contact university admin.', 'error');
+                        resetBtn();
+                        return;
+                    }
+                    if (approvalStatus === 'blocked') {
+                        await signOut(auth);
+                        showToast('🚫 Account blocked for security violation. Contact admin at support.loga@gmail.com.', 'error');
+                        resetBtn();
+                        return;
+                    }
                 }
 
-                if (userType === 'student' && isAdmin) {
-                    await signOut(auth);
-                    showToast('Admin detected. Please select Staff role to login.', 'error');
-                    resetBtn();
-                    return;
-                }
-
-                // Task 1: Login Activity Log
+                // Log Activity History
                 function getDeviceLabel() {
                     const ua = navigator.userAgent;
                     let browser = "Unknown Browser";
@@ -700,7 +758,8 @@
                     await addDoc(historyRef, {
                         timestamp: serverTimestamp(),
                         userAgent: navigator.userAgent,
-                        approxDevice: getDeviceLabel()
+                        approxDevice: getDeviceLabel(),
+                        loginRole: userType
                     });
                     const hq = query(historyRef, orderBy('timestamp', 'desc'));
                     const historyDocs = await getDocs(hq);
@@ -714,7 +773,7 @@
                     console.error("Failed to log activity", e);
                 }
 
-                // Task 2: OTP Logic
+                // OTP Logic for 2FA or Admins
                 if (isAdmin || userData.twoFactorEnabled === true) {
                     const otp = Math.floor(100000 + Math.random() * 900000).toString();
                     const expiresAt = new Date(Date.now() + 5 * 60000); // 5 mins
@@ -730,7 +789,6 @@
                     const templateID = 'template_loga';
                     const publicKey = 'dNb9eBTjrfv99xMqm';
 
-                    // Dev mode: show OTP on screen if EmailJS keys aren't configured
                     if (serviceID.startsWith('YOUR_') || templateID.startsWith('YOUR_') || publicKey.startsWith('YOUR_')) {
                         console.warn('EmailJS not configured — showing OTP on screen for testing');
                         showToast('DEV MODE — Your OTP: ' + otp, 'success');
@@ -750,17 +808,17 @@
                                     }
                                 })
                             });
-                            showToast('OTP sent to your email', 'success');
+                            showToast('OTP sent to ' + finalEmail, 'success');
                         } catch (e) {
                             console.error('EmailJS Error', e);
-                            showToast('Email failed — Your OTP: ' + otp, 'error');
+                            showToast('OTP verification code: ' + otp, 'info');
                         }
                     }
 
                     document.getElementById('otpModal').style.display = 'flex';
 
                     document.getElementById('verifyOtpBtn').onclick = async () => {
-                        const entered = document.getElementById('otpInput').value;
+                        const entered = document.getElementById('otpInput').value.trim();
                         const errEl = document.getElementById('otpError');
                         if (entered.length !== 6) {
                             errEl.textContent = 'Enter 6-digit code';
@@ -791,20 +849,20 @@
                         }
 
                         await setDoc(otpDocRef, { verified: true }, { merge: true });
-                        showToast('Welcome back! Redirecting...', 'success');
+                        showToast('Verified successfully! Redirecting...', 'success');
                         setTimeout(() => {
                             window.location.replace(isAdmin ? 'admin.html' : 'dashboard.html');
-                        }, 3000);
+                        }, 1500);
                     };
 
                     resetBtn();
-                    return; // Stop flow here and wait for OTP submit
+                    return;
                 }
 
-                showToast('Welcome back! Redirecting...', 'success');
+                showToast('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
                     window.location.replace(isAdmin ? 'admin.html' : 'dashboard.html');
-                }, 3000);
+                }, 1500);
 
             } catch (err) {
                 console.error(err);

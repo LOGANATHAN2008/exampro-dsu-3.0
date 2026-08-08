@@ -21,7 +21,20 @@ const firebaseConfig = {
     measurementId: "G-1TPT1BR6GD"
 };
 
-const ADMIN_EMAILS = ["admin@dsu.edu", "loganathan@dsu.edu", "mloganathan082008@gmail.com"];
+// ============================================================
+// BOOTSTRAP SUPER-ADMIN EMAIL LIST
+// ⚠️  MIRROR ANY CHANGES HERE IN firestore.rules → isSuperAdmin()
+//     (search for "// SYNC: ADMIN_EMAILS" in firestore.rules)
+// These emails grant super-admin access even before an admins/{uid}
+// Firestore document is created. Minimal set — use Admin Management
+// UI in admin.html to add/remove real admins via Firestore.
+// ============================================================
+const ADMIN_EMAILS = [
+    "admin@dsu.edu",
+    "loganathan@dsu.edu",
+    "mloganathan082008@gmail.com",
+    "exampro.loganathanm.in@gmail.com"
+];
 
 const DEPARTMENTS = [
     "BCA", "MCA", "BSc CS", "BSc IT", "BBA", "BCom",

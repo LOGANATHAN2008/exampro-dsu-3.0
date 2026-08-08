@@ -1025,6 +1025,8 @@
                     class="nav-badge" id="studentCount">0</span></button>
             <button class="nav-item" onclick="showSection('staff',this)"><i class="fas fa-user-tie"></i> Staff
                 Management</button>
+            <button class="nav-item" onclick="showSection('materials',this)"><i class="fas fa-book-reader"></i> Study Materials <span
+                    class="nav-badge" id="materialsCount">0</span></button>
             <button class="nav-item" onclick="showSection('tests',this)"><i class="fas fa-clipboard-list"></i>
                 Tests</button>
             <button class="nav-item" onclick="showSection('examschedule',this)"><i class="fas fa-calendar-alt"></i> Exam
@@ -1044,6 +1046,10 @@
                 Feedback</button>
             <button class="nav-item" id="adminManagementTab" style="display:none;" onclick="showSection('adminmgmt',this)"><i class="fas fa-user-shield"></i>
                 Admin Management</button>
+            <button class="nav-item" id="approvalsTab" onclick="showSection('approvals',this)"><i class="fas fa-user-check"></i>
+                Approvals <span class="nav-badge" id="pendingCount" style="background:var(--danger)">0</span></button>
+            <button class="nav-item" id="maintenanceTab" style="display:none;" onclick="showSection('maintenance',this)"><i class="fas fa-tools"></i>
+                Maintenance</button>
         </div>
         <div class="sidebar-bottom">
             <div class="admin-info" onclick="handleLogout()">
@@ -1148,7 +1154,7 @@
         <!-- STAFF MANAGEMENT SECTION -->
         <section class="section" id="section-staff">
             <div class="section-header">
-                <div class="section-title"><i class="fas fa-user-tie" style="color:var(--primary)"></i> Staff Management
+                <div class="section-title"><i class="fas fa-user-tie" style="color:var(--primary)"></i> Staff Directory
                 </div>
                 <button class="btn btn-primary btn-sm" onclick="openStaffModal()"><i class="fas fa-plus"></i> Add
                     Staff</button>
@@ -1158,15 +1164,75 @@
                     <thead>
                         <tr>
                             <th>Staff Member</th>
-                            <th>Role</th>
+                            <th>Designation</th>
                             <th>Department</th>
+                            <th>Subjects / Cabin</th>
+                            <th>Contact</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="staffBody">
                         <tr>
-                            <td colspan="4" style="text-align:center;padding:32px;color:var(--text-muted)">No staff
+                            <td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">No staff
                                 records found.</td>
+                        </tr>
+                    </tbody>
+                </table></div>
+            </div>
+        </section>
+
+        <!-- STUDY MATERIALS SECTION -->
+        <section class="section" id="section-materials">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-book-reader" style="color:var(--primary)"></i> Study Materials &amp; PYQs</div>
+                <div style="display:flex;gap:10px">
+                    <button class="btn btn-primary btn-sm" onclick="openMaterialModal()"><i class="fas fa-upload"></i> Upload Material</button>
+                </div>
+            </div>
+
+            <!-- Material Filters -->
+            <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+                <input type="text" id="adminMaterialSearch" placeholder="Search materials..." class="form-control" style="max-width:260px" oninput="filterAdminMaterials()">
+                <select id="adminMaterialDeptFilter" class="form-control" style="max-width:180px" onchange="filterAdminMaterials()">
+                    <option value="ALL">All Departments</option>
+                    <option value="BCA">BCA</option>
+                    <option value="MCA">MCA</option>
+                    <option value="BSc CS">BSc CS</option>
+                    <option value="BSc IT">BSc IT</option>
+                    <option value="BBA">BBA</option>
+                    <option value="BCom">BCom</option>
+                    <option value="BTech">BTech</option>
+                    <option value="MTech">MTech</option>
+                    <option value="MBA">MBA</option>
+                </select>
+                <select id="adminMaterialTypeFilter" class="form-control" style="max-width:180px" onchange="filterAdminMaterials()">
+                    <option value="ALL">All Types</option>
+                    <option value="Notes">Notes</option>
+                    <option value="PYQ">PYQ (Question Paper)</option>
+                    <option value="Lab Manual">Lab Manual</option>
+                    <option value="Syllabus">Syllabus</option>
+                    <option value="Question Bank">Question Bank</option>
+                </select>
+            </div>
+
+            <div class="table-wrap">
+                <div class="table-responsive"><table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Resource Title</th>
+                            <th>Subject &amp; Code</th>
+                            <th>Dept / Sem</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Downloads</th>
+                            <th>Uploaded</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="materialsBody">
+                        <tr>
+                            <td colspan="9" style="text-align:center;padding:32px;color:var(--text-muted)">Loading materials...</td>
                         </tr>
                     </tbody>
                 </table></div>
@@ -1485,6 +1551,94 @@
         </section>
 
         <!-- FEEDBACK SECTION -->
+        </section>
+
+        <!-- PENDING APPROVALS SECTION (Section 2) -->
+        <section class="section" id="section-approvals">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-user-check" style="color:var(--success)"></i> Student Registration Approvals</div>
+            </div>
+            <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:12px;padding:16px 20px;margin-bottom:20px;font-size:13px;color:#6ee7b7;">
+                <i class="fas fa-info-circle"></i>&nbsp; New students who register via <strong>register.html</strong> land here with status <strong>pending</strong>.
+                Accept to grant login access, Reject to ask them to re-register, or Block for spam/fake accounts.
+            </div>
+            <div class="table-wrap">
+                <div class="table-responsive"><table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Register No.</th>
+                            <th>Dept</th>
+                            <th>Registered</th>
+                            <th style="min-width:220px">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approvalsBody">
+                        <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</td></tr>
+                    </tbody>
+                </table></div>
+            </div>
+        </section>
+
+        <!-- MAINTENANCE MODE SECTION (Section 3) -->
+        <section class="section" id="section-maintenance">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-tools" style="color:var(--accent)"></i> Maintenance Mode</div>
+            </div>
+            <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);padding:28px;max-width:680px">
+                <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--glass-border)">
+                    <div>
+                        <div style="font-size:15px;font-weight:700">Maintenance Toggle</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:4px">When ON, all pages redirect to maintenance.html except admins</div>
+                    </div>
+                    <label style="margin-left:auto;display:flex;align-items:center;gap:10px;cursor:pointer">
+                        <span id="maintToggleLabel" style="font-size:13px;font-weight:600;color:var(--text-muted)">OFF</span>
+                        <div id="maintToggleSwitch" onclick="toggleMaintenance()" style="width:52px;height:28px;background:rgba(255,255,255,.1);border-radius:14px;position:relative;cursor:pointer;transition:all .3s;border:1px solid var(--glass-border)">
+                            <div id="maintToggleKnob" style="width:22px;height:22px;background:#94a3b8;border-radius:50%;position:absolute;top:2px;left:3px;transition:all .3s"></div>
+                        </div>
+                    </label>
+                </div>
+                <div style="display:grid;gap:14px">
+                    <div class="form-group">
+                        <label>Maintenance Message</label>
+                        <textarea id="maintMessage" class="form-control" rows="2" placeholder="Students-ku useful-aana pudhu features ready pannitu irukkom."></textarea>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div class="form-group">
+                            <label>Launch Date &amp; Time</label>
+                            <input type="datetime-local" id="maintLaunchDate" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Progress % Complete</label>
+                            <input type="number" id="maintProgress" class="form-control" min="0" max="100" value="75" placeholder="75">
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div class="form-group">
+                            <label>Contact Email</label>
+                            <input type="email" id="maintEmail" class="form-control" placeholder="support@dsu.edu">
+                        </div>
+                        <div class="form-group">
+                            <label>Instagram URL (optional)</label>
+                            <input type="url" id="maintInstagram" class="form-control" placeholder="https://instagram.com/...">
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div class="form-group">
+                            <label>Twitter/X URL (optional)</label>
+                            <input type="url" id="maintTwitter" class="form-control" placeholder="https://twitter.com/...">
+                        </div>
+                        <div class="form-group">
+                            <label>WhatsApp URL (optional)</label>
+                            <input type="url" id="maintWhatsapp" class="form-control" placeholder="https://wa.me/...">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveMaintenance()" style="width:fit-content"><i class="fas fa-save"></i> Save Settings</button>
+                </div>
+            </div>
+        </section>
+
         <section class="section" id="section-feedback">
             <div class="section-header">
                 <div class="section-title"><i class="fas fa-comments" style="color:var(--accent)"></i> Feedback / Complaints</div>
@@ -1766,39 +1920,191 @@
         </div>
     </div>
 
-    <!-- Staff Modal -->
+    <!-- Staff Modal (Extended Schema) -->
     <div class="modal-overlay" id="staffModal">
-        <div class="modal" style="max-width:450px">
-            <h2><i class="fas fa-user-tie" style="color:var(--primary)"></i> <span id="staffModalTitle">Add Staff</span>
+        <div class="modal" style="max-width:600px">
+            <h2><i class="fas fa-user-tie" style="color:var(--primary)"></i> <span id="staffModalTitle">Add Staff Member</span>
                 <button onclick="closeStaffModal()"
                     style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px"><i
                         class="fas fa-times"></i></button>
             </h2>
             <form id="staffForm" onsubmit="saveStaff(event)">
-                <div class="form-group" style="margin-bottom:15px">
-                    <label>Full Name</label>
-                    <input type="text" id="s_name" class="form-control" required placeholder="Dr. John Doe">
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="s_name" class="form-control" required placeholder="Dr. R. Loganathan">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address *</label>
+                        <input type="email" id="s_email" class="form-control" required placeholder="faculty@dsu.edu">
+                    </div>
                 </div>
-                <div class="form-group" style="margin-bottom:15px">
-                    <label>Email Address</label>
-                    <input type="email" id="s_email" class="form-control" required placeholder="john@dsu.edu">
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="form-group">
+                        <label>Designation *</label>
+                        <input type="text" id="s_role" class="form-control" required placeholder="Associate Professor &amp; HOD">
+                    </div>
+                    <div class="form-group">
+                        <label>Department *</label>
+                        <select id="s_dept" class="form-control">
+                            <option value="Computer Science">Computer Science / BCA / MCA</option>
+                            <option value="Information Technology">Information Technology</option>
+                            <option value="Management">Management (BBA / MBA)</option>
+                            <option value="Commerce">Commerce (BCom)</option>
+                            <option value="Engineering">Engineering (BTech / MTech)</option>
+                            <option value="Basic Sciences">Basic Sciences</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group" style="margin-bottom:15px">
-                    <label>Designation / Role</label>
-                    <input type="text" id="s_role" class="form-control" required placeholder="Associate Professor">
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="form-group">
+                        <label>Contact Phone</label>
+                        <input type="tel" id="s_phone" class="form-control" placeholder="+91 98765 43210">
+                    </div>
+                    <div class="form-group">
+                        <label>Cabin / Office Location</label>
+                        <input type="text" id="s_cabin" class="form-control" placeholder="Block A, Room 304">
+                    </div>
                 </div>
-                <div class="form-group" style="margin-bottom:20px">
-                    <label>Department</label>
-                    <select id="s_dept" class="form-control">
-                        <option value="Computer Science">Computer Science</option>
-                        <option value="Management">Management</option>
-                        <option value="Engineering">Engineering</option>
-                        <option value="Other">Other</option>
-                    </select>
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="form-group">
+                        <label>Office Hours / Availability</label>
+                        <input type="text" id="s_hours" class="form-control" placeholder="Mon-Fri 2:00 PM - 4:00 PM">
+                    </div>
+                    <div class="form-group">
+                        <label>Qualification</label>
+                        <input type="text" id="s_qual" class="form-control" placeholder="Ph.D., M.Tech (CSE)">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>Subjects Taught (Comma separated)</label>
+                    <input type="text" id="s_subjects" class="form-control" placeholder="Data Structures, Operating Systems, Cloud Computing">
+                </div>
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>Photo URL (or upload below)</label>
+                    <div style="display:flex;gap:8px">
+                        <input type="url" id="s_photo" class="form-control" placeholder="https://res.cloudinary.com/...">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('staffPhotoUpload').click()"><i class="fas fa-upload"></i> Upload</button>
+                        <input type="file" id="staffPhotoUpload" accept="image/*" style="display:none" onchange="uploadStaffPhoto(this.files[0])">
+                    </div>
+                    <div id="staffPhotoUploadStatus" style="font-size:11px;color:var(--text-muted);margin-top:4px"></div>
+                </div>
+                <div class="form-group" style="margin-bottom:16px">
+                    <label>Bio / Research Interests</label>
+                    <textarea id="s_bio" class="form-control" rows="2" placeholder="Specializes in Distributed Systems, Machine Learning in Education..."></textarea>
                 </div>
                 <div class="modal-btns">
                     <button type="button" class="btn btn-outline" onclick="closeStaffModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary" id="staffSaveBtn">Save Staff</button>
+                    <button type="submit" class="btn btn-primary" id="staffSaveBtn"><i class="fas fa-save"></i> Save Staff</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Study Material Modal -->
+    <div class="modal-overlay" id="materialModal">
+        <div class="modal" style="max-width:600px">
+            <h2><i class="fas fa-book-reader" style="color:var(--primary)"></i> <span id="materialModalTitle">Upload Study Material</span>
+                <button onclick="closeMaterialModal()"
+                    style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px"><i
+                        class="fas fa-times"></i></button>
+            </h2>
+            <form id="materialForm" onsubmit="saveMaterial(event)">
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>Resource Title *</label>
+                    <input type="text" id="m_title" class="form-control" required placeholder="e.g., Operating Systems Unit 1 - Process Management">
+                </div>
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="form-group">
+                        <label>Subject Name *</label>
+                        <input type="text" id="m_subject" class="form-control" required placeholder="e.g., Operating Systems">
+                    </div>
+                    <div class="form-group">
+                        <label>Subject Code</label>
+                        <input type="text" id="m_code" class="form-control" placeholder="e.g., CS204">
+                    </div>
+                </div>
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="form-group">
+                        <label>Department *</label>
+                        <select id="m_dept" class="form-control">
+                            <option value="ALL">ALL Departments</option>
+                            <option value="BCA">BCA</option>
+                            <option value="MCA">MCA</option>
+                            <option value="BSc CS">BSc CS</option>
+                            <option value="BSc IT">BSc IT</option>
+                            <option value="BBA">BBA</option>
+                            <option value="BCom">BCom</option>
+                            <option value="BTech">BTech</option>
+                            <option value="MTech">MTech</option>
+                            <option value="MBA">MBA</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Semester</label>
+                        <select id="m_sem" class="form-control">
+                            <option value="ALL">All Semesters</option>
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                            <option value="3">Semester 3</option>
+                            <option value="4">Semester 4</option>
+                            <option value="5">Semester 5</option>
+                            <option value="6">Semester 6</option>
+                            <option value="7">Semester 7</option>
+                            <option value="8">Semester 8</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="form-group">
+                        <label>Material Type *</label>
+                        <select id="m_type" class="form-control" required>
+                            <option value="Notes">📝 Lecture Notes</option>
+                            <option value="PYQ">📄 PYQ (Previous Year Question Paper)</option>
+                            <option value="Lab Manual">🧪 Lab Manual</option>
+                            <option value="Syllabus">📑 Syllabus</option>
+                            <option value="Question Bank">📚 Question Bank</option>
+                            <option value="Reference Book">📖 Reference Material</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>File Type / Format</label>
+                        <select id="m_fileType" class="form-control">
+                            <option value="pdf">PDF Document</option>
+                            <option value="docx">Word Document (.docx)</option>
+                            <option value="pptx">PowerPoint (.pptx)</option>
+                            <option value="zip">ZIP / Archive</option>
+                            <option value="link">Web Link</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>Description / Units / Topics Covered</label>
+                    <textarea id="m_desc" class="form-control" rows="2" placeholder="Unit 1: Process Concept, Process Scheduling, Inter-Process Communication..."></textarea>
+                </div>
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>File Upload (Cloudinary) or Direct URL *</label>
+                    <div style="display:flex;gap:8px;margin-bottom:6px">
+                        <input type="url" id="m_fileUrl" class="form-control" required placeholder="https://res.cloudinary.com/... or https://drive.google.com/...">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('materialFileInput').click()"><i class="fas fa-cloud-upload-alt"></i> Upload</button>
+                        <input type="file" id="materialFileInput" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar" style="display:none" onchange="uploadMaterialFile(this.files[0])">
+                    </div>
+                    <div id="materialUploadStatus" style="font-size:11px;color:var(--text-muted)"></div>
+                </div>
+                <div class="form-grid" style="margin-bottom:16px">
+                    <div class="form-group">
+                        <label>File Size Display</label>
+                        <input type="text" id="m_fileSize" class="form-control" placeholder="e.g., 2.4 MB">
+                    </div>
+                    <div class="form-group">
+                        <label>Academic Year / Batch</label>
+                        <input type="text" id="m_year" class="form-control" placeholder="2025 - 2026">
+                    </div>
+                </div>
+                <div class="modal-btns">
+                    <button type="button" class="btn btn-outline" onclick="closeMaterialModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="materialSaveBtn"><i class="fas fa-save"></i> Save Material</button>
                 </div>
             </form>
         </div>
@@ -1860,7 +2166,8 @@
         const ADMIN_EMAILS = [
             atob("YWRtaW5AZHN1LmVkdQ=="), // admin@dsu.edu
             atob("bG9nYW5hdGhhbkBkc3UuZWR1"), // loganathan@dsu.edu
-            atob("bWxvZ2FuYXRoYW4wODIwMDhAZ21haWwuY29t") // mloganathan082008@gmail.com
+            atob("bWxvZ2FuYXRoYW4wODIwMDhAZ21haWwuY29t"), // mloganathan082008@gmail.com
+            atob("ZXhhbXByby5sb2dhbmF0aGFubS5pbkBnbWFpbC5jb20=") // exampro.loganathanm.in@gmail.com
         ];
 
         // Cloudinary Config (Updated)
@@ -1998,13 +2305,16 @@
                 try {
                     const adminDoc = await getDoc(doc(db, 'admins', user.uid));
                     isAdminData = adminDoc.exists() ? adminDoc.data() : null;
-                    if (isAdminData && isAdminData.role === 'super') isSuperAdmin = true;
+                    if (isAdminData && (isAdminData.role === 'super' || isAdminData.role === 'staff')) isSuperAdmin = true;
                 } catch (adminDocErr) {
                     console.warn('Could not fetch admins doc (rules may not be deployed):', adminDocErr.message);
                     // Fall through — if email is in ADMIN_EMAILS, isSuperAdmin is already true
                 }
                 
-                if (!isSuperAdmin && (!isAdminData || isAdminData.role !== 'department')) {
+                const validRoles = ['super', 'staff', 'department', 'exam_coordinator', 'admin'];
+                const hasValidRole = isAdminData && (validRoles.includes(isAdminData.role) || !isAdminData.role);
+
+                if (!isSuperAdmin && !hasValidRole) {
                     window.location.replace('login.html');
                     return;
                 }
@@ -2017,6 +2327,8 @@
                 if (isSuperAdmin) {
                     const adminMgmtTab = document.getElementById('adminManagementTab');
                     if (adminMgmtTab) adminMgmtTab.style.display = 'block';
+                    const maintTab = document.getElementById('maintenanceTab');
+                    if (maintTab) maintTab.style.display = 'block';
                 }
 
                 loadAll();
@@ -2104,6 +2416,18 @@
                 if(body) body.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--danger)">Failed to load notices. Please deploy firestore.rules</td></tr>`;
             });
 
+            // Study Materials
+            onSnapshot(collection(db, 'studyMaterials'), snap => {
+                allMaterials = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const badge = document.getElementById('materialsCount');
+                if (badge) badge.textContent = allMaterials.length;
+                renderMaterialsAdmin(allMaterials);
+            }, error => {
+                console.error("Study Materials listener error:", error);
+                const body = document.getElementById('materialsBody');
+                if(body) body.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--danger)">Failed to load study materials.</td></tr>`;
+            });
+
             // Admins (Super Admin only)
             if (currentAdmin && currentAdmin.isSuper) {
                 onSnapshot(collection(db, 'admins'), snap => {
@@ -2140,7 +2464,145 @@
                     </tr>`).join('');
                 }
             });
+
+            // === Section 2: Pending Approvals listener ===
+            const pendingQ = query(collection(db, 'students'), where('approvalStatus', '==', 'pending'));
+            onSnapshot(pendingQ, snap => {
+                const pending = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const badge = document.getElementById('pendingCount');
+                if (badge) badge.textContent = pending.length;
+                renderApprovals(pending);
+            });
+
+            // === Section 3: Maintenance Mode live listener ===
+            onSnapshot(doc(db, 'settings', 'maintenanceMode'), snap => {
+                if (!snap.exists()) return;
+                const data = snap.data();
+                const knob = document.getElementById('maintToggleKnob');
+                const sw = document.getElementById('maintToggleSwitch');
+                const lbl = document.getElementById('maintToggleLabel');
+                if (data.enabled) {
+                    if (knob) { knob.style.left = '27px'; knob.style.background = 'var(--danger)'; }
+                    if (sw) sw.style.background = 'rgba(239,68,68,.25)';
+                    if (lbl) { lbl.textContent = 'ON'; lbl.style.color = 'var(--danger)'; }
+                } else {
+                    if (knob) { knob.style.left = '3px'; knob.style.background = '#94a3b8'; }
+                    if (sw) sw.style.background = 'rgba(255,255,255,.1)';
+                    if (lbl) { lbl.textContent = 'OFF'; lbl.style.color = 'var(--text-muted)'; }
+                }
+                // Populate form fields
+                const fill = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; };
+                fill('maintMessage', data.message);
+                fill('maintProgress', data.progressPercent);
+                fill('maintEmail', data.contactEmail);
+                fill('maintInstagram', data.socialLinks?.instagram || '');
+                fill('maintTwitter', data.socialLinks?.twitter || '');
+                fill('maintWhatsapp', data.socialLinks?.whatsapp || '');
+                if (data.launchDate && document.getElementById('maintLaunchDate')) {
+                    const d2 = data.launchDate.toDate ? data.launchDate.toDate() : new Date(data.launchDate.seconds * 1000);
+                    document.getElementById('maintLaunchDate').value = new Date(d2.getTime() - d2.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                }
+            });
         }
+
+        // ===== Section 2: APPROVALS RENDER & ACTIONS =====
+        function renderApprovals(list) {
+            const tbody = document.getElementById('approvalsBody');
+            if (!tbody) return;
+            if (!list.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)"><i class="fas fa-check-circle" style="color:var(--success);font-size:24px;display:block;margin-bottom:8px"></i>No pending registrations! 🎉</td></tr>';
+                return;
+            }
+            tbody.innerHTML = list.map(s => `<tr>
+                <td><div style="font-weight:600">${s.name || '-'}</div><div style="font-size:11px;color:var(--text-muted)">${s.department || ''}</div></td>
+                <td style="font-size:12px">${s.email || '-'}</td>
+                <td style="font-size:12px">${s.registerNumber || '-'}</td>
+                <td><span class="chip chip-warn">${s.department || '-'}</span></td>
+                <td style="font-size:11px;color:var(--text-muted)">${s.createdAt ? new Date(s.createdAt.seconds * 1000).toLocaleDateString('en-IN') : '-'}</td>
+                <td>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap">
+                        <button class="btn btn-success btn-sm" onclick="setApprovalStatus('${s.id}','${s.email}','${s.name}','approved')"><i class="fas fa-check"></i> Accept</button>
+                        <button class="btn btn-outline btn-sm" onclick="setApprovalStatus('${s.id}','${s.email}','${s.name}','rejected')" style="color:var(--accent);border-color:var(--accent)"><i class="fas fa-times"></i> Reject</button>
+                        <button class="btn btn-danger btn-sm" onclick="setApprovalStatus('${s.id}','${s.email}','${s.name}','blocked')"><i class="fas fa-ban"></i> Block</button>
+                    </div>
+                </td>
+            </tr>`).join('');
+        }
+
+        window.setApprovalStatus = async function(studentId, email, name, status) {
+            const messages = {
+                approved: 'Accept this student?',
+                rejected: 'Reject this registration?',
+                blocked: '⚠️ Block this account for spam/suspicious activity?'
+            };
+            if (!confirm(messages[status])) return;
+            try {
+                await updateDoc(doc(db, 'students', studentId), {
+                    approvalStatus: status,
+                    approvalUpdatedAt: serverTimestamp(),
+                    approvedBy: currentAdmin?.uid || 'admin'
+                });
+                // Send email notification to student
+                const statusMessages = {
+                    approved: '✅ Your ExamPro DSU account has been approved! You can now login at https://dsu.loganathanm.in/login.html',
+                    rejected: '❌ Your ExamPro DSU registration was rejected. Please verify your Name, Email, Phone, and Register Number then re-register.',
+                    blocked: '🚫 Your ExamPro DSU account has been blocked due to suspicious activity. Contact: support.loga@gmail.com'
+                };
+                try {
+                    await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            service_id: 'service_loga',
+                            template_id: 'template_loga',
+                            user_id: 'dNb9eBTjrfv99xMqm',
+                            template_params: {
+                                to_email: email,
+                                passcode: statusMessages[status],
+                                time: 'ExamPro DSU Account Update'
+                            }
+                        })
+                    });
+                } catch(emailErr) { console.error('Email notification failed', emailErr); }
+                showToast(`Student ${status}! Email sent.`, 'success');
+            } catch(err) {
+                showToast('Failed: ' + err.message, 'error');
+            }
+        };
+
+        // ===== Section 3: MAINTENANCE MODE =====
+        let _maintEnabled = false;
+
+        window.toggleMaintenance = async function() {
+            _maintEnabled = !_maintEnabled;
+            try {
+                await setDoc(doc(db, 'settings', 'maintenanceMode'), {
+                    enabled: _maintEnabled,
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+                showToast(_maintEnabled ? '🚧 Maintenance mode ON' : '✅ Maintenance mode OFF', 'success');
+            } catch(err) { showToast('Failed: ' + err.message, 'error'); }
+        };
+
+        window.saveMaintenance = async function() {
+            const message = document.getElementById('maintMessage').value.trim();
+            const progressPercent = parseInt(document.getElementById('maintProgress').value) || 0;
+            const contactEmail = document.getElementById('maintEmail').value.trim();
+            const instagram = document.getElementById('maintInstagram').value.trim();
+            const twitter = document.getElementById('maintTwitter').value.trim();
+            const whatsapp = document.getElementById('maintWhatsapp').value.trim();
+            const launchDateVal = document.getElementById('maintLaunchDate').value;
+            const launchDate = launchDateVal ? new Date(launchDateVal) : null;
+            try {
+                await setDoc(doc(db, 'settings', 'maintenanceMode'), {
+                    message, progressPercent, contactEmail,
+                    launchDate: launchDate ? Timestamp.fromDate(launchDate) : null,
+                    socialLinks: { instagram, twitter, whatsapp },
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+                showToast('Maintenance settings saved!', 'success');
+            } catch(err) { showToast('Save failed: ' + err.message, 'error'); }
+        };
 
         function renderAnnouncements(list) {
             const body = document.getElementById('announcementsBody');
@@ -3096,13 +3558,17 @@
             };
             reader.readAsText(file);
         };
+        // ==========================================
+        // STAFF MANAGEMENT (ENHANCED)
+        // ==========================================
         let allStaff = [];
         let editingStaffId = null;
 
         window.openStaffModal = function () {
             editingStaffId = null;
-            document.getElementById('staffModalTitle').textContent = 'Add Staff';
+            document.getElementById('staffModalTitle').textContent = 'Add Staff Member';
             document.getElementById('staffForm').reset();
+            document.getElementById('staffPhotoUploadStatus').textContent = '';
             document.getElementById('staffModal').classList.add('active');
         };
 
@@ -3110,27 +3576,60 @@
             document.getElementById('staffModal').classList.remove('active');
         };
 
+        window.uploadStaffPhoto = async function (file) {
+            if (!file) return;
+            const status = document.getElementById('staffPhotoUploadStatus');
+            status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading photo to Cloudinary...';
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error?.message || 'Upload failed');
+                document.getElementById('s_photo').value = data.secure_url;
+                status.innerHTML = '<span style="color:var(--success)"><i class="fas fa-check"></i> Photo uploaded successfully!</span>';
+                showToast('Photo uploaded!', 'success');
+            } catch (err) {
+                status.innerHTML = `<span style="color:var(--danger)"><i class="fas fa-exclamation-circle"></i> ${err.message}</span>`;
+                showToast('Photo upload failed: ' + err.message, 'error');
+            }
+        };
+
         window.saveStaff = async function (e) {
             e.preventDefault();
             const btn = document.getElementById('staffSaveBtn');
             btn.disabled = true;
 
+            const subjectsRaw = document.getElementById('s_subjects').value || '';
+            const subjectsList = subjectsRaw.split(',').map(s => s.trim()).filter(Boolean);
+
             const staffData = {
-                name: document.getElementById('s_name').value,
-                email: document.getElementById('s_email').value,
-                role: document.getElementById('s_role').value,
+                name: document.getElementById('s_name').value.trim(),
+                email: document.getElementById('s_email').value.trim().toLowerCase(),
+                role: document.getElementById('s_role').value.trim(),
                 department: document.getElementById('s_dept').value,
+                phone: document.getElementById('s_phone').value.trim() || '',
+                cabin: document.getElementById('s_cabin').value.trim() || '',
+                officeHours: document.getElementById('s_hours').value.trim() || '',
+                qualification: document.getElementById('s_qual').value.trim() || '',
+                subjects: subjectsList,
+                photoURL: document.getElementById('s_photo').value.trim() || '',
+                bio: document.getElementById('s_bio').value.trim() || '',
                 updatedAt: serverTimestamp()
             };
 
             try {
                 if (editingStaffId) {
                     await updateDoc(doc(db, 'staff', editingStaffId), staffData);
-                    showToast('Staff updated!', 'success');
+                    showToast('Faculty member updated!', 'success');
                 } else {
                     staffData.createdAt = serverTimestamp();
                     await addDoc(collection(db, 'staff'), staffData);
-                    showToast('Staff added!', 'success');
+                    showToast('Faculty member added!', 'success');
                 }
                 closeStaffModal();
             } catch (err) {
@@ -3143,38 +3642,63 @@
             allStaff = staff;
             const body = document.getElementById('staffBody');
             if (!staff.length) {
-                body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-muted)">No staff records found.</td></tr>';
+                body.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">No faculty / staff records found.</td></tr>';
                 return;
             }
-            body.innerHTML = staff.map(s => `
+            body.innerHTML = staff.map(s => {
+                const avatar = s.photoURL ? `<img src="${s.photoURL}" style="width:36px;height:36px;border-radius:10px;object-fit:cover;">` : `<div class="avatar-sm" style="background:var(--accent)">${(s.name || 'S')[0]}</div>`;
+                const subjectsHtml = (s.subjects && s.subjects.length) ? s.subjects.map(sub => `<span style="display:inline-block;font-size:10px;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;margin:2px 2px 0 0">${sub}</span>`).join('') : '<span style="color:var(--text-muted);font-size:11px">General</span>';
+                return `
                 <tr>
                     <td>
                         <div class="student-row">
-                            <div class="avatar-sm" style="background:var(--accent)">${(s.name || 'S')[0]}</div>
-                            <div><div class="s-name">${s.name}</div><div class="s-email">${s.email}</div></div>
+                            ${avatar}
+                            <div>
+                                <div class="s-name">${escapeHtml(s.name)}</div>
+                                <div class="s-email">${escapeHtml(s.email)}</div>
+                            </div>
                         </div>
                     </td>
-                    <td>${s.role}</td>
-                    <td>${s.department}</td>
+                    <td>
+                        <div style="font-weight:600">${escapeHtml(s.role || 'Faculty')}</div>
+                        ${s.qualification ? `<div style="font-size:11px;color:var(--text-muted)">${escapeHtml(s.qualification)}</div>` : ''}
+                    </td>
+                    <td><span class="nav-badge" style="background:rgba(108,99,255,0.15);color:#a78bfa">${escapeHtml(s.department || 'General')}</span></td>
+                    <td>
+                        <div style="margin-bottom:3px">${subjectsHtml}</div>
+                        ${s.cabin ? `<div style="font-size:11px;color:var(--text-muted)"><i class="fas fa-door-open"></i> ${escapeHtml(s.cabin)}</div>` : ''}
+                    </td>
+                    <td>
+                        ${s.phone ? `<div style="font-size:11px"><i class="fas fa-phone"></i> ${escapeHtml(s.phone)}</div>` : ''}
+                        ${s.officeHours ? `<div style="font-size:11px;color:var(--secondary)"><i class="fas fa-clock"></i> ${escapeHtml(s.officeHours)}</div>` : ''}
+                    </td>
                     <td>
                         <div class="actions-cell">
-                            <button class="icon-action icon-edit" onclick="editStaff('${s.id}')"><i class="fas fa-edit"></i></button>
-                            <button class="icon-action icon-del" onclick="deleteStaff('${s.id}')"><i class="fas fa-trash"></i></button>
+                            <button class="icon-action icon-edit" onclick="editStaff('${s.id}')" title="Edit Faculty"><i class="fas fa-edit"></i></button>
+                            <button class="icon-action icon-del" onclick="deleteStaff('${s.id}')" title="Delete Faculty"><i class="fas fa-trash"></i></button>
                         </div>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
         }
 
         window.editStaff = function (id) {
             const s = allStaff.find(x => x.id === id);
             if (!s) return;
             editingStaffId = id;
-            document.getElementById('staffModalTitle').textContent = 'Edit Staff';
-            document.getElementById('s_name').value = s.name;
-            document.getElementById('s_email').value = s.email;
-            document.getElementById('s_role').value = s.role;
-            document.getElementById('s_dept').value = s.department;
+            document.getElementById('staffModalTitle').textContent = 'Edit Faculty Member';
+            document.getElementById('s_name').value = s.name || '';
+            document.getElementById('s_email').value = s.email || '';
+            document.getElementById('s_role').value = s.role || '';
+            document.getElementById('s_dept').value = s.department || 'Computer Science';
+            document.getElementById('s_phone').value = s.phone || '';
+            document.getElementById('s_cabin').value = s.cabin || '';
+            document.getElementById('s_hours').value = s.officeHours || '';
+            document.getElementById('s_qual').value = s.qualification || '';
+            document.getElementById('s_subjects').value = (s.subjects || []).join(', ');
+            document.getElementById('s_photo').value = s.photoURL || '';
+            document.getElementById('s_bio').value = s.bio || '';
+            document.getElementById('staffPhotoUploadStatus').textContent = '';
             document.getElementById('staffModal').classList.add('active');
         };
 
@@ -3184,9 +3708,192 @@
                 await deleteDoc(doc(db, 'staff', id));
                 showToast('Staff deleted.', 'success');
             } catch (err) {
-                showToast('Delete failed.', 'error');
+                showToast('Delete failed: ' + err.message, 'error');
             }
         };
+
+        // ==========================================
+        // STUDY MATERIALS MANAGEMENT
+        // ==========================================
+        let allMaterials = [];
+        let editingMaterialId = null;
+
+        window.openMaterialModal = function () {
+            editingMaterialId = null;
+            document.getElementById('materialModalTitle').textContent = 'Upload Study Material';
+            document.getElementById('materialForm').reset();
+            document.getElementById('materialUploadStatus').textContent = '';
+            document.getElementById('materialModal').classList.add('active');
+        };
+
+        window.closeMaterialModal = function () {
+            document.getElementById('materialModal').classList.remove('active');
+        };
+
+        window.uploadMaterialFile = async function (file) {
+            if (!file) return;
+            const status = document.getElementById('materialUploadStatus');
+            const sizeInMb = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+            document.getElementById('m_fileSize').value = sizeInMb;
+
+            const ext = file.name.split('.').pop().toLowerCase();
+            const formatMap = { pdf: 'pdf', doc: 'docx', docx: 'docx', ppt: 'pptx', pptx: 'pptx', zip: 'zip', rar: 'zip' };
+            if (formatMap[ext]) {
+                document.getElementById('m_fileType').value = formatMap[ext];
+            }
+
+            status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading file to Cloudinary...';
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error?.message || 'Upload failed');
+                document.getElementById('m_fileUrl').value = data.secure_url;
+                status.innerHTML = `<span style="color:var(--success)"><i class="fas fa-check"></i> Uploaded! (${sizeInMb})</span>`;
+                showToast('File uploaded to Cloudinary!', 'success');
+            } catch (err) {
+                status.innerHTML = `<span style="color:var(--danger)"><i class="fas fa-exclamation-circle"></i> ${err.message}</span>`;
+                showToast('Upload failed: ' + err.message, 'error');
+            }
+        };
+
+        window.saveMaterial = async function (e) {
+            e.preventDefault();
+            const btn = document.getElementById('materialSaveBtn');
+            btn.disabled = true;
+
+            const matData = {
+                title: document.getElementById('m_title').value.trim(),
+                subject: document.getElementById('m_subject').value.trim(),
+                subjectCode: document.getElementById('m_code').value.trim().toUpperCase(),
+                department: document.getElementById('m_dept').value,
+                semester: document.getElementById('m_sem').value,
+                type: document.getElementById('m_type').value,
+                fileType: document.getElementById('m_fileType').value,
+                description: document.getElementById('m_desc').value.trim(),
+                fileURL: document.getElementById('m_fileUrl').value.trim(),
+                fileSize: document.getElementById('m_fileSize').value.trim() || 'PDF',
+                academicYear: document.getElementById('m_year').value.trim() || '2025-2026',
+                uploadedBy: currentAdmin ? (currentAdmin.email || 'Admin') : 'Admin',
+                updatedAt: serverTimestamp()
+            };
+
+            try {
+                if (editingMaterialId) {
+                    await updateDoc(doc(db, 'studyMaterials', editingMaterialId), matData);
+                    showToast('Material updated successfully!', 'success');
+                } else {
+                    matData.downloadCount = 0;
+                    matData.viewsCount = 0;
+                    matData.createdAt = serverTimestamp();
+                    await addDoc(collection(db, 'studyMaterials'), matData);
+                    showToast('Material uploaded successfully!', 'success');
+                }
+                closeMaterialModal();
+            } catch (err) {
+                showToast('Save failed: ' + err.message, 'error');
+            }
+            btn.disabled = false;
+        };
+
+        function renderMaterialsAdmin(list) {
+            const body = document.getElementById('materialsBody');
+            if (!list.length) {
+                body.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-muted)">No study materials uploaded yet. Click "Upload Material" to add one.</td></tr>';
+                return;
+            }
+
+            body.innerHTML = list.map((m, i) => {
+                const typeClass = m.type === 'Notes' ? 'background:rgba(108,99,255,0.15);color:#a78bfa' :
+                                  m.type === 'PYQ' ? 'background:rgba(245,158,11,0.15);color:#fcd34d' :
+                                  m.type === 'Lab Manual' ? 'background:rgba(6,182,212,0.15);color:#67e8f9' :
+                                  m.type === 'Syllabus' ? 'background:rgba(16,185,129,0.15);color:#6ee7b7' : 'background:rgba(148,163,184,0.15);color:#cbd5e1';
+
+                const dateStr = m.createdAt?.toDate ? m.createdAt.toDate().toLocaleDateString() : (m.createdAt?.seconds ? new Date(m.createdAt.seconds*1000).toLocaleDateString() : '-');
+
+                return `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>
+                        <div style="font-weight:700;color:#fff">${escapeHtml(m.title)}</div>
+                        ${m.description ? `<div style="font-size:11px;color:var(--text-muted);max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(m.description)}</div>` : ''}
+                    </td>
+                    <td>
+                        <div style="font-weight:600;color:var(--secondary)">${escapeHtml(m.subject || '-')}</div>
+                        ${m.subjectCode ? `<div style="font-size:11px;color:var(--text-muted)">${escapeHtml(m.subjectCode)}</div>` : ''}
+                    </td>
+                    <td><span class="nav-badge" style="background:rgba(255,255,255,0.08);color:#fff">${m.department || 'ALL'} ${m.semester ? '• Sem ' + m.semester : ''}</span></td>
+                    <td><span class="nav-badge" style="${typeClass}">${escapeHtml(m.type || 'Resource')}</span></td>
+                    <td style="font-size:11px;color:var(--text-muted)">${escapeHtml(m.fileSize || '-')}</td>
+                    <td style="font-size:12px;font-weight:700;color:var(--secondary)"><i class="fas fa-download"></i> ${m.downloadCount || 0}</td>
+                    <td style="font-size:11px;color:var(--text-muted)">${dateStr}</td>
+                    <td>
+                        <div class="actions-cell">
+                            <a href="${m.fileURL || '#'}" target="_blank" class="icon-action icon-edit" style="display:inline-flex;align-items:center;justify-content:center" title="Open File"><i class="fas fa-external-link-alt"></i></a>
+                            <button class="icon-action icon-edit" onclick="editMaterial('${m.id}')" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button class="icon-action icon-del" onclick="deleteMaterial('${m.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        window.filterAdminMaterials = function () {
+            const query = (document.getElementById('adminMaterialSearch').value || '').toLowerCase().trim();
+            const dept = document.getElementById('adminMaterialDeptFilter').value;
+            const type = document.getElementById('adminMaterialTypeFilter').value;
+
+            const filtered = allMaterials.filter(m => {
+                if (dept !== 'ALL' && m.department !== 'ALL' && m.department !== dept) return false;
+                if (type !== 'ALL' && m.type !== type) return false;
+                if (query) {
+                    const searchStr = `${m.title || ''} ${m.subject || ''} ${m.subjectCode || ''} ${m.description || ''}`.toLowerCase();
+                    if (!searchStr.includes(query)) return false;
+                }
+                return true;
+            });
+            renderMaterialsAdmin(filtered);
+        };
+
+        window.editMaterial = function (id) {
+            const m = allMaterials.find(x => x.id === id);
+            if (!m) return;
+            editingMaterialId = id;
+            document.getElementById('materialModalTitle').textContent = 'Edit Study Material';
+            document.getElementById('m_title').value = m.title || '';
+            document.getElementById('m_subject').value = m.subject || '';
+            document.getElementById('m_code').value = m.subjectCode || '';
+            document.getElementById('m_dept').value = m.department || 'ALL';
+            document.getElementById('m_sem').value = m.semester || 'ALL';
+            document.getElementById('m_type').value = m.type || 'Notes';
+            document.getElementById('m_fileType').value = m.fileType || 'pdf';
+            document.getElementById('m_desc').value = m.description || '';
+            document.getElementById('m_fileUrl').value = m.fileURL || '';
+            document.getElementById('m_fileSize').value = m.fileSize || '';
+            document.getElementById('m_year').value = m.academicYear || '';
+            document.getElementById('materialUploadStatus').textContent = '';
+            document.getElementById('materialModal').classList.add('active');
+        };
+
+        window.deleteMaterial = async function (id) {
+            if (!confirm('Are you sure you want to delete this study material?')) return;
+            try {
+                await deleteDoc(doc(db, 'studyMaterials', id));
+                showToast('Material deleted.', 'success');
+            } catch (err) {
+                showToast('Delete failed: ' + err.message, 'error');
+            }
+        };
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
 
         window.searchStudents = function (val) {
             const lowerVal = val.toLowerCase();
@@ -3216,7 +3923,7 @@
             document.getElementById('section-' + id).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            const titles = { overview: 'Dashboard', leaderboard: 'Top Performers', students: 'All Students', staff: 'Staff Management', tests: 'Tests', examschedule: 'Exam Schedule', results: 'Results', announcements: 'Broadcast Center', malpractice: 'Malpractice Logs', feedback: 'Feedback / Complaints', adminmgmt: 'Admin Management' };
+            const titles = { overview: 'Dashboard', leaderboard: 'Top Performers', students: 'All Students', staff: 'Staff Management', materials: 'Study Materials & PYQs', tests: 'Tests', examschedule: 'Exam Schedule', results: 'Results', announcements: 'Broadcast Center', malpractice: 'Malpractice Logs', feedback: 'Feedback / Complaints', adminmgmt: 'Admin Management', approvals: 'Student Approvals', maintenance: 'Maintenance Mode' };
             document.getElementById('pageTitle').textContent = titles[id] || id;
             if (window.innerWidth <= 768) closeSidebar();
         };

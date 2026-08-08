@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+
+    <!-- PRIMARY SEO METADATA -->
+    <title>Study Materials & PYQs | ExamPro DSU</title>
+    <meta name="description" content="Access lecture notes, previous year question papers (PYQs), lab manuals, and syllabus for all departments at Dayananda Sagar University.">
+    <meta name="keywords" content="ExamPro DSU, DSU Notes, DSU PYQ, Previous Question Papers, Lab Manuals, BCA, MCA, BTech, DSU Study Materials">
+    <meta name="author" content="ExamPro DSU Team">
+    <meta name="robots" content="noindex, nofollow">
+
+    <!-- FAVICON -->
+    <link rel="icon" type="image/png" href="dsu_logo.png">
+    <link rel="apple-touch-icon" href="dsu_logo.png">
+    <meta name="theme-color" content="#6c63ff">
+
+    <!-- FONTS & ICONS -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="theme.css">
+
+    <style>
+        /* Security Shield: Hide body until auth is verified */
+        body {
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            transition-delay: 0.1s;
+        }
+
+        body.auth-verified {
+            opacity: 1;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --primary: #6c63ff;
+            --primary-dark: #4f46e5;
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warn: #f97316;
+            --bg: #000000;
+            --bg2: #0b0b18;
+            --sidebar-w: 260px;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-card: rgba(18, 18, 38, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: var(--sidebar-w);
+            height: 100vh;
+            background: rgba(10, 10, 25, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: transform .3s ease;
+        }
+
+        .sidebar-logo {
+            padding: 24px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .sidebar-logo .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: transparent;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-logo span {
+            font-size: 16px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 12px;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            margin-bottom: 20px;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            padding: 4px 12px 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all .2s;
+            margin-bottom: 4px;
+            border: 1px solid transparent;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(108, 99, 255, 0.12);
+            color: #fff;
+            border-color: rgba(108, 99, 255, 0.3);
+        }
+
+        .nav-item.active {
+            font-weight: 600;
+            background: linear-gradient(135deg, rgba(108,99,255,0.25), rgba(79,70,229,0.15));
+            border-color: var(--primary);
+        }
+
+        .nav-item i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-user {
+            padding: 16px;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .user-info .name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 140px;
+        }
+
+        .user-info .role {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-w);
+            padding: 24px 32px;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .theme-toggle, .mobile-toggle {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .mobile-toggle { display: none; }
+
+        .theme-toggle:hover, .mobile-toggle:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Hero Banner */
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(108, 99, 255, 0.2), rgba(6, 182, 212, 0.15));
+            border: 1px solid rgba(108, 99, 255, 0.3);
+            border-radius: 20px;
+            padding: 28px 32px;
+            margin-bottom: 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+        }
+
+        .hero-banner::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(108,99,255,0.35), transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .hero-text h1 {
+            font-size: 26px;
+            font-weight: 900;
+            margin-bottom: 6px;
+            color: #fff;
+        }
+
+        .hero-text p {
+            font-size: 13px;
+            color: #cbd5e1;
+            max-width: 540px;
+            line-height: 1.5;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 20px;
+            z-index: 1;
+        }
+
+        .hero-stat-box {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 12px 20px;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .hero-stat-num {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--secondary);
+        }
+
+        .hero-stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Filter Controls */
+        .controls-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 28px;
+            backdrop-filter: blur(16px);
+        }
+
+        .search-and-selects {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .search-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-input-wrap i {
+            position: absolute;
+            left: 16px;
+            color: var(--text-muted);
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        .search-input-wrap input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: all .2s;
+        }
+
+        .search-input-wrap input:focus {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+        }
+
+        .select-filter {
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .select-filter:focus {
+            border-color: var(--primary);
+        }
+
+        .select-filter option {
+            background: #0f0f23;
+            color: #fff;
+        }
+
+        /* Category Tabs */
+        .category-pills {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: thin;
+        }
+
+        .pill-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 30px;
+            padding: 8px 18px;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+            transition: all .25s;
+        }
+
+        .pill-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        .pill-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.35);
+        }
+
+        /* Materials Grid */
+        .materials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .material-card {
+            background: var(--glass-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .material-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(108, 99, 255, 0.4);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(108, 99, 255, 0.15);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+
+        .type-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .type-notes { background: rgba(108, 99, 255, 0.18); color: #a78bfa; border: 1px solid rgba(108,99,255,0.3); }
+        .type-pyq { background: rgba(245, 158, 11, 0.18); color: #fcd34d; border: 1px solid rgba(245,158,11,0.3); }
+        .type-lab { background: rgba(6, 182, 212, 0.18); color: #67e8f9; border: 1px solid rgba(6,182,212,0.3); }
+        .type-syllabus { background: rgba(16, 185, 129, 0.18); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.3); }
+        .type-other { background: rgba(148, 163, 184, 0.18); color: #cbd5e1; border: 1px solid rgba(148,163,184,0.3); }
+
+        .dept-sem-tag {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 6px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-subject {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--secondary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .card-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 18px;
+            flex: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            margin-bottom: 16px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .card-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .card-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn-view {
+            background: rgba(108, 99, 255, 0.15);
+            border: 1px solid rgba(108, 99, 255, 0.35);
+            color: #c4b5fd;
+            padding: 9px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all .2s;
+            text-decoration: none;
+        }
+
+        .btn-view:hover {
+            background: var(--primary);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        .btn-dl {
+            background: linear-gradient(135deg, var(--secondary), #0891b2);
+            border: none;
+            color: #fff;
+            padding: 9px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all .2s;
+            text-decoration: none;
+        }
+
+        .btn-dl:hover {
+            box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);
+            transform: translateY(-1px);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--glass);
+            border: 1px dashed var(--glass-border);
+            border-radius: 20px;
+            grid-column: 1 / -1;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            opacity: 0.6;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #fff;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* PDF Viewer Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(12px);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .pdf-modal {
+            background: #0d0d1e;
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            width: 95%;
+            max-width: 1000px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+        }
+
+        .pdf-modal-header {
+            padding: 16px 24px;
+            background: rgba(255, 255, 255, 0.04);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .pdf-modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pdf-modal-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--text);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all .2s;
+            text-decoration: none;
+        }
+
+        .modal-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .modal-close-btn {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .modal-close-btn:hover {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .pdf-modal-body {
+            flex: 1;
+            background: #15152a;
+            position: relative;
+        }
+
+        .pdf-modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Overlay */
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 90;
+        }
+
+        .overlay.active { display: block; }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            animation: slideIn .3s ease forwards;
+        }
+
+        .toast.success { background: rgba(16, 185, 129, 0.95); color: #fff; }
+        .toast.error { background: rgba(239, 68, 68, 0.95); color: #fff; }
+        .toast.info { background: rgba(108, 99, 255, 0.95); color: #fff; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Responsive */
+        @media(max-width: 992px) {
+            .search-and-selects {
+                grid-template-columns: 1fr;
+            }
+            .hero-banner {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+        }
+
+        @media(max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 16px;
+            }
+            .mobile-toggle {
+                display: flex;
+            }
+            .materials-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon">
+                <img src="dsu_logo.png" alt="DSU Logo" style="height: 100%; width: auto;">
+            </div>
+            <span>ExamPro DSU</span>
+        </div>
+
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-label">Main</div>
+                <a class="nav-item" href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+                <a class="nav-item active" href="materials.html"><i class="fas fa-book-reader"></i> Study Materials</a>
+                <a class="nav-item" href="courses.html"><i class="fas fa-book-open"></i> Course Library</a>
+                <a class="nav-item" href="faculty.html"><i class="fas fa-chalkboard-teacher"></i> Faculty Directory</a>
+                <a class="nav-item" href="test.html"><i class="fas fa-clipboard-check"></i> Online Tests</a>
+                <a class="nav-item" href="result.html"><i class="fas fa-chart-bar"></i> Results</a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-label">Academics</div>
+                <a class="nav-item" href="dashboard.html#sec-schedule"><i class="fas fa-calendar-alt"></i> Exam Schedule</a>
+                <a class="nav-item" href="dashboard.html#sec-hallticket"><i class="fas fa-id-card"></i> Hall Ticket</a>
+                <a class="nav-item" href="dashboard.html#sec-history"><i class="fas fa-history"></i> Exam History</a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-label">Account</div>
+                <a class="nav-item" href="profile.html"><i class="fas fa-user"></i> My Profile</a>
+                <a class="nav-item" href="#" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            </div>
+        </div>
+
+        <div class="sidebar-user" onclick="window.location.href='profile.html'">
+            <div class="user-avatar" id="sidebarAvatar"><i class="fas fa-user"></i></div>
+            <div class="user-info">
+                <div class="name" id="sidebarName">Loading...</div>
+                <div class="role" id="sidebarDept">Student</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <!-- TOP BAR -->
+        <div class="top-bar">
+            <div style="display:flex;align-items:center;gap:14px">
+                <button class="mobile-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                <div class="page-title">
+                    <i class="fas fa-book-reader" style="color:var(--primary)"></i> Study Materials & PYQs
+                </div>
+            </div>
+
+            <div class="top-bar-right">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- HERO BANNER -->
+        <div class="hero-banner">
+            <div class="hero-text">
+                <h1>Academic Resource Vault 📚</h1>
+                <p>Download subject lecture notes, previous years' university question papers (PYQs), lab manuals, and syllabus directly uploaded by DSU faculty and academic coordinators.</p>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat-box">
+                    <div class="hero-stat-num" id="totalMaterialsCount">0</div>
+                    <div class="hero-stat-label">Resources</div>
+                </div>
+                <div class="hero-stat-box">
+                    <div class="hero-stat-num" id="totalDownloadsCount">0</div>
+                    <div class="hero-stat-label">Downloads</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTROLS & FILTERS -->
+        <div class="controls-card">
+            <div class="search-and-selects">
+                <div class="search-input-wrap">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search by subject, code, topic, or title..." oninput="applyFilters()" />
+                </div>
+
+                <select id="filterDept" class="select-filter" onchange="applyFilters()">
+                    <option value="ALL">All Departments</option>
+                    <option value="BCA">BCA</option>
+                    <option value="MCA">MCA</option>
+                    <option value="BSc CS">BSc CS</option>
+                    <option value="BSc IT">BSc IT</option>
+                    <option value="BBA">BBA</option>
+                    <option value="BCom">BCom</option>
+                    <option value="BTech">BTech</option>
+                    <option value="MTech">MTech</option>
+                    <option value="MBA">MBA</option>
+                </select>
+
+                <select id="filterSem" class="select-filter" onchange="applyFilters()">
+                    <option value="ALL">All Semesters</option>
+                    <option value="1">Semester 1</option>
+                    <option value="2">Semester 2</option>
+                    <option value="3">Semester 3</option>
+                    <option value="4">Semester 4</option>
+                    <option value="5">Semester 5</option>
+                    <option value="6">Semester 6</option>
+                    <option value="7">Semester 7</option>
+                    <option value="8">Semester 8</option>
+                </select>
+            </div>
+
+            <!-- CATEGORY PILLS -->
+            <div class="category-pills">
+                <button class="pill-btn active" onclick="setCategory('ALL', this)"><i class="fas fa-th-large"></i> All Resources</button>
+                <button class="pill-btn" onclick="setCategory('Notes', this)"><i class="fas fa-file-alt"></i> Notes</button>
+                <button class="pill-btn" onclick="setCategory('PYQ', this)"><i class="fas fa-clock-rotate-left"></i> PYQs</button>
+                <button class="pill-btn" onclick="setCategory('Lab Manual', this)"><i class="fas fa-flask"></i> Lab Manuals</button>
+                <button class="pill-btn" onclick="setCategory('Syllabus', this)"><i class="fas fa-list-check"></i> Syllabus</button>
+                <button class="pill-btn" onclick="setCategory('Question Bank', this)"><i class="fas fa-circle-question"></i> Question Bank</button>
+            </div>
+        </div>
+
+        <!-- MATERIALS GRID -->
+        <div class="materials-grid" id="materialsGrid">
+            <div class="empty-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <h3>Loading study materials...</h3>
+                <p>Connecting to DSU resource repository</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- PDF VIEWER MODAL -->
+    <div class="modal-overlay" id="pdfModal">
+        <div class="pdf-modal">
+            <div class="pdf-modal-header">
+                <div class="pdf-modal-title">
+                    <i class="fas fa-file-pdf" style="color:#ef4444"></i>
+                    <span id="pdfModalTitleText">Document Viewer</span>
+                </div>
+                <div class="pdf-modal-actions">
+                    <a id="modalDownloadBtn" href="#" class="modal-btn" target="_blank" download><i class="fas fa-download"></i> Download</a>
+                    <button class="modal-close-btn" onclick="closePdfModal()"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+            <div class="pdf-modal-body">
+                <iframe id="pdfViewerFrame" src="about:blank"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- FIREBASE MODULE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
+            authDomain: "dsu-exam-system.firebaseapp.com",
+            projectId: "dsu-exam-system",
+            storageBucket: "dsu-exam-system.firebasestorage.app",
+            messagingSenderId: "155083834622",
+            appId: "1:155083834622:web:ff0a9780b88bad0b8811af"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let allMaterials = [];
+        let currentStudent = null;
+        let selectedCategory = 'ALL';
+
+        // AUTH & MAINTENANCE CHECK
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.replace('login.html');
+                return;
+            }
+
+            // Maintenance Mode Check
+            try {
+                const maintDoc = await getDoc(doc(db, 'settings', 'maintenanceMode'));
+                if (maintDoc.exists() && maintDoc.data().enabled === true) {
+                    const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+                    if (!adminDoc.exists()) {
+                        window.location.replace('maintenance.html');
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn('Maintenance check warning:', err);
+            }
+
+            document.body.classList.add('auth-verified');
+
+            // Load Student Profile
+            try {
+                const snap = await getDoc(doc(db, 'students', user.uid));
+                if (snap.exists()) {
+                    currentStudent = snap.data();
+                    document.getElementById('sidebarName').textContent = currentStudent.name || user.displayName || 'Student';
+                    document.getElementById('sidebarDept').textContent = (currentStudent.department || 'Student') + (currentStudent.semester ? ` • Sem ${currentStudent.semester}` : '');
+                    
+                    // Pre-select student's department in filter if valid
+                    if (currentStudent.department) {
+                        const deptSelect = document.getElementById('filterDept');
+                        if ([...deptSelect.options].some(o => o.value === currentStudent.department)) {
+                            deptSelect.value = currentStudent.department;
+                        }
+                    }
+                    if (currentStudent.photoURL) {
+                        document.getElementById('sidebarAvatar').innerHTML = `<img src="${currentStudent.photoURL}" style="width:100%;height:100%;object-fit:cover;">`;
+                    }
+                } else {
+                    document.getElementById('sidebarName').textContent = user.displayName || user.email.split('@')[0];
+                }
+            } catch (e) {
+                console.error("Profile load error:", e);
+            }
+
+            // Real-time Materials Listener
+            loadMaterialsListener();
+        });
+
+        function loadMaterialsListener() {
+            onSnapshot(collection(db, 'studyMaterials'), (snapshot) => {
+                allMaterials = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // Update Stats
+                document.getElementById('totalMaterialsCount').textContent = allMaterials.length;
+                const totalDl = allMaterials.reduce((sum, m) => sum + (m.downloadCount || 0), 0);
+                document.getElementById('totalDownloadsCount').textContent = totalDl;
+
+                applyFilters();
+            }, (error) => {
+                console.error("Error loading study materials:", error);
+                const grid = document.getElementById('materialsGrid');
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i>
+                        <h3>Failed to load materials</h3>
+                        <p>${error.message || 'Please check Firestore rules and network connectivity.'}</p>
+                    </div>
+                `;
+            });
+        }
+
+        window.setCategory = function(cat, btn) {
+            selectedCategory = cat;
+            document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            applyFilters();
+        };
+
+        window.applyFilters = function() {
+            const query = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+            const dept = document.getElementById('filterDept').value;
+            const sem = document.getElementById('filterSem').value;
+
+            const filtered = allMaterials.filter(m => {
+                // Category Filter
+                if (selectedCategory !== 'ALL' && m.type !== selectedCategory) return false;
+
+                // Department Filter
+                if (dept !== 'ALL' && m.department !== 'ALL' && m.department !== dept) return false;
+
+                // Semester Filter
+                if (sem !== 'ALL' && m.semester && String(m.semester) !== String(sem) && m.semester !== 'ALL') return false;
+
+                // Search Query Filter
+                if (query) {
+                    const searchStr = `${m.title || ''} ${m.subject || ''} ${m.subjectCode || ''} ${m.description || ''} ${m.department || ''}`.toLowerCase();
+                    if (!searchStr.includes(query)) return false;
+                }
+
+                return true;
+            });
+
+            renderMaterials(filtered);
+        };
+
+        function renderMaterials(list) {
+            const grid = document.getElementById('materialsGrid');
+            if (!list.length) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-folder-open"></i>
+                        <h3>No materials found</h3>
+                        <p>Try adjusting your search query, department, or semester filters.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = list.map(m => {
+                const typeClass = m.type === 'Notes' ? 'type-notes' :
+                                  m.type === 'PYQ' ? 'type-pyq' :
+                                  m.type === 'Lab Manual' ? 'type-lab' :
+                                  m.type === 'Syllabus' ? 'type-syllabus' : 'type-other';
+                
+                const typeIcon = m.type === 'Notes' ? 'fa-file-alt' :
+                                 m.type === 'PYQ' ? 'fa-clock-rotate-left' :
+                                 m.type === 'Lab Manual' ? 'fa-flask' :
+                                 m.type === 'Syllabus' ? 'fa-list-check' : 'fa-folder';
+
+                const semBadge = m.semester ? (m.semester === 'ALL' ? 'All Sem' : `Sem ${m.semester}`) : '';
+                const deptBadge = m.department ? m.department : 'ALL';
+
+                const fileUrl = m.fileURL || '#';
+                const isPdf = (m.fileType === 'pdf') || (m.fileURL && m.fileURL.toLowerCase().includes('.pdf'));
+
+                return `
+                    <div class="material-card">
+                        <div class="card-top">
+                            <span class="type-badge ${typeClass}">
+                                <i class="fas ${typeIcon}"></i> ${m.type || 'Resource'}
+                            </span>
+                            <span class="dept-sem-tag">${deptBadge} ${semBadge ? '• ' + semBadge : ''}</span>
+                        </div>
+
+                        <div class="card-title" title="${escapeHtml(m.title || 'Untitled Resource')}">${escapeHtml(m.title || 'Untitled Resource')}</div>
+                        <div class="card-subject"><i class="fas fa-graduation-cap"></i> ${escapeHtml(m.subject || 'General')} ${m.subjectCode ? `(${m.subjectCode})` : ''}</div>
+                        <div class="card-desc">${escapeHtml(m.description || 'No description provided for this resource.')}</div>
+
+                        <div class="card-meta">
+                            <span><i class="fas fa-file-arrow-down"></i> ${m.downloadCount || 0} downloads</span>
+                            <span><i class="fas fa-hard-drive"></i> ${m.fileSize || 'PDF'}</span>
+                        </div>
+
+                        <div class="card-actions">
+                            ${isPdf ? `
+                                <button class="btn-view" onclick="openPdfModal('${escapeAttr(m.title || 'Document')}', '${escapeAttr(fileUrl)}')">
+                                    <i class="fas fa-eye"></i> View Online
+                                </button>
+                            ` : `
+                                <a href="${fileUrl}" target="_blank" class="btn-view">
+                                    <i class="fas fa-external-link-alt"></i> Open Link
+                                </a>
+                            `}
+                            <button class="btn-dl" onclick="handleDownload('${m.id}', '${escapeAttr(fileUrl)}', '${escapeAttr(m.title || 'Resource')}')">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.openPdfModal = function(title, url) {
+            document.getElementById('pdfModalTitleText').textContent = title;
+            const downloadBtn = document.getElementById('modalDownloadBtn');
+            downloadBtn.href = url;
+            
+            // Use Google Docs Viewer wrapper for reliable inline PDF display or direct iframe
+            const viewerUrl = url.includes('cloudinary') || url.includes('firebasestorage') 
+                ? `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true` 
+                : url;
+
+            document.getElementById('pdfViewerFrame').src = viewerUrl;
+            document.getElementById('pdfModal').classList.add('active');
+        };
+
+        window.closePdfModal = function() {
+            document.getElementById('pdfModal').classList.remove('active');
+            document.getElementById('pdfViewerFrame').src = 'about:blank';
+        };
+
+        window.handleDownload = async function(materialId, fileUrl, title) {
+            try {
+                // Increment download counter in Firestore
+                await updateDoc(doc(db, 'studyMaterials', materialId), {
+                    downloadCount: increment(1)
+                });
+            } catch(e) {
+                console.warn("Failed to increment download count:", e);
+            }
+
+            // Trigger download or open URL
+            const a = document.createElement('a');
+            a.href = fileUrl;
+            a.target = '_blank';
+            a.download = title || 'study_material';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showToast('Download started!', 'success');
+        };
+
+        window.handleLogout = async function() {
+            await signOut(auth);
+            window.location.replace('login.html');
+        };
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        function escapeAttr(str) {
+            if (!str) return '';
+            return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        window.toggleSidebar = function() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('active');
+        };
+
+        window.closeSidebar = function() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('overlay').classList.remove('active');
+        };
+
+        window.toggleTheme = function() {
+            document.documentElement.classList.toggle('light-mode');
+            const isLight = document.documentElement.classList.contains('light-mode');
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+            const icon = document.querySelector('.theme-toggle i');
+            if (icon) icon.className = isLight ? 'fas fa-moon' : 'fas fa-sun';
+        };
+
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle' };
+            toast.innerHTML = `<i class="fas ${icons[type] || 'fa-info-circle'}"></i> ${msg}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3500);
+        }
+        window.showToast = showToast;
+
+        // Init theme
+        if (localStorage.getItem('theme') === 'light') {
+            document.documentElement.classList.add('light-mode');
+            const icon = document.querySelector('.theme-toggle i');
+            if (icon) icon.className = 'fas fa-moon';
+        }
+    </script>
+</body>
+</html>

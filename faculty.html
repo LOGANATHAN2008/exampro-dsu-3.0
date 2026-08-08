@@ -1219,15 +1219,15 @@
 </head>
 
 <body>
-    <!-- Loader -->
-        <!-- Mass Loader -->
+    <!-- Mass Loader -->
     <div class="spinner-overlay" id="loader" style="display: none !important;">
         <div class="loader-mass">
             <div class="loader-ring"></div>
             <img src="dsu_logo.png" alt="DSU" class="loader-logo">
         </div>
-        <p class="loader-text">Loading Dashboard...</p>
+        <p class="loader-text">Loading Faculty Directory...</p>
     </div>
+
     <!-- Mobile Header -->
     <div class="mobile-header">
         <button class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
@@ -1242,8 +1242,10 @@
             </div>
         </div>
     </div>
+
     <!-- Overlay -->
     <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
     <!-- Sidebar -->
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-logo">
@@ -1256,21 +1258,17 @@
             <div class="nav-section">
                 <div class="nav-label">Main</div>
                 <a class="nav-item" href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+                <a class="nav-item" href="materials.html"><i class="fas fa-book-reader"></i> Study Materials</a>
                 <a class="nav-item" href="courses.html"><i class="fas fa-book-open"></i> Course Library</a>
-                <a class="nav-item active" href="faculty.html"><i class="fas fa-chalkboard-teacher"></i> Faculty</a>
-                <a class="nav-item" href="test.html"><i class="fas fa-clipboard-check"></i> Tests <span
-                        class="nav-badge">3</span></a>
+                <a class="nav-item active" href="faculty.html"><i class="fas fa-chalkboard-teacher"></i> Faculty Directory</a>
+                <a class="nav-item" href="test.html"><i class="fas fa-clipboard-check"></i> Tests <span class="nav-badge">3</span></a>
                 <a class="nav-item" href="result.html"><i class="fas fa-chart-bar"></i> Results</a>
             </div>
             <div class="nav-section">
                 <div class="nav-label">Academics</div>
-                <a class="nav-item" href="#sec-schedule" onclick="smoothScroll('sec-schedule')"><i
-                        class="fas fa-calendar-alt"></i> Exam Schedule <span class="nav-badge" id="schedBadge"
-                        style="display:none">!</span></a>
-                <a class="nav-item" href="#sec-hallticket" onclick="smoothScroll('sec-hallticket')"><i
-                        class="fas fa-id-card"></i> Hall Ticket</a>
-                <a class="nav-item" href="#sec-history" onclick="smoothScroll('sec-history')"><i
-                        class="fas fa-history"></i> Exam History</a>
+                <a class="nav-item" href="dashboard.html#sec-schedule"><i class="fas fa-calendar-alt"></i> Exam Schedule</a>
+                <a class="nav-item" href="dashboard.html#sec-hallticket"><i class="fas fa-id-card"></i> Hall Ticket</a>
+                <a class="nav-item" href="dashboard.html#sec-history"><i class="fas fa-history"></i> Exam History</a>
             </div>
             <div class="nav-section">
                 <div class="nav-label">Account</div>
@@ -1293,14 +1291,11 @@
             <button class="close-btn" onclick="toggleNotifications()"><i class="fas fa-times"></i></button>
         </div>
         <div id="notifList" style="padding-bottom:12px">
-            <div style="text-align:center;padding:32px;color:var(--text-muted);font-size:13px">No new notifications
-            </div>
+            <div style="text-align:center;padding:32px;color:var(--text-muted);font-size:13px">No new notifications</div>
         </div>
-    </div>
     </div>
 
     <!-- Main Content -->
-    
     <main class="main" id="mainContent">
         <div class="header" style="align-items: center; justify-content: space-between; margin-bottom: 40px; display: flex; flex-wrap: wrap; gap: 20px;">
             <div class="header-left">
@@ -1409,7 +1404,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
@@ -1424,11 +1419,13 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        
+        let allStaffList = [];
 
         // UI Interactions
         window.toggleAcc = function(id) {
             const el = document.getElementById(id);
-            el.classList.toggle('expanded');
+            if (el) el.classList.toggle('expanded');
         };
         
         window.toggleTheme = function () {
@@ -1488,7 +1485,16 @@
                 document.getElementById('acc-engineering').classList.add('expanded');
             }
             
-            document.getElementById('loader').style.display = 'none';
+            // Listen for Real-time Staff Members
+            onSnapshot(collection(db, 'staff'), (snap) => {
+                allStaffList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                renderFacultyCards(allStaffList);
+                document.getElementById('loader').style.display = 'none';
+            }, (err) => {
+                console.error("Staff load error:", err);
+                document.getElementById('dynamicFacultyGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--text-muted)">Use department links below to view faculty members.</div>';
+                document.getElementById('loader').style.display = 'none';
+            });
         });
         
         function highlightDepartment(userDept) {
@@ -1510,11 +1516,87 @@
                 document.getElementById('acc-engineering').classList.add('expanded');
             }
         }
+        
+        function renderFacultyCards(list) {
+            const container = document.getElementById('dynamicFacultyGrid');
+            if (!list || list.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column:1/-1;text-align:center;padding:32px;background:rgba(255,255,255,0.02);border-radius:12px;border:1px dashed var(--glass-border);color:var(--text-muted)">
+                        <i class="fas fa-info-circle" style="font-size:24px;margin-bottom:8px;color:var(--primary);display:block"></i>
+                        No specific faculty profiles added yet. Explore official school listings below.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = list.map(s => {
+                const avatar = s.photoURL ? 
+                    `<img src="${s.photoURL}" alt="${s.name}" style="width:64px;height:64px;border-radius:16px;object-fit:cover;border:2px solid rgba(108,99,255,0.4)">` : 
+                    `<div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff">${(s.name || 'F')[0]}</div>`;
+
+                const subjectsHtml = (s.subjects && s.subjects.length) ? 
+                    s.subjects.map(sub => `<span style="font-size:11px;background:rgba(255,255,255,0.06);padding:3px 8px;border-radius:6px;color:var(--text);border:1px solid var(--glass-border)">${escapeHtml(sub)}</span>`).join('') : '';
+
+                return `
+                <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;transition:all 0.3s" onmouseover="this.style.borderColor='var(--primary)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='var(--glass-border)';this.style.transform='none'">
+                    <div style="display:flex;gap:14px;align-items:center">
+                        ${avatar}
+                        <div style="flex:1;min-width:0">
+                            <div style="font-size:16px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(s.name)}</div>
+                            <div style="font-size:12px;font-weight:600;color:var(--primary);margin-top:2px">${escapeHtml(s.role || 'Faculty')}</div>
+                            ${s.qualification ? `<div style="font-size:11px;color:var(--text-muted)">${escapeHtml(s.qualification)}</div>` : ''}
+                        </div>
+                    </div>
+
+                    <div style="display:inline-block">
+                        <span style="font-size:11px;background:rgba(108,99,255,0.15);color:#a78bfa;padding:4px 10px;border-radius:20px;font-weight:600">${escapeHtml(s.department || 'General')}</span>
+                    </div>
+
+                    ${s.bio ? `<div style="font-size:12px;color:var(--text-muted);line-height:1.4">${escapeHtml(s.bio)}</div>` : ''}
+
+                    <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text);background:rgba(0,0,0,0.2);padding:10px;border-radius:10px">
+                        ${s.cabin ? `<div style="display:flex;align-items:center;gap:8px"><i class="fas fa-door-open" style="color:var(--secondary);width:16px"></i> <span>Cabin: <b>${escapeHtml(s.cabin)}</b></span></div>` : ''}
+                        ${s.officeHours ? `<div style="display:flex;align-items:center;gap:8px"><i class="fas fa-clock" style="color:var(--accent);width:16px"></i> <span>Hours: ${escapeHtml(s.officeHours)}</span></div>` : ''}
+                    </div>
+
+                    ${subjectsHtml ? `
+                        <div>
+                            <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600">HANDLES:</div>
+                            <div style="display:flex;flex-wrap:wrap;gap:5px">${subjectsHtml}</div>
+                        </div>
+                    ` : ''}
+
+                    <div style="margin-top:auto;display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--glass-border)">
+                        ${s.email ? `<a href="mailto:${s.email}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--primary);color:#fff;text-decoration:none;padding:8px;border-radius:8px;font-size:12px;font-weight:600"><i class="fas fa-envelope"></i> Email</a>` : ''}
+                        ${s.phone ? `<a href="tel:${s.phone}" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--glass);border:1px solid var(--glass-border);color:var(--text);text-decoration:none;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600"><i class="fas fa-phone"></i> Call</a>` : ''}
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        window.filterFacultyDirectory = function () {
+            const q = (document.getElementById('facultySearchInput').value || '').toLowerCase().trim();
+            const dept = document.getElementById('facultyDeptFilter').value;
+
+            const filtered = allStaffList.filter(s => {
+                if (dept !== 'ALL' && s.department !== dept) return false;
+                if (q) {
+                    const searchPool = `${s.name || ''} ${s.role || ''} ${s.department || ''} ${s.cabin || ''} ${(s.subjects || []).join(' ')} ${s.qualification || ''}`.toLowerCase();
+                    if (!searchPool.includes(q)) return false;
+                }
+                return true;
+            });
+            renderFacultyCards(filtered);
+        };
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
     </script>
 </body>
 
 </html>
-
-
 
 

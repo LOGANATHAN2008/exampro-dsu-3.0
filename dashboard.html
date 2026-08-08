@@ -1585,6 +1585,7 @@
             <div class="nav-section">
                 <div class="nav-label">Main</div>
                 <a class="nav-item active" href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+                <a class="nav-item" href="materials.html"><i class="fas fa-book-reader"></i> Study Materials</a>
                 <a class="nav-item" href="courses.html"><i class="fas fa-book-open"></i> Course Library</a>
                 <a class="nav-item" href="faculty.html"><i class="fas fa-chalkboard-teacher"></i> Faculty</a>
                 <a class="nav-item" href="test.html"><i class="fas fa-clipboard-check"></i> Tests <span
@@ -2140,6 +2141,23 @@
                 window.location.replace('login.html');
                 return;
             }
+
+            // ===== Section 3: Maintenance Mode Check =====
+            try {
+                const maintDoc = await getDoc(doc(db, 'settings', 'maintenanceMode'));
+                if (maintDoc.exists() && maintDoc.data().enabled === true) {
+                    // Check if user is admin — admins bypass maintenance
+                    const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+                    if (!adminDoc.exists()) {
+                        window.location.replace('maintenance.html');
+                        return;
+                    }
+                }
+            } catch(maintErr) {
+                // Non-fatal — continue loading dashboard
+                console.warn('Maintenance check failed:', maintErr.message);
+            }
+
             currentUser = user;
             document.body.classList.add('auth-verified');
             setupRealtimeFeatures(user);
