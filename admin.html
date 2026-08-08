@@ -2359,12 +2359,22 @@
                 renderStudents(allStudents);
                 if (allResults.length) renderResults(allResults);
                 if (allMal.length) renderMalpractice(allMal);
+            }, error => {
+                console.error("Students listener error:", error);
+                const body = document.getElementById('studentsBody');
+                if (body) body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--danger)"><i class="fas fa-exclamation-triangle"></i> Permission Denied. Please publish updated firestore.rules in Firebase Console.</td></tr>`;
             });
+
             // Staff
             onSnapshot(collection(db, 'staff'), snap => {
                 const staff = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderStaff(staff);
+            }, error => {
+                console.error("Staff listener error:", error);
+                const body = document.getElementById('staffBody');
+                if (body) body.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">No staff records found.</td></tr>`;
             });
+
             // Tests
             onSnapshot(collection(db, 'tests'), snap => {
                 allTests = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -2374,6 +2384,10 @@
                 document.getElementById('oTests').textContent = allTests.length;
                 renderTests(allTests);
                 if (allMal.length) renderMalpractice(allMal);
+            }, error => {
+                console.error("Tests listener error:", error);
+                const body = document.getElementById('testsBody');
+                if (body) body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--danger)"><i class="fas fa-exclamation-triangle"></i> Permission Denied. Please publish updated firestore.rules in Firebase Console.</td></tr>`;
             });
 
             // Exam Schedule
@@ -2382,9 +2396,13 @@
                 renderExamEvents(allExamEvents);
                 document.getElementById('oTests').textContent = allTests.length;
                 renderTests(allTests);
-                // Re-render sections that depend on test titles
                 if (allMal.length) renderMalpractice(allMal);
+            }, error => {
+                console.error("Exam schedule listener error:", error);
+                const body = document.getElementById('examScheduleBody');
+                if (body) body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)">No exam events scheduled yet.</td></tr>`;
             });
+
             // Results
             onSnapshot(collection(db, 'results'), snap => {
                 allResults = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -2392,19 +2410,36 @@
                 document.getElementById('oAvg').textContent = avg + '%';
                 renderResults(allResults);
                 renderCharts(allResults);
-                document.getElementById('loader').style.display = 'none';
+                const loader = document.getElementById('loader');
+                if (loader) loader.style.display = 'none';
+            }, error => {
+                console.error("Results listener error:", error);
+                const loader = document.getElementById('loader');
+                if (loader) loader.style.display = 'none';
+                const body = document.getElementById('resultsBody');
+                if (body) body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)">No results records found.</td></tr>`;
             });
+
             // Malpractice
             onSnapshot(collection(db, 'malpracticeLogs'), snap => {
                 allMal = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 document.getElementById('malCount').textContent = allMal.length;
                 document.getElementById('oMal').textContent = allMal.length;
                 renderMalpractice(allMal);
+            }, error => {
+                console.error("Malpractice listener error:", error);
+                const body = document.getElementById('malpracticeBody');
+                if (body) body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)">No malpractice logs found.</td></tr>`;
             });
+
             // Announcements
             onSnapshot(collection(db, 'announcements'), snap => {
                 const announcements = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 renderAnnouncements(announcements);
+            }, error => {
+                console.error("Announcements listener error:", error);
+                const body = document.getElementById('announcementsBody');
+                if (body) body.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted)">No announcements yet.</td></tr>`;
             });
             // Notices
             onSnapshot(collection(db, 'notices'), snap => {
