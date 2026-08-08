@@ -478,7 +478,7 @@
                     <div class="btn-group">
                         <button type="submit" class="btn btn-login" id="loginBtn">Login</button>
                         <div class="action-btns">
-                            <button type="button" class="btn btn-forgot" onclick="forgotPassword(event)">Forgot
+                            <button type="button" class="btn btn-forgot" onclick="openForgotModal(event)">Forgot
                                 Password</button>
                         </div>
                         <a href="check-result.html" class="btn"
@@ -520,6 +520,22 @@
                 style="width:100%; padding:14px; background:var(--primary); color:#fff; border:none; border-radius:8px; font-weight:800; cursor:pointer; font-family:'Inter', sans-serif; text-transform:uppercase; letter-spacing:1px; box-shadow:0 4px 12px color-mix(in srgb, var(--primary) 40%, transparent);">Verify
                 Code</button>
             <p id="otpError" style="color:var(--danger); font-size:13px; margin-top:10px; display:none;"></p>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div class="modal-overlay" id="forgotModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; justify-content:center; align-items:center;">
+        <div class="modal-content"
+            style="background:var(--bg2); padding:30px; border-radius:12px; width:90%; max-width:400px; text-align:center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 4px solid var(--primary); position: relative;">
+            <button onclick="closeForgotModal()" style="position:absolute; top:15px; right:15px; background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:18px;"><i class="fas fa-times"></i></button>
+            <h3 style="margin-bottom:10px;">Reset Password</h3>
+            <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px;">Enter your Email, Register No, or Mobile No to receive a reset link.</p>
+            <input type="text" id="forgotInput"
+                style="width:100%; padding:12px; background:var(--bg1); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#fff; margin-bottom:20px;"
+                placeholder="Email, Reg No, or Mobile No">
+            <button id="sendResetBtn" onclick="submitForgotPassword()"
+                style="width:100%; padding:14px; background:var(--primary); color:#fff; border:none; border-radius:8px; font-weight:800; cursor:pointer; font-family:'Inter', sans-serif; text-transform:uppercase; letter-spacing:1px; box-shadow:0 4px 12px color-mix(in srgb, var(--primary) 40%, transparent);">Send Reset Link</button>
         </div>
     </div>
 
@@ -920,10 +936,25 @@
             }
         };
 
-        window.forgotPassword = async (e) => {
-            e.preventDefault();
-            const identifier = document.getElementById('email').value.trim();
-            if (!identifier) { showToast('Please enter your Email, Register No, or Mobile No.', 'info'); return; }
+        window.openForgotModal = (e) => {
+            if (e) e.preventDefault();
+            const mainEmail = document.getElementById('email').value.trim();
+            document.getElementById('forgotInput').value = mainEmail;
+            document.getElementById('forgotModal').style.display = 'flex';
+        };
+
+        window.closeForgotModal = () => {
+            document.getElementById('forgotModal').style.display = 'none';
+        };
+
+        window.submitForgotPassword = async () => {
+            const identifier = document.getElementById('forgotInput').value.trim();
+            if (!identifier) { showToast('Please enter your Email, Reg No, or Mobile No.', 'info'); return; }
+
+            const btn = document.getElementById('sendResetBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            btn.disabled = true;
 
             try {
                 let finalEmail = identifier;
@@ -931,6 +962,8 @@
                     const foundAccounts = await findAccountsByIdentifier(finalEmail);
                     if (foundAccounts.length === 0) {
                         showToast('Account not found with this Register / Mobile Number.', 'error');
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
                         return;
                     }
                     finalEmail = foundAccounts[0];
@@ -938,6 +971,7 @@
 
                 await sendPasswordResetEmail(auth, finalEmail);
                 showToast(`Password reset link sent to ${finalEmail}!`, 'success');
+                closeForgotModal();
             } catch (err) {
                 console.error(err);
                 let msg = 'Error sending reset link.';
@@ -945,6 +979,8 @@
                 else if (err.code === 'auth/invalid-email') msg = 'Invalid email address.';
                 showToast(msg, 'error');
             }
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         };
 
         function showToast(msg, type = 'info') {
