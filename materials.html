@@ -1093,6 +1093,75 @@
                 <div class="brand-loader-label">Loading study materials...</div>
             </div>
         </div>
+        
+        <!-- TRULY 0ms INSTANT RENDER: Execute synchronously before browser paint -->
+        <script>
+            (function() {
+                try {
+                    const escapeH = (str) => String(str).replace(/[&<>'"]/g, tag => ({'&': '&amp;','<': '&lt;','>': '&gt;',"'": '&#39;','"': '&quot;'}[tag]));
+                    const cached = localStorage.getItem('cached_materials');
+                    if (cached) {
+                        const list = JSON.parse(cached);
+                        if (list && list.length > 0) {
+                            const grid = document.getElementById('materialsGrid');
+                            let html = '';
+                            list.forEach(m => {
+                                const typeClass = m.type === 'Notes' ? 'type-notes' :
+                                                m.type === 'PYQ' ? 'type-pyq' :
+                                                m.type === 'Lab Manual' ? 'type-lab' :
+                                                m.type === 'Syllabus' ? 'type-syllabus' : 'type-other';
+                                
+                                const typeIcon = m.type === 'Notes' ? 'fa-file-alt' :
+                                                m.type === 'PYQ' ? 'fa-clock-rotate-left' :
+                                                m.type === 'Lab Manual' ? 'fa-flask' :
+                                                m.type === 'Syllabus' ? 'fa-list-check' : 'fa-folder';
+
+                                const semBadge = m.semester ? (m.semester === 'ALL' ? 'All Sem' : `Sem ${m.semester}`) : '';
+                                const deptBadge = m.department ? m.department : 'ALL';
+                                const fileUrl = m.fileURL || '#';
+                                const isPdf = (m.fileType === 'pdf') || (m.fileURL && String(m.fileURL).toLowerCase().includes('.pdf'));
+
+                                html += `
+                                    <div class="material-card">
+                                        <div class="card-top">
+                                            <span class="type-badge ${typeClass}">
+                                                <i class="fas ${typeIcon}"></i> ${m.type || 'Resource'}
+                                            </span>
+                                            <span class="dept-sem-tag">${deptBadge} ${semBadge ? '• ' + semBadge : ''}</span>
+                                        </div>
+
+                                        <div class="card-title" title="${escapeH(m.title || 'Untitled Resource')}">${escapeH(m.title || 'Untitled Resource')}</div>
+                                        <div class="card-subject"><i class="fas fa-graduation-cap"></i> ${escapeH(m.subject || 'General')} ${m.subjectCode ? `(${m.subjectCode})` : ''}</div>
+                                        <div class="card-desc">${escapeH(m.description || 'No description provided for this resource.')}</div>
+
+                                        <div class="card-meta">
+                                            <span><i class="fas fa-file-arrow-down"></i> ${m.downloadCount || 0} downloads</span>
+                                            <span><i class="fas fa-hard-drive"></i> ${m.fileSize || 'PDF'}</span>
+                                        </div>
+
+                                        <div class="card-actions">
+                                            ${isPdf ? `
+                                                <button class="btn-view" onclick="openPdfModal('${m.id}', '${escapeH(m.title || 'Document')}', '${escapeH(fileUrl)}')">
+                                                    <i class="fas fa-eye"></i> View Online
+                                                </button>
+                                            ` : `
+                                                <a href="${fileUrl}" target="_blank" class="btn-view">
+                                                    <i class="fas fa-external-link-alt"></i> Open Link
+                                                </a>
+                                            `}
+                                            <button class="btn-dl" onclick="handleDownload('${m.id}', '${escapeH(fileUrl)}', '${escapeH(m.title || 'Resource')}')">
+                                                <i class="fas fa-download"></i> Download
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            grid.innerHTML = html;
+                        }
+                    }
+                } catch(e) {}
+            })();
+        </script>
     </main>
 
     <!-- PDF VIEWER MODAL -->
