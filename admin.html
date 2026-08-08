@@ -544,6 +544,104 @@
             transform: scale(1.1);
         }
 
+        /* Download Counter Badge Button & Downloaders Modal */
+        .btn-download-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(6, 182, 212, 0.12);
+            border: 1px solid rgba(6, 182, 212, 0.35);
+            color: var(--secondary);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 11px;
+            border-radius: 99px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            outline: none;
+            font-family: inherit;
+        }
+        .btn-download-count:hover {
+            background: rgba(6, 182, 212, 0.26);
+            border-color: var(--secondary);
+            transform: translateY(-1px) scale(1.04);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+            color: #fff;
+        }
+        .btn-download-count:active {
+            transform: scale(0.96);
+        }
+
+        .downloader-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 14px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+        .downloader-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(108, 99, 255, 0.35);
+            transform: translateX(2px);
+        }
+        .downloader-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #6c63ff, #06b6d4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            color: #fff;
+            flex-shrink: 0;
+            overflow: hidden;
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+        }
+        .downloader-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .downloader-name {
+            font-weight: 700;
+            color: #fff;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .downloader-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 3px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .downloader-usn {
+            background: rgba(108, 99, 255, 0.18);
+            color: #a78bfa;
+            border: 1px solid rgba(108, 99, 255, 0.3);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .downloader-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: right;
+            white-space: nowrap;
+        }
+
         /* Modal */
         .modal-overlay {
             display: none;
@@ -2237,6 +2335,42 @@
                     <button type="submit" class="btn btn-primary" id="materialSaveBtn"><i class="fas fa-save"></i> Save Material</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Downloaders Modal (Students who downloaded study material) -->
+    <div class="modal-overlay" id="downloadersModal">
+        <div class="modal" style="max-width:680px">
+            <h2 style="align-items:flex-start">
+                <div style="display:flex;align-items:center;gap:12px">
+                    <div style="width:42px;height:42px;border-radius:12px;background:rgba(6,182,212,0.15);color:var(--secondary);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">
+                        <i class="fas fa-file-arrow-down"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:17px;font-weight:800;color:#fff">Material Downloaders</div>
+                        <div id="dlModalTitle" style="font-size:12px;color:var(--text-muted);font-weight:400;margin-top:2px;max-width:440px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Loading material details...</div>
+                    </div>
+                </div>
+                <button onclick="closeDownloadersModal()" style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;padding:4px"><i class="fas fa-times"></i></button>
+            </h2>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin:16px 0 12px;flex-wrap:wrap">
+                <div style="font-size:13px;color:var(--text-muted)">
+                    <span id="dlModalCountBadge" style="background:rgba(6,182,212,0.15);color:var(--secondary);padding:4px 12px;border-radius:99px;font-weight:700;font-size:12px"><i class="fas fa-users"></i> 0 Students</span>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input type="text" id="dlSearchInput" class="form-control" placeholder="Search by name, USN, dept..." style="width:230px;padding:6px 12px;font-size:12px" oninput="filterDownloaders()">
+                    <button class="btn btn-outline btn-sm" onclick="exportDownloadersCSV()" title="Export CSV" style="padding:6px 10px"><i class="fas fa-download"></i></button>
+                </div>
+            </div>
+
+            <div id="downloadersListContent" style="max-height:420px;overflow-y:auto;padding-right:4px">
+                <!-- Dynamically loaded list of student downloaders -->
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;margin-top:16px">
+                <button type="button" class="btn btn-outline" onclick="closeDownloadersModal()">Close</button>
+            </div>
         </div>
     </div>
 
@@ -4140,7 +4274,12 @@
                     <td><span class="nav-badge" style="background:rgba(255,255,255,0.08);color:#fff">${m.department || 'ALL'} ${m.semester ? '• Sem ' + m.semester : ''}</span></td>
                     <td><span class="nav-badge" style="${typeClass}">${escapeHtml(m.type || 'Resource')}</span></td>
                     <td style="font-size:11px;color:var(--text-muted)">${escapeHtml(m.fileSize || '-')}</td>
-                    <td style="font-size:12px;font-weight:700;color:var(--secondary)"><i class="fas fa-download"></i> ${m.downloadCount || 0}</td>
+                    <td>
+                        <button type="button" class="btn-download-count" onclick="openDownloadersModal('${m.id}', '${escapeAttr(m.title)}', ${m.downloadCount || 0})" title="Click to view students who downloaded this">
+                            <i class="fas fa-download"></i> ${m.downloadCount || 0}
+                            <i class="fas fa-chevron-right" style="font-size:9px;opacity:0.6;margin-left:2px"></i>
+                        </button>
+                    </td>
                     <td style="font-size:11px;color:var(--text-muted)">${dateStr}</td>
                     <td>
                         <div class="actions-cell">
@@ -4152,6 +4291,156 @@
                 </tr>
             `}).join('');
         }
+
+        // ==========================================
+        // MATERIAL DOWNLOADERS TRACKER & MODAL
+        // ==========================================
+        let currentMaterialDownloaders = [];
+        let currentViewingMaterialTitle = '';
+
+        window.openDownloadersModal = async function(materialId, materialTitle, count) {
+            currentViewingMaterialTitle = materialTitle || 'Study Material';
+            document.getElementById('dlModalTitle').textContent = currentViewingMaterialTitle;
+            document.getElementById('dlModalTitle').title = currentViewingMaterialTitle;
+            document.getElementById('dlModalCountBadge').innerHTML = `<i class="fas fa-spinner fa-spin"></i> Loading...`;
+            document.getElementById('dlSearchInput').value = '';
+            
+            const listEl = document.getElementById('downloadersListContent');
+            listEl.innerHTML = `
+                <div style="text-align:center;padding:40px 20px;color:var(--text-muted)">
+                    <i class="fas fa-circle-notch fa-spin" style="font-size:32px;color:var(--primary);margin-bottom:12px"></i>
+                    <p style="font-size:13px">Fetching downloaded student records...</p>
+                </div>
+            `;
+            document.getElementById('downloadersModal').classList.add('active');
+
+            try {
+                // Fetch subcollection records: studyMaterials/{materialId}/downloads
+                const snap = await getDocs(collection(db, 'studyMaterials', materialId, 'downloads'));
+                currentMaterialDownloaders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+                document.getElementById('dlModalCountBadge').innerHTML = `<i class="fas fa-users"></i> ${currentMaterialDownloaders.length} Student${currentMaterialDownloaders.length === 1 ? '' : 's'} (${count || 0} Total Downloads)`;
+                
+                renderDownloadersList(currentMaterialDownloaders, count);
+            } catch(err) {
+                console.error("Error fetching material downloaders:", err);
+                listEl.innerHTML = `
+                    <div style="text-align:center;padding:32px 20px;color:var(--danger)">
+                        <i class="fas fa-exclamation-triangle" style="font-size:32px;margin-bottom:10px"></i>
+                        <p style="font-size:13px">Failed to load student records: ${err.message}</p>
+                    </div>
+                `;
+            }
+        };
+
+        window.closeDownloadersModal = function() {
+            document.getElementById('downloadersModal').classList.remove('active');
+        };
+
+        function renderDownloadersList(list, totalDlCount = 0) {
+            const container = document.getElementById('downloadersListContent');
+            if (!list || list.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center;padding:44px 20px;color:var(--text-muted)">
+                        <div style="width:64px;height:64px;border-radius:20px;background:rgba(255,255,255,0.04);border:1px dashed rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:26px;color:var(--text-muted)">
+                            <i class="fas fa-cloud-arrow-down"></i>
+                        </div>
+                        <div style="font-weight:700;font-size:15px;color:#fff;margin-bottom:6px">No Detailed Student Records Yet</div>
+                        <p style="font-size:12px;max-width:380px;margin:0 auto;line-height:1.5">
+                            ${totalDlCount > 0 ? `This resource has ${totalDlCount} legacy download count(s). New student downloads will record their Name, Photo, USN & Department here in real-time.` : 'When students download this study material from their portal, their profile photo, name, USN, and department will appear here.'}
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort by latest download time
+            const sorted = [...list].sort((a, b) => {
+                const tA = a.downloadedAt?.seconds || 0;
+                const tB = b.downloadedAt?.seconds || 0;
+                return tB - tA;
+            });
+
+            container.innerHTML = sorted.map((s, idx) => {
+                const dateStr = s.downloadedAt?.toDate ? s.downloadedAt.toDate().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : (s.downloadedAt?.seconds ? new Date(s.downloadedAt.seconds * 1000).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : 'Recently');
+                
+                const initials = (s.studentName || 'Student').split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+                const avatarHtml = s.photoURL 
+                    ? `<img src="${s.photoURL}" class="downloader-avatar" alt="${escapeHtml(s.studentName || 'Student')}" onerror="this.onerror=null;this.parentNode.innerHTML='<div class=\\'downloader-avatar\\'>${initials}</div>'">`
+                    : `<div class="downloader-avatar">${initials}</div>`;
+
+                const regNo = s.registerNumber && s.registerNumber !== '-' ? s.registerNumber : (s.usn || '-');
+                const dept = s.department || 'General';
+                const semStr = s.semester && s.semester !== '-' ? ` • Sem ${s.semester}` : '';
+                const dlCountBadge = (s.downloadCount && s.downloadCount > 1) ? `<span style="background:rgba(6,182,212,0.15);color:var(--secondary);font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;margin-left:6px">${s.downloadCount}x downloaded</span>` : '';
+
+                return `
+                    <div class="downloader-card">
+                        ${avatarHtml}
+                        <div class="downloader-info">
+                            <div class="downloader-name">
+                                <span>${escapeHtml(s.studentName || 'Student')}</span>
+                                ${dlCountBadge}
+                            </div>
+                            <div class="downloader-meta">
+                                <span class="downloader-usn"><i class="fas fa-id-card" style="font-size:10px;margin-right:3px"></i>${escapeHtml(regNo)}</span>
+                                <span style="color:#cbd5e1"><i class="fas fa-graduation-cap" style="font-size:10px;margin-right:3px;color:var(--accent)"></i>${escapeHtml(dept)}${escapeHtml(semStr)}</span>
+                                ${s.email ? `<span style="color:var(--text-muted);font-size:11px"><i class="fas fa-envelope" style="font-size:9px;margin-right:2px"></i>${escapeHtml(s.email)}</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="downloader-time">
+                            <div style="font-weight:600;color:var(--text)"><i class="fas fa-clock" style="color:var(--secondary);margin-right:4px"></i>${dateStr}</div>
+                            <div style="font-size:10px;color:var(--text-muted);margin-top:2px">Downloaded</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.filterDownloaders = function() {
+            const query = (document.getElementById('dlSearchInput').value || '').toLowerCase().trim();
+            if (!query) {
+                renderDownloadersList(currentMaterialDownloaders);
+                return;
+            }
+            const filtered = currentMaterialDownloaders.filter(s => {
+                const name = (s.studentName || '').toLowerCase();
+                const usn = (s.registerNumber || s.usn || '').toLowerCase();
+                const dept = (s.department || '').toLowerCase();
+                const email = (s.email || '').toLowerCase();
+                return name.includes(query) || usn.includes(query) || dept.includes(query) || email.includes(query);
+            });
+            renderDownloadersList(filtered);
+        };
+
+        window.exportDownloadersCSV = function() {
+            if (!currentMaterialDownloaders || currentMaterialDownloaders.length === 0) {
+                showToast('No student download records to export', 'error');
+                return;
+            }
+            const headers = ['Student Name', 'Register Number (USN)', 'Department', 'Semester', 'Email', 'Download Count', 'Downloaded At'];
+            const rows = currentMaterialDownloaders.map(s => {
+                const dateStr = s.downloadedAt?.toDate ? s.downloadedAt.toDate().toLocaleString('en-IN') : (s.downloadedAt?.seconds ? new Date(s.downloadedAt.seconds * 1000).toLocaleString('en-IN') : '-');
+                return [
+                    s.studentName || 'Student',
+                    s.registerNumber || s.usn || '-',
+                    s.department || '-',
+                    s.semester || '-',
+                    s.email || '-',
+                    s.downloadCount || 1,
+                    dateStr
+                ];
+            });
+            const csv = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            const safeTitle = (currentViewingMaterialTitle || 'material').replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+            a.download = `downloaders_${safeTitle}_${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+            showToast('Downloaders list exported!', 'success');
+        };
 
         window.filterAdminMaterials = function () {
             const query = (document.getElementById('adminMaterialSearch').value || '').toLowerCase().trim();
