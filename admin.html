@@ -4318,15 +4318,18 @@
             document.getElementById('downloadersModal').classList.add('active');
 
             try {
+                console.log("Fetching downloads subcollection for material:", materialId);
                 // Fetch subcollection records: studyMaterials/{materialId}/downloads
                 const snap = await getDocs(collection(db, 'studyMaterials', materialId, 'downloads'));
                 currentMaterialDownloaders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                console.log("Fetched downloaders count:", currentMaterialDownloaders.length, currentMaterialDownloaders);
 
                 document.getElementById('dlModalCountBadge').innerHTML = `<i class="fas fa-users"></i> ${currentMaterialDownloaders.length} Student${currentMaterialDownloaders.length === 1 ? '' : 's'} (${count} Total Downloads)`;
                 
                 renderDownloadersList(currentMaterialDownloaders, count);
             } catch(err) {
                 console.error("Error fetching material downloaders:", err);
+                showToast("Error loading downloaders: " + err.message, "error");
                 listEl.innerHTML = `
                     <div style="text-align:center;padding:32px 20px;color:var(--danger)">
                         <i class="fas fa-exclamation-triangle" style="font-size:32px;margin-bottom:10px"></i>
