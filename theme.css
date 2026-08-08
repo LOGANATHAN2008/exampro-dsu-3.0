@@ -141,6 +141,76 @@ body {
     50% { opacity: 1; transform: scale(1.05); }
 }
 
+/* Premium Branded Logo Loader (Inline) */
+.brand-loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    gap: 16px;
+    text-align: center;
+    width: 100%;
+}
+
+.brand-logo-loader {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.brand-loader-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: var(--primary, #6366f1);
+    border-right-color: var(--secondary, #06b6d4);
+    animation: spin-mass 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    box-shadow: 0 0 16px rgba(99, 102, 241, 0.35);
+}
+
+.brand-loader-ring::before {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    border-radius: 50%;
+    border: 2.5px solid transparent;
+    border-bottom-color: var(--accent, #a855f7);
+    border-left-color: var(--success, #ec4899);
+    animation: spin-mass 1.8s linear infinite reverse;
+}
+
+.brand-loader-img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    border-radius: 50%;
+    animation: pulseLogo 2s ease-in-out infinite;
+    z-index: 2;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+}
+
+.brand-loader-label {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: pulseText 2s ease-in-out infinite;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
+}
+
+.light-mode .brand-loader-label {
+    color: var(--primary-dark);
+    -webkit-text-fill-color: var(--primary-dark);
+}
+
 /* Global Light Mode Modals */
 .light-mode .modal,
 .light-mode .modal-card {
