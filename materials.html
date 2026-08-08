@@ -455,13 +455,118 @@
             box-shadow: 0 4px 15px rgba(108, 99, 255, 0.35);
         }
 
-        /* Materials Grid */
-        .materials-grid {
+        /* Materials & Subjects Grid */
+        .materials-grid, .subjects-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 20px;
             margin-bottom: 40px;
         }
+
+        /* Subject Card */
+        .subject-card {
+            background: var(--glass-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .subject-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(108, 99, 255, 0.4);
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(108, 99, 255, 0.15);
+            background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+        }
+
+        .subject-card-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(108, 99, 255, 0.2), rgba(6, 182, 212, 0.2));
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: inset 0 0 10px rgba(108, 99, 255, 0.1);
+        }
+
+        .subject-card-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .subject-card-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .subject-card-meta {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .back-to-subjects {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+        }
+
+        .back-to-subjects:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-3px);
+        }
+
+        .light-mode .subject-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+        }
+
+        .light-mode .subject-card:hover {
+            border-color: rgba(108,99,255,0.3);
+            box-shadow: 0 14px 30px rgba(0,0,0,0.1), 0 0 20px rgba(108,99,255,0.1);
+            background: #f8fafc;
+        }
+
+        .light-mode .subject-card-title { color: #1e293b; }
+        .light-mode .subject-card-meta { color: #64748b; }
+        .light-mode .back-to-subjects {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+        }
+        .light-mode .back-to-subjects:hover { background: #e2e8f0; }
 
         .material-card {
             background: var(--glass-card);
@@ -1083,8 +1188,18 @@
             </div>
         </div>
 
-        <!-- MATERIALS GRID -->
-        <div class="materials-grid" id="materialsGrid">
+        <!-- BACK BUTTON (Hidden by default) -->
+        <button id="backToSubjectsBtn" class="back-to-subjects" style="display: none;" onclick="goBackToSubjects()">
+            <i class="fas fa-arrow-left"></i> Back to Subjects
+        </button>
+
+        <!-- SUBJECTS GRID -->
+        <div class="subjects-grid" id="subjectsGrid">
+            <!-- Rendered by JS -->
+        </div>
+
+        <!-- MATERIALS GRID (Hidden by default) -->
+        <div class="materials-grid" id="materialsGrid" style="display: none;">
             <div class="brand-loader-container" style="grid-column: 1 / -1;">
                 <div class="brand-logo-loader">
                     <div class="brand-loader-ring"></div>
@@ -1103,63 +1218,39 @@
                     if (cached) {
                         const list = JSON.parse(cached);
                         if (list && list.length > 0) {
-                            const grid = document.getElementById('materialsGrid');
-                            let html = '';
+                            // GROUP BY SUBJECT for initial subject view
+                            const subjectsMap = {};
                             list.forEach(m => {
-                                const typeClass = m.type === 'Notes' ? 'type-notes' :
-                                                m.type === 'PYQ' ? 'type-pyq' :
-                                                m.type === 'Lab Manual' ? 'type-lab' :
-                                                m.type === 'Syllabus' ? 'type-syllabus' : 'type-other';
-                                
-                                const typeIcon = m.type === 'Notes' ? 'fa-file-alt' :
-                                                m.type === 'PYQ' ? 'fa-clock-rotate-left' :
-                                                m.type === 'Lab Manual' ? 'fa-flask' :
-                                                m.type === 'Syllabus' ? 'fa-list-check' : 'fa-folder';
+                                const subj = m.subject || 'General / Miscellaneous';
+                                if (!subjectsMap[subj]) {
+                                    subjectsMap[subj] = { name: subj, count: 0 };
+                                }
+                                subjectsMap[subj].count++;
+                            });
 
-                                const semBadge = m.semester ? (m.semester === 'ALL' ? 'All Sem' : `Sem ${m.semester}`) : '';
-                                const deptBadge = m.department ? m.department : 'ALL';
-                                const fileUrl = m.fileURL || '#';
-                                const isPdf = (m.fileType === 'pdf') || (m.fileURL && String(m.fileURL).toLowerCase().includes('.pdf'));
-
+                            const sortedSubjects = Object.values(subjectsMap).sort((a, b) => a.name.localeCompare(b.name));
+                            const sGrid = document.getElementById('subjectsGrid');
+                            
+                            const subjectIcons = ['fa-book', 'fa-laptop-code', 'fa-calculator', 'fa-atom', 'fa-microscope', 'fa-globe', 'fa-chart-bar', 'fa-cogs', 'fa-language', 'fa-brain'];
+                            
+                            let html = '';
+                            sortedSubjects.forEach((s, idx) => {
+                                const icon = subjectIcons[idx % subjectIcons.length];
                                 html += `
-                                    <div class="material-card">
-                                        <div class="card-top">
-                                            <span class="type-badge ${typeClass}">
-                                                <i class="fas ${typeIcon}"></i> ${m.type || 'Resource'}
-                                            </span>
-                                            <span class="dept-sem-tag">${deptBadge} ${semBadge ? '• ' + semBadge : ''}</span>
+                                    <div class="subject-card" onclick="openSubject('${escapeH(s.name).replace(/'/g, "\\'")}')">
+                                        <div class="subject-card-icon"><i class="fas ${icon}"></i></div>
+                                        <div class="subject-card-info">
+                                            <div class="subject-card-title">${escapeH(s.name)}</div>
+                                            <div class="subject-card-meta"><i class="fas fa-file-alt"></i> ${s.count} Resources</div>
                                         </div>
-
-                                        <div class="card-title" title="${escapeH(m.title || 'Untitled Resource')}">${escapeH(m.title || 'Untitled Resource')}</div>
-                                        <div class="card-subject"><i class="fas fa-graduation-cap"></i> ${escapeH(m.subject || 'General')} ${m.subjectCode ? `(${m.subjectCode})` : ''}</div>
-                                        <div class="card-desc">${escapeH(m.description || 'No description provided for this resource.')}</div>
-
-                                        <div class="card-meta">
-                                            <span><i class="fas fa-file-arrow-down"></i> ${m.downloadCount || 0} downloads</span>
-                                            <span><i class="fas fa-hard-drive"></i> ${m.fileSize || 'PDF'}</span>
-                                        </div>
-
-                                        <div class="card-actions">
-                                            ${isPdf ? `
-                                                <button class="btn-view" onclick="openPdfModal('${m.id}', '${escapeH(m.title || 'Document')}', '${escapeH(fileUrl)}')">
-                                                    <i class="fas fa-eye"></i> View Online
-                                                </button>
-                                            ` : `
-                                                <a href="${fileUrl}" target="_blank" class="btn-view">
-                                                    <i class="fas fa-external-link-alt"></i> Open Link
-                                                </a>
-                                            `}
-                                            <button class="btn-dl" onclick="handleDownload('${m.id}', '${escapeH(fileUrl)}', '${escapeH(m.title || 'Resource')}')">
-                                                <i class="fas fa-download"></i> Download
-                                            </button>
-                                        </div>
+                                        <i class="fas fa-chevron-right" style="color:var(--text-muted);opacity:0.5;font-size:14px;"></i>
                                     </div>
                                 `;
                             });
-                            grid.innerHTML = html;
+                            sGrid.innerHTML = html;
                         }
                     }
-                } catch(e) {}
+                } catch(e) { console.error('Cache render error:', e); }
             })();
         </script>
     </main>
@@ -1207,6 +1298,29 @@
         let allMaterials = [];
         let currentStudent = null;
         let selectedCategory = 'ALL';
+        
+        // NEW STATE VARS FOR SUBJECT-WISE VIEW
+        let currentView = 'SUBJECTS'; // 'SUBJECTS' or 'MATERIALS'
+        let currentSubject = null;
+
+        // Global function to open a subject
+        window.openSubject = function(subj) {
+            currentSubject = subj;
+            currentView = 'MATERIALS';
+            document.getElementById('subjectsGrid').style.display = 'none';
+            document.getElementById('materialsGrid').style.display = 'grid';
+            document.getElementById('backToSubjectsBtn').style.display = 'inline-flex';
+            applyFilters();
+        };
+
+        window.goBackToSubjects = function() {
+            currentView = 'SUBJECTS';
+            currentSubject = null;
+            document.getElementById('materialsGrid').style.display = 'none';
+            document.getElementById('backToSubjectsBtn').style.display = 'none';
+            document.getElementById('subjectsGrid').style.display = 'grid';
+            applyFilters();
+        };
 
         // Instant Cache Hydration (0ms Load Time)
         try {
@@ -1339,8 +1453,54 @@
                 return true;
             });
 
-            renderMaterials(filtered);
+            if (currentView === 'SUBJECTS') {
+                renderSubjects(filtered);
+            } else {
+                // Filter further by the selected subject
+                const subjectFiltered = filtered.filter(m => (m.subject || 'General / Miscellaneous') === currentSubject);
+                renderMaterials(subjectFiltered);
+            }
         };
+
+        function renderSubjects(list) {
+            const sGrid = document.getElementById('subjectsGrid');
+            if (!list.length) {
+                sGrid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-folder-open"></i>
+                        <h3>No subjects found</h3>
+                        <p>Try adjusting your search query, department, or semester filters.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const subjectsMap = {};
+            list.forEach(m => {
+                const subj = m.subject || 'General / Miscellaneous';
+                if (!subjectsMap[subj]) {
+                    subjectsMap[subj] = { name: subj, count: 0 };
+                }
+                subjectsMap[subj].count++;
+            });
+
+            const sortedSubjects = Object.values(subjectsMap).sort((a, b) => a.name.localeCompare(b.name));
+            const subjectIcons = ['fa-book', 'fa-laptop-code', 'fa-calculator', 'fa-atom', 'fa-microscope', 'fa-globe', 'fa-chart-bar', 'fa-cogs', 'fa-language', 'fa-brain'];
+            
+            sGrid.innerHTML = sortedSubjects.map((s, idx) => {
+                const icon = subjectIcons[idx % subjectIcons.length];
+                return `
+                    <div class="subject-card" onclick="openSubject('${escapeAttr(s.name)}')">
+                        <div class="subject-card-icon"><i class="fas ${icon}"></i></div>
+                        <div class="subject-card-info">
+                            <div class="subject-card-title">${escapeHtml(s.name)}</div>
+                            <div class="subject-card-meta"><i class="fas fa-file-alt"></i> ${s.count} Resources</div>
+                        </div>
+                        <i class="fas fa-chevron-right" style="color:var(--text-muted);opacity:0.5;font-size:14px;"></i>
+                    </div>
+                `;
+            }).join('');
+        }
 
         function renderMaterials(list) {
             const grid = document.getElementById('materialsGrid');
