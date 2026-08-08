@@ -837,28 +837,8 @@ body {
     animation: slideDownFadeCard 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
-/* Force loader to show for exactly 2 seconds and fade out beautifully */
-div#loader {
-    display: flex !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    pointer-events: all !important;
-    animation: forceLoaderHide 0.6s cubic-bezier(0.16, 1, 0.3, 1) 2s forwards !important;
+/* Disable loader on subsequent navigations */
+html.no-loader #loader {
+    display: none !important;
 }
-
-@keyframes forceLoaderHide {
-    0% {
-        opacity: 1;
-        visibility: visible;
-        pointer-events: all;
-    }
-    100% {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-    }
-}
-
-/* Optional: if you want to keep the no-loader behavior for instant page switching, uncomment below */
-/* html.no-loader div#loader { display: none !important; animation: none !important; } */
 body:has(.sidebar.open) .mobile-bottom-nav { display: none !important; }
