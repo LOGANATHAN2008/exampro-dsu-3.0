@@ -774,7 +774,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, updateProfile, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, serverTimestamp, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -836,22 +836,41 @@
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner"></span> Creating Account...';
 
+            let cred = null;
             try {
-                // Check if account already exists with Reg No, Phone, or Email
-                const studentsRef = collection(db, 'students');
-                const [snapEmail, snapReg, snapPhone] = await Promise.all([
-                    getDocs(query(studentsRef, where('email', '==', email))),
-                    getDocs(query(studentsRef, where('registerNumber', '==', registerNumber))),
-                    getDocs(query(studentsRef, where('phone', '==', phone)))
-                ]);
-
-                if (!snapEmail.empty) { showToast('An account with this Email already exists.', 'error'); resetBtn(); return; }
-                if (!snapReg.empty) { showToast('An account with this Register Number already exists.', 'error'); resetBtn(); return; }
-                if (!snapPhone.empty) { showToast('An account with this Mobile Number already exists.', 'error'); resetBtn(); return; }
-
-                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                // 1. Create Firebase Auth account first (handles duplicate email check natively)
+                cred = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(cred.user, { displayName: name });
 
+                // 2. Now user is authenticated, check for duplicate register number or phone
+                try {
+                    const studentsRef = collection(db, 'students');
+                    const [snapReg, snapPhone] = await Promise.all([
+                        getDocs(query(studentsRef, where('registerNumber', '==', registerNumber))),
+                        getDocs(query(studentsRef, where('phone', '==', phone)))
+                    ]);
+
+                    const isDuplicateReg = snapReg.docs.some(d => d.id !== cred.user.uid);
+                    const isDuplicatePhone = snapPhone.docs.some(d => d.id !== cred.user.uid);
+
+                    if (isDuplicateReg) {
+                        await deleteUser(cred.user);
+                        showToast('An account with this Register Number already exists.', 'error');
+                        resetBtn();
+                        return;
+                    }
+                    if (isDuplicatePhone) {
+                        await deleteUser(cred.user);
+                        showToast('An account with this Mobile Number already exists.', 'error');
+                        resetBtn();
+                        return;
+                    }
+                } catch (checkErr) {
+                    console.warn('Duplicate check warning:', checkErr);
+                    // Continue profile creation even if query check fails
+                }
+
+                // 3. Save student profile
                 await setDoc(doc(db, 'students', cred.user.uid), {
                     uid: cred.user.uid,
                     name, email, registerNumber, phone, dob,
@@ -863,27 +882,24 @@
                     lastLogin: serverTimestamp()
                 });
 
-                // Section 2: Notify admins of new registration
+                // 4. Notify admins of new registration
                 try {
                     await addDoc(collection(db, 'notifications'), {
                         type: 'new_registration',
                         studentUID: cred.user.uid,
                         name, email, phone, department, registerNumber,
                         branch, section, year, college,
-                        targetRole: 'admin', // for admin inbox filtering
+                        targetRole: 'admin',
                         approvalStatus: 'pending',
                         timestamp: serverTimestamp(),
                         read: false
                     });
                 } catch (notifErr) {
                     console.error('Failed to write registration notification', notifErr);
-                    // Non-fatal — account still created
                 }
 
                 showToast('✅ Account created! Waiting for admin approval...', 'success');
-                // Show pending message after 1.5s instead of going to dashboard
                 setTimeout(() => {
-                    // Replace page content with a friendly pending screen
                     document.body.innerHTML = `
                     <div style="min-height:100vh;background:#0a0a1a;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;">
                         <div style="text-align:center;padding:48px 32px;max-width:480px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.5);">
@@ -904,9 +920,12 @@
                     </div>`;
                 }, 1500);
             } catch (err) {
-                let msg = 'Registration failed.';
+                console.error("Registration error:", err);
+                let msg = err.message || 'Registration failed.';
                 if (err.code === 'auth/email-already-in-use') msg = 'Email already registered. Please login.';
-                else if (err.code === 'auth/weak-password') msg = 'Password too weak.';
+                else if (err.code === 'auth/weak-password') msg = 'Password too weak. Must be at least 8 characters.';
+                else if (err.code === 'auth/invalid-email') msg = 'Invalid email address format.';
+                else if (err.code === 'permission-denied') msg = 'Database permission error. Please publish firestore.rules.';
                 showToast(msg, 'error');
                 resetBtn();
             }
