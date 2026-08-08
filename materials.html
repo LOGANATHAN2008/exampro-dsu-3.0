@@ -1211,7 +1211,7 @@
                         const user = auth.currentUser;
                         const sData = currentStudent || {};
                         const dlDocRef = doc(db, 'studyMaterials', materialId, 'downloads', user.uid);
-                        await setDoc(dlDocRef, {
+                        const downloadData = {
                             studentUID: user.uid,
                             studentName: sData.name || user.displayName || 'Student',
                             registerNumber: sData.registerNumber || sData.usn || '-',
@@ -1221,7 +1221,10 @@
                             email: user.email || '',
                             downloadedAt: serverTimestamp(),
                             downloadCount: increment(1)
-                        }, { merge: true });
+                        };
+                        console.log("Writing downloader details to Firestore path:", `studyMaterials/${materialId}/downloads/${user.uid}`, downloadData);
+                        await setDoc(dlDocRef, downloadData, { merge: true });
+                        console.log("Downloader details successfully written!");
                     }
                 }
             } catch(e) {
