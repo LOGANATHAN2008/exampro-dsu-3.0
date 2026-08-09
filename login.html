@@ -517,24 +517,17 @@
                             <input type="password" id="adminCode" placeholder="Enter 4-digit security code">
                         </div>
 
-                        <div class="captcha-container" style="border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 20px; background: rgba(255,255,255,0.02);">
-                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px; color: var(--text); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">
-                                <i class="fas fa-shield-alt" style="color: var(--primary);"></i> SECURITY CAPTCHA
-                            </div>
-                            
-                            <div style="display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--primary-light); background: rgba(108, 99, 255, 0.05); border-radius: 10px; padding: 12px 15px; margin-bottom: 12px;">
-                                <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: 1px;">VERIFY:</div>
-                                
-                                <div id="captchaText" style="font-size: 24px; font-weight: 700; color: #38bdf8; letter-spacing: 6px; font-family: monospace; text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);">
-                                    0 U 1 E E
+                        <div class="captcha-container" style="border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; background: rgba(255,255,255,0.02);">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap;">
+                                    <i class="fas fa-shield-alt" style="color: var(--primary); font-size: 11px;"></i> Captcha:
                                 </div>
-                                
-                                <button type="button" onclick="generateCaptcha()" style="background: var(--primary); color: white; border: none; border-radius: 8px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 40%, transparent);">
+                                <div id="captchaText" style="font-size: 18px; font-weight: 700; color: #38bdf8; letter-spacing: 5px; font-family: monospace; flex: 1; text-align: center;">0 U 1 E E</div>
+                                <button type="button" onclick="generateCaptcha()" title="Refresh" style="background: var(--primary); color: white; border: none; border-radius: 6px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-size: 11px;">
                                     <i class="fas fa-sync-alt"></i>
                                 </button>
+                                <input type="text" id="captchaInput" placeholder="Enter code" required style="width: 110px; flex-shrink: 0; padding: 6px 10px; background: var(--input-bg, rgba(255,255,255,0.05)); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 13px; outline: none;">
                             </div>
-                            
-                            <input type="text" id="captchaInput" placeholder="Enter captcha code" required style="width: 100%; padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 15px; outline: none; transition: 0.2s;">
                         </div>
 
                         <div class="btn-group">
