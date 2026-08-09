@@ -522,7 +522,7 @@
                                 <div style="display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap;">
                                     <i class="fas fa-shield-alt" style="color: var(--primary); font-size: 11px;"></i> Captcha:
                                 </div>
-                                <div id="captchaText" style="font-size: 18px; font-weight: 700; color: #38bdf8; letter-spacing: 5px; font-family: monospace; flex: 1; text-align: center;">0 U 1 E E</div>
+                                <div id="captchaText" style="font-size: 17px; font-weight: 700; color: #38bdf8; letter-spacing: 6px; font-family: monospace; flex: 1; text-align: center; white-space: nowrap; overflow: hidden;">0U1EE</div>
                                 <button type="button" onclick="generateCaptcha()" title="Refresh" style="background: var(--primary); color: white; border: none; border-radius: 6px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-size: 11px;">
                                     <i class="fas fa-sync-alt"></i>
                                 </button>
@@ -895,9 +895,9 @@
             const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             let captcha = "";
             for (let i = 0; i < 5; i++) {
-                captcha += chars[Math.floor(Math.random() * chars.length)] + " ";
+                captcha += chars[Math.floor(Math.random() * chars.length)];
             }
-            currentCaptcha = captcha.trim();
+            currentCaptcha = captcha;
             const textEl = document.getElementById('captchaText');
             if(textEl) textEl.textContent = currentCaptcha;
         };
