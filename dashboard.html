@@ -2817,8 +2817,8 @@
                     updateStatCompleted(results.length);
                     const avgScore = results.length > 0 ? Math.round(results.reduce((s, r) => s + (r.percentage || 0), 0) / results.length) : 0;
                     document.getElementById('statAvgScore').textContent = avgScore + '%';
-                    renderRecentResults(results);
-                    renderPerformanceChart(results);
+                    renderRecentScores(results);
+                    renderChart(results);
                 }, (err) => {
                     console.error("Results Snapshot Error:", err);
                 });
