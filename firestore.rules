@@ -198,9 +198,9 @@ service cloud.firestore {
     // ===== Achievements =====
     match /achievements/{id} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null && request.resource.data.studentUID == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.studentId == request.auth.uid;
       allow update: if isAnyAdmin();
-      allow delete: if isSuperAdmin() || (request.auth != null && resource.data.studentUID == request.auth.uid && resource.data.verified == false);
+      allow delete: if isSuperAdmin() || (request.auth != null && resource.data.studentId == request.auth.uid && resource.data.verified == false);
     }
 
     // ===== Study Planner =====
