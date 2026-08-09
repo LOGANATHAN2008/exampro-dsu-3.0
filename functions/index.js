@@ -220,3 +220,44 @@ exports.checkRateLimit = functions.https.onCall(async (data, context) => {
     return { success: true, attemptsRemaining: 5 - attempts };
   });
 });
+
+// 6. Create Staff Account (Admin Only)
+exports.createStaffAccount = functions.https.onCall(async (data, context) => {
+  // Ensure the caller is an authenticated admin
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "You must be logged in to perform this action.");
+  }
+  
+  // Basic security check to see if caller is an admin (super or dept)
+  const db = admin.firestore();
+  const adminDoc = await db.collection("admins").doc(context.auth.uid).get();
+  
+  // Note: hardcoded fallback in UI for specific emails; here we just check if they are in 'admins'
+  // For maximum security in production, you might also pass the caller's email and check it against ADMIN_EMAILS
+  if (!adminDoc.exists) {
+    // Check if caller's email is one of the hardcoded super admins
+    const callerEmail = context.auth.token.email || "";
+    const adminEmails = ['admin@dsu.edu','loganathan@dsu.edu','mloganathan082008@gmail.com','exampro.loganathanm.in@gmail.com'];
+    if (!adminEmails.includes(callerEmail.toLowerCase())) {
+        throw new functions.https.HttpsError("permission-denied", "You must be an admin to create staff accounts.");
+    }
+  }
+
+  const { email, password, displayName } = data;
+  if (!email || !password) {
+    throw new functions.https.HttpsError("invalid-argument", "Email and password are required.");
+  }
+
+  try {
+    const userRecord = await admin.auth().createUser({
+      email: email,
+      password: password,
+      displayName: displayName || "Staff Member"
+    });
+
+    return { success: true, uid: userRecord.uid };
+  } catch (error) {
+    console.error("Error creating staff account:", error);
+    throw new functions.https.HttpsError("internal", error.message);
+  }
+});

@@ -1517,56 +1517,80 @@
                 container.innerHTML = `
                     <div style="grid-column:1/-1;text-align:center;padding:32px;background:rgba(255,255,255,0.02);border-radius:12px;border:1px dashed var(--glass-border);color:var(--text-muted)">
                         <i class="fas fa-info-circle" style="font-size:24px;margin-bottom:8px;color:var(--primary);display:block"></i>
-                        No specific faculty profiles added yet. Explore official school listings below.
+                        No faculty profiles found matching your search.
                     </div>
                 `;
                 return;
             }
 
-            container.innerHTML = list.map(s => {
-                const avatar = s.photoURL ? 
-                    `<img src="${s.photoURL}" alt="${s.name}" style="width:64px;height:64px;border-radius:16px;object-fit:cover;border:2px solid rgba(108,99,255,0.4)">` : 
-                    `<div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff">${(s.name || 'F')[0]}</div>`;
+            // Group by Department -> Subject
+            const grouped = {};
+            list.forEach(s => {
+                const d = s.department || 'General';
+                const sub = s.subject || 'General';
+                if (!grouped[d]) grouped[d] = {};
+                if (!grouped[d][sub]) grouped[d][sub] = [];
+                grouped[d][sub].push(s);
+            });
 
-                const subjectsHtml = (s.subjects && s.subjects.length) ? 
-                    s.subjects.map(sub => `<span style="font-size:11px;background:rgba(255,255,255,0.06);padding:3px 8px;border-radius:6px;color:var(--text);border:1px solid var(--glass-border)">${escapeHtml(sub)}</span>`).join('') : '';
+            let html = '<div style="grid-column:1/-1;display:flex;flex-direction:column;gap:16px;">';
+            let deptIndex = 0;
 
-                return `
-                <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;transition:all 0.3s" onmouseover="this.style.borderColor='var(--primary)';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='var(--glass-border)';this.style.transform='none'">
-                    <div style="display:flex;gap:14px;align-items:center">
-                        ${avatar}
-                        <div style="flex:1;min-width:0">
-                            <div style="font-size:16px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(s.name)}</div>
-                            <div style="font-size:12px;font-weight:600;color:var(--primary);margin-top:2px">${escapeHtml(s.role || 'Faculty')}</div>
-                            ${s.qualification ? `<div style="font-size:11px;color:var(--text-muted)">${escapeHtml(s.qualification)}</div>` : ''}
+            for (const dept of Object.keys(grouped).sort()) {
+                const accId = `acc-dyn-${deptIndex++}`;
+                html += `
+                <div class="school-acc expanded" id="${accId}">
+                    <div class="school-head" onclick="toggleAcc('${accId}')">
+                        ${escapeHtml(dept)} <i class="fas fa-chevron-right"></i>
+                    </div>
+                    <div class="school-body" style="padding:16px;background:var(--bg);">
+                `;
+
+                for (const sub of Object.keys(grouped[dept]).sort()) {
+                    html += `
+                        <div style="margin-bottom:24px;">
+                            <div style="font-size:14px;font-weight:700;color:var(--secondary);margin-bottom:12px;border-bottom:1px solid var(--glass-border);padding-bottom:6px;">
+                                <i class="fas fa-book" style="margin-right:6px"></i> ${escapeHtml(sub)}
+                            </div>
+                            <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:16px;">
+                    `;
+
+                    grouped[dept][sub].forEach(s => {
+                        const avatar = s.photoURL ? 
+                            `<img src="${s.photoURL}" alt="${s.name}" style="width:50px;height:50px;border-radius:12px;object-fit:cover;border:2px solid rgba(108,99,255,0.4)">` : 
+                            `<div style="width:50px;height:50px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff">${(s.name || 'F')[0]}</div>`;
+
+                        html += `
+                            <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;transition:all 0.2s" onmouseover="this.style.borderColor='var(--primary)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--glass-border)';this.style.transform='none'">
+                                <div style="display:flex;gap:12px;align-items:center">
+                                    ${avatar}
+                                    <div style="flex:1;min-width:0">
+                                        <div style="font-size:15px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(s.name)}</div>
+                                        <div style="font-size:11px;font-weight:600;color:var(--primary);margin-top:2px">${escapeHtml(s.designation || 'Faculty')}</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:8px;margin-top:auto;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05)">
+                                    ${s.email ? `<a href="mailto:${s.email}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--primary);color:#fff;text-decoration:none;padding:8px;border-radius:8px;font-size:12px;font-weight:600"><i class="fas fa-envelope"></i> Email</a>` : ''}
+                                    ${s.phone ? `<a href="tel:${s.phone}" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--glass);border:1px solid var(--glass-border);color:var(--text);text-decoration:none;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600"><i class="fas fa-phone"></i> Call</a>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += `
+                            </div>
                         </div>
-                    </div>
+                    `;
+                }
 
-                    <div style="display:inline-block">
-                        <span style="font-size:11px;background:rgba(108,99,255,0.15);color:#a78bfa;padding:4px 10px;border-radius:20px;font-weight:600">${escapeHtml(s.department || 'General')}</span>
-                    </div>
-
-                    ${s.bio ? `<div style="font-size:12px;color:var(--text-muted);line-height:1.4">${escapeHtml(s.bio)}</div>` : ''}
-
-                    <div style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text);background:rgba(0,0,0,0.2);padding:10px;border-radius:10px">
-                        ${s.cabin ? `<div style="display:flex;align-items:center;gap:8px"><i class="fas fa-door-open" style="color:var(--secondary);width:16px"></i> <span>Cabin: <b>${escapeHtml(s.cabin)}</b></span></div>` : ''}
-                        ${s.officeHours ? `<div style="display:flex;align-items:center;gap:8px"><i class="fas fa-clock" style="color:var(--accent);width:16px"></i> <span>Hours: ${escapeHtml(s.officeHours)}</span></div>` : ''}
-                    </div>
-
-                    ${subjectsHtml ? `
-                        <div>
-                            <div style="font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:600">HANDLES:</div>
-                            <div style="display:flex;flex-wrap:wrap;gap:5px">${subjectsHtml}</div>
-                        </div>
-                    ` : ''}
-
-                    <div style="margin-top:auto;display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--glass-border)">
-                        ${s.email ? `<a href="mailto:${s.email}" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--primary);color:#fff;text-decoration:none;padding:8px;border-radius:8px;font-size:12px;font-weight:600"><i class="fas fa-envelope"></i> Email</a>` : ''}
-                        ${s.phone ? `<a href="tel:${s.phone}" style="display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--glass);border:1px solid var(--glass-border);color:var(--text);text-decoration:none;padding:8px 12px;border-radius:8px;font-size:12px;font-weight:600"><i class="fas fa-phone"></i> Call</a>` : ''}
+                html += `
                     </div>
                 </div>
                 `;
-            }).join('');
+            }
+            html += '</div>';
+
+            container.innerHTML = html;
         }
 
         window.filterFacultyDirectory = function () {
@@ -1576,7 +1600,7 @@
             const filtered = allStaffList.filter(s => {
                 if (dept !== 'ALL' && s.department !== dept) return false;
                 if (q) {
-                    const searchPool = `${s.name || ''} ${s.role || ''} ${s.department || ''} ${s.cabin || ''} ${(s.subjects || []).join(' ')} ${s.qualification || ''}`.toLowerCase();
+                    const searchPool = `${s.name || ''} ${s.designation || ''} ${s.department || ''} ${s.subject || ''}`.toLowerCase();
                     if (!searchPool.includes(q)) return false;
                 }
                 return true;

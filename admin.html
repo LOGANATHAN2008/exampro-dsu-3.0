@@ -2260,9 +2260,15 @@
                         <input type="text" id="s_qual" class="form-control" placeholder="Ph.D., M.Tech (CSE)">
                     </div>
                 </div>
-                <div class="form-group" style="margin-bottom:12px">
-                    <label>Subjects Taught (Comma separated)</label>
-                    <input type="text" id="s_subjects" class="form-control" placeholder="Data Structures, Operating Systems, Cloud Computing">
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="form-group">
+                        <label>Assigned Subject *</label>
+                        <input type="text" id="s_subject" class="form-control" required placeholder="Data Structures">
+                    </div>
+                    <div class="form-group">
+                        <label>Batch *</label>
+                        <input type="text" id="s_batch" class="form-control" required placeholder="2023-2027">
+                    </div>
                 </div>
                 <div class="form-group" id="staffPasswordGroup" style="margin-bottom:12px">
                     <label>Login Password (Optional - Creates Auth Account)</label>
@@ -2441,6 +2447,7 @@
         import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, getDocs, doc, getDoc, deleteDoc, addDoc, updateDoc, setDoc, serverTimestamp, query, orderBy, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
@@ -2458,6 +2465,7 @@
         });
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const functions = getFunctions(app);
 
         window.triggerSMS = async function(message) {
             const smsStudents = allStudents.filter(s => s.smsEnabled && s.email);
@@ -4174,19 +4182,17 @@ const body = document.getElementById('resultsBody');
             const origHtml = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
-            const subjectsRaw = document.getElementById('s_subjects').value || '';
-            const subjectsList = subjectsRaw.split(',').map(s => s.trim()).filter(Boolean);
-
             const staffData = {
                 name: document.getElementById('s_name').value.trim(),
                 email: document.getElementById('s_email').value.trim().toLowerCase(),
-                role: document.getElementById('s_role').value.trim(),
+                designation: document.getElementById('s_role').value.trim(),
                 department: document.getElementById('s_dept').value,
                 phone: document.getElementById('s_phone').value.trim() || '',
                 cabin: document.getElementById('s_cabin').value.trim() || '',
                 officeHours: document.getElementById('s_hours').value.trim() || '',
                 qualification: document.getElementById('s_qual').value.trim() || '',
-                subjects: subjectsList,
+                subject: document.getElementById('s_subject').value.trim(),
+                batch: document.getElementById('s_batch').value.trim(),
                 photoURL: document.getElementById('s_photo').value.trim() || '',
                 bio: document.getElementById('s_bio').value.trim() || '',
                 updatedAt: serverTimestamp()
@@ -4194,28 +4200,32 @@ const body = document.getElementById('resultsBody');
 
             try {
                 if (!editingStaffId) {
+                    staffData.addedBy = auth.currentUser.uid;
+                    staffData.createdAt = serverTimestamp();
+                    let newUid = null;
+
                     const pwInput = document.getElementById('s_password');
                     if (pwInput && pwInput.value.trim().length > 0) {
                         const rawPassword = pwInput.value.trim();
                         if (rawPassword.length < 6) throw new Error("Password must be at least 6 characters.");
                         
-                        const secondaryApp = initializeApp(firebaseConfig, "SecondaryAuthApp" + Date.now());
-                        const secondaryAuth = getAuth(secondaryApp);
-                        const userCred = await createUserWithEmailAndPassword(secondaryAuth, staffData.email, rawPassword);
-                        const newUid = userCred.user.uid;
-                        
-                        await setDoc(doc(db, 'admins', newUid), {
-                            email: staffData.email,
-                            role: 'staff',
-                            department: staffData.department,
-                            name: staffData.name,
-                            createdAt: serverTimestamp()
+                        const createStaffAccount = httpsCallable(functions, 'createStaffAccount');
+                        const result = await createStaffAccount({ 
+                            email: staffData.email, 
+                            password: rawPassword, 
+                            displayName: staffData.name 
                         });
-                        
-                        await secondaryAuth.signOut();
+                        newUid = result.data.uid;
                     }
-                    staffData.createdAt = serverTimestamp();
-                    await addDoc(collection(db, 'staff'), staffData);
+                    
+                    if (newUid) {
+                        // Use the auth UID as the document ID so rules can map request.auth.uid properly
+                        await setDoc(doc(db, 'staff', newUid), staffData);
+                    } else {
+                        // If no login account created, just store as normal doc
+                        await addDoc(collection(db, 'staff'), staffData);
+                    }
+                    
                     showToast('Faculty member added!', 'success');
                 } else {
                     await updateDoc(doc(db, 'staff', editingStaffId), staffData);
@@ -4238,7 +4248,7 @@ const body = document.getElementById('resultsBody');
             }
             body.innerHTML = staff.map(s => {
                 const avatar = s.photoURL ? `<img src="${s.photoURL}" style="width:36px;height:36px;border-radius:10px;object-fit:cover;">` : `<div class="avatar-sm" style="background:var(--accent)">${(s.name || 'S')[0]}</div>`;
-                const subjectsHtml = (s.subjects && s.subjects.length) ? s.subjects.map(sub => `<span style="display:inline-block;font-size:10px;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;margin:2px 2px 0 0">${sub}</span>`).join('') : '<span style="color:var(--text-muted);font-size:11px">General</span>';
+                const subjectsHtml = s.subject ? `<span style="display:inline-block;font-size:10px;background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;margin:2px 2px 0 0">${escapeHtml(s.subject)}</span>` : '<span style="color:var(--text-muted);font-size:11px">General</span>';
                 return `
                 <tr>
                     <td>
@@ -4251,10 +4261,13 @@ const body = document.getElementById('resultsBody');
                         </div>
                     </td>
                     <td>
-                        <div style="font-weight:600">${escapeHtml(s.role || 'Faculty')}</div>
+                        <div style="font-weight:600">${escapeHtml(s.designation || 'Faculty')}</div>
                         ${s.qualification ? `<div style="font-size:11px;color:var(--text-muted)">${escapeHtml(s.qualification)}</div>` : ''}
                     </td>
-                    <td><span class="nav-badge" style="background:rgba(108,99,255,0.15);color:#a78bfa">${escapeHtml(s.department || 'General')}</span></td>
+                    <td>
+                        <span class="nav-badge" style="background:rgba(108,99,255,0.15);color:#a78bfa">${escapeHtml(s.department || 'General')}</span>
+                        ${s.batch ? `<div style="font-size:10px;color:var(--text-muted);margin-top:4px"><i class="fas fa-users"></i> ${escapeHtml(s.batch)}</div>` : ''}
+                    </td>
                     <td>
                         <div style="margin-bottom:3px">${subjectsHtml}</div>
                         ${s.cabin ? `<div style="font-size:11px;color:var(--text-muted)"><i class="fas fa-door-open"></i> ${escapeHtml(s.cabin)}</div>` : ''}
@@ -4280,13 +4293,14 @@ const body = document.getElementById('resultsBody');
             document.getElementById('staffModalTitle').textContent = 'Edit Faculty Member';
             document.getElementById('s_name').value = s.name || '';
             document.getElementById('s_email').value = s.email || '';
-            document.getElementById('s_role').value = s.role || '';
+            document.getElementById('s_role').value = s.designation || '';
             document.getElementById('s_dept').value = s.department || 'Computer Science';
             document.getElementById('s_phone').value = s.phone || '';
             document.getElementById('s_cabin').value = s.cabin || '';
             document.getElementById('s_hours').value = s.officeHours || '';
             document.getElementById('s_qual').value = s.qualification || '';
-            document.getElementById('s_subjects').value = (s.subjects || []).join(', ');
+            document.getElementById('s_subject').value = s.subject || '';
+            document.getElementById('s_batch').value = s.batch || '';
             document.getElementById('s_photo').value = s.photoURL || '';
             document.getElementById('s_bio').value = s.bio || '';
             

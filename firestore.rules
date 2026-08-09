@@ -38,6 +38,14 @@ service cloud.firestore {
       return request.auth != null && exists(/databases/$(database)/documents/staff/$(request.auth.uid));
     }
 
+    // Helper to strictly restrict Staff reads to their own subject/dept, while leaving Admins/Students unaffected
+    function staffReadFilter(resData) {
+      return !isAnyStaff() || (
+        'subject' in resData && 'department' in resData &&
+        isStaffOf(resData.subject, resData.department)
+      );
+    }
+
     // ===== Admins Collection =====
     match /admins/{uid} {
       allow read: if request.auth != null;
@@ -91,9 +99,9 @@ service cloud.firestore {
 
     // ===== Results Collection =====
     match /results/{resultId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && staffReadFilter(resource.data);
       allow create: if request.auth != null && request.resource.data.studentId == request.auth.uid;
-      allow update, delete: if isSuperAdmin() || isDeptAdmin(resource.data.department) ||
+      allow update, delete: if isAnyAdmin() ||
         isStaffOf(resource.data.subject, resource.data.department);
     }
 
@@ -111,20 +119,18 @@ service cloud.firestore {
 
     // ===== Tests =====
     match /tests/{testId} {
-      allow read: if request.auth != null;
-      allow create: if isSuperAdmin() ||
-        isDeptAdmin(request.resource.data.department) ||
+      allow read: if request.auth != null && staffReadFilter(resource.data);
+      allow create: if isAnyAdmin() ||
         isStaffOf(request.resource.data.subject, request.resource.data.department);
-      allow update, delete: if isSuperAdmin() ||
-        isDeptAdmin(resource.data.department) ||
+      allow update, delete: if isAnyAdmin() ||
         isStaffOf(resource.data.subject, resource.data.department);
     }
 
     // ===== Malpractice Logs =====
     match /malpracticeLogs/{logId} {
       allow read: if isAnyAdmin() || isStaffOf(resource.data.subject, resource.data.department);
-      allow create: if request.auth != null;
-      allow update, delete: if isSuperAdmin() || isStaffOf(resource.data.subject, resource.data.department);
+      allow create: if request.auth != null && (!isAnyStaff() || isStaffOf(request.resource.data.subject, request.resource.data.department));
+      allow update, delete: if isAnyAdmin() || isStaffOf(resource.data.subject, resource.data.department);
     }
 
     // ===== Courses =====
@@ -141,15 +147,16 @@ service cloud.firestore {
 
     // ===== Notices =====
     match /notices/{id} {
-      allow read: if request.auth != null;
-      allow create: if isAnyAdmin() || (isAnyStaff() && request.resource.data.subject != null);
+      allow read: if request.auth != null && staffReadFilter(resource.data);
+      allow create: if isAnyAdmin() || 
+        (isAnyStaff() && request.resource.data.subject != null && isStaffOf(request.resource.data.subject, request.resource.data.department));
       allow update, delete: if isAnyAdmin() ||
-        (isAnyStaff() && resource.data.createdBy == request.auth.uid && resource.data.subject != null);
+        (isAnyStaff() && resource.data.createdBy == request.auth.uid && isStaffOf(resource.data.subject, resource.data.department));
     }
 
     // ===== Exam Schedule =====
     match /exam_schedule/{id} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && staffReadFilter(resource.data);
       allow create: if isAnyAdmin() ||
         isStaffOf(request.resource.data.subject, request.resource.data.department);
       allow update, delete: if isAnyAdmin() ||
@@ -179,11 +186,11 @@ service cloud.firestore {
 
     // ===== Study Materials =====
     match /studyMaterials/{materialId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && staffReadFilter(resource.data);
       allow create: if isAnyAdmin() ||
         isStaffOf(request.resource.data.subject, request.resource.data.department);
       allow delete: if isAnyAdmin() ||
-        (isAnyStaff() && resource.data.uploadedBy == request.auth.uid);
+        (isAnyStaff() && resource.data.uploadedBy == request.auth.uid && isStaffOf(resource.data.subject, resource.data.department));
       allow update: if isAnyAdmin() ||
         isStaffOf(resource.data.subject, resource.data.department) ||
         (request.auth != null && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['downloadCount', 'viewsCount']));
