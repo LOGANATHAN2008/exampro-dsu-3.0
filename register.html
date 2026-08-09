@@ -661,6 +661,47 @@
             .card { padding: 24px 18px; border-radius: 20px; }
         }
 
+        /* Override dark/light theme - register page always uses warm gradient */
+        body,
+        body.light-mode,
+        body.dark-mode {
+            background: linear-gradient(135deg, #f5c6a0 0%, #f0b090 25%, #e8b880 50%, #d4b08c 75%, #c8a87a 100%) !important;
+            color: #1a1a2e !important;
+        }
+
+        /* Keep card always white and dark text */
+        body.light-mode .card,
+        body.dark-mode .card {
+            background: #ffffff !important;
+            color: #1a1a2e !important;
+            border: none !important;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.08) !important;
+        }
+
+        /* Keep inputs readable in both modes */
+        body.light-mode .input-wrap input,
+        body.light-mode .input-wrap select,
+        body.dark-mode .input-wrap input,
+        body.dark-mode .input-wrap select {
+            background: #f4f5f8 !important;
+            color: #1a1a2e !important;
+            border: 1.5px solid transparent !important;
+        }
+
+        body.light-mode .input-wrap input:focus,
+        body.light-mode .input-wrap select:focus,
+        body.dark-mode .input-wrap input:focus,
+        body.dark-mode .input-wrap select:focus {
+            border-color: #6c63ff !important;
+            background: rgba(108,99,255,0.05) !important;
+            box-shadow: 0 0 0 3px rgba(108,99,255,0.12) !important;
+        }
+
+        body.light-mode .logo-area h1 { color: #1a1a2e !important; -webkit-text-fill-color: #1a1a2e !important; }
+        body.light-mode .step-header h3 { color: #1a1a2e !important; }
+        body.light-mode .form-group label { color: #6b7280 !important; }
+        body.light-mode .terms label { color: #6b7280 !important; }
+
 
         :root {
             --primary: #6c63ff;
