@@ -2271,8 +2271,13 @@
                     </div>
                 </div>
                 <div class="form-group" id="staffPasswordGroup" style="margin-bottom:12px">
-                    <label>Login Password (Optional - Creates Auth Account)</label>
-                    <input type="text" id="s_password" class="form-control" placeholder="Enter min 6 chars to create a login. Leave empty to skip.">
+                    <label id="staffPasswordLabel">Login Password (Optional - Creates Auth Account)</label>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input type="text" id="s_password" class="form-control" placeholder="Enter min 6 chars to create a login. Leave empty to skip.">
+                        <button type="button" id="staffResetPwBtn" class="btn btn-outline btn-sm" style="display:none;white-space:nowrap;" onclick="sendStaffResetEmail()">
+                            <i class="fas fa-envelope"></i> Send Reset Link
+                        </button>
+                    </div>
                 </div>
                 <div class="form-group" style="margin-bottom:12px">
                     <label>Photo URL (or upload below)</label>
@@ -2444,7 +2449,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
-        import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, getDocs, doc, getDoc, deleteDoc, addDoc, updateDoc, setDoc, serverTimestamp, query, orderBy, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
         import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
@@ -4138,12 +4143,64 @@ const body = document.getElementById('resultsBody');
         let allStaff = [];
         let editingStaffId = null;
 
+        window.sendStaffResetEmail = async function() {
+            const email = document.getElementById('s_email').value.trim().toLowerCase();
+            if (!email) {
+                showToast('Please enter an email address first.', 'error');
+                return;
+            }
+            
+            const btn = document.getElementById('staffResetPwBtn');
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                try {
+                    await sendPasswordResetEmail(auth, email);
+                    showToast('Password reset link sent to ' + email, 'success');
+                } catch (err) {
+                    if (err.code === 'auth/user-not-found') {
+                        // Account doesn't exist yet! We must create it with a random password first.
+                        const name = document.getElementById('s_name').value.trim() || 'Staff';
+                        const randomPw = 'Dsu!' + Math.floor(Math.random() * 1000000);
+                        const createStaffAccount = httpsCallable(functions, 'createStaffAccount');
+                        await createStaffAccount({ 
+                            email: email, 
+                            password: randomPw, 
+                            displayName: name,
+                            uid: editingStaffId || undefined
+                        });
+                        // Now that it's created, send the reset email
+                        await sendPasswordResetEmail(auth, email);
+                        showToast('Account created and reset link sent to ' + email, 'success');
+                    } else {
+                        throw err;
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Error sending reset link: ' + err.message, 'error');
+            } finally {
+                btn.innerHTML = origHtml;
+                btn.disabled = false;
+            }
+        };
+
         window.openStaffModal = function () {
             editingStaffId = null;
             document.getElementById('staffModalTitle').textContent = 'Add Staff Member';
             document.getElementById('staffForm').reset();
             const pwGroup = document.getElementById('staffPasswordGroup');
-            if(pwGroup) pwGroup.style.display = 'block';
+            if(pwGroup) {
+                pwGroup.style.display = 'block';
+                pwGroup.querySelector('label').textContent = 'Login Password (Optional - Creates Auth Account)';
+            }
+            const pwInput = document.getElementById('s_password');
+            if(pwInput) pwInput.style.display = 'block';
+            const resetBtn = document.getElementById('staffResetPwBtn');
+            if(resetBtn) resetBtn.style.display = 'none';
+
             document.getElementById('staffPhotoUploadStatus').textContent = '';
             document.getElementById('staffModal').classList.add('active');
         };
@@ -4313,11 +4370,15 @@ const body = document.getElementById('resultsBody');
             document.getElementById('s_bio').value = s.bio || '';
             
             const pwInput = document.getElementById('s_password');
-            if(pwInput) pwInput.value = '';
+            if(pwInput) pwInput.style.display = 'none';
+            
+            const resetBtn = document.getElementById('staffResetPwBtn');
+            if(resetBtn) resetBtn.style.display = 'block';
+
             const pwGroup = document.getElementById('staffPasswordGroup');
             if(pwGroup) {
                 pwGroup.style.display = 'block';
-                pwGroup.querySelector('label').textContent = 'Set / Reset Login Password (Optional)';
+                pwGroup.querySelector('label').textContent = 'Login Access';
             }
 
             document.getElementById('staffPhotoUploadStatus').textContent = '';
