@@ -2843,10 +2843,10 @@ showToast('Error loading dashboard: ' + (err.message || 'Unknown error'), 'error
 
             try {
                 await addDoc(collection(db, 'achievements'), {
-                    studentId: userProfile.uid,
-                    studentName: userProfile.name,
-                    registerNumber: userProfile.registerNumber,
-                    department: userProfile.department,
+                    studentId: currentUser.uid,
+                    studentName: STUDENT_PROFILE.name || 'Student',
+                    registerNumber: STUDENT_PROFILE.regNo || '',
+                    department: STUDENT_PROFILE.department || 'ALL',
                     title: document.getElementById('ach_title').value,
                     type: document.getElementById('ach_type').value,
                     dateAchieved: document.getElementById('ach_date').value,
