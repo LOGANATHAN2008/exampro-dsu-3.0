@@ -2242,6 +2242,10 @@
                     <label>Subjects Taught (Comma separated)</label>
                     <input type="text" id="s_subjects" class="form-control" placeholder="Data Structures, Operating Systems, Cloud Computing">
                 </div>
+                <div class="form-group" id="staffPasswordGroup" style="margin-bottom:12px">
+                    <label>Login Password (Optional - Creates Auth Account)</label>
+                    <input type="text" id="s_password" class="form-control" placeholder="Enter min 6 chars to create a login. Leave empty to skip.">
+                </div>
                 <div class="form-group" style="margin-bottom:12px">
                     <label>Photo URL (or upload below)</label>
                     <div style="display:flex;gap:8px">
@@ -2411,7 +2415,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, getDocs, doc, getDoc, deleteDoc, addDoc, updateDoc, setDoc, serverTimestamp, query, orderBy, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
@@ -4041,6 +4045,8 @@ const body = document.getElementById('resultsBody');
             editingStaffId = null;
             document.getElementById('staffModalTitle').textContent = 'Add Staff Member';
             document.getElementById('staffForm').reset();
+            const pwGroup = document.getElementById('staffPasswordGroup');
+            if(pwGroup) pwGroup.style.display = 'block';
             document.getElementById('staffPhotoUploadStatus').textContent = '';
             document.getElementById('staffModal').classList.add('active');
         };
@@ -4076,6 +4082,8 @@ const body = document.getElementById('resultsBody');
             e.preventDefault();
             const btn = document.getElementById('staffSaveBtn');
             btn.disabled = true;
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
             const subjectsRaw = document.getElementById('s_subjects').value || '';
             const subjectsList = subjectsRaw.split(',').map(s => s.trim()).filter(Boolean);
@@ -4096,19 +4104,30 @@ const body = document.getElementById('resultsBody');
             };
 
             try {
-                if (editingStaffId) {
-                    await updateDoc(doc(db, 'staff', editingStaffId), staffData);
-                    showToast('Faculty member updated!', 'success');
-                } else {
+                if (!editingStaffId) {
+                    const pwInput = document.getElementById('s_password');
+                    if (pwInput && pwInput.value.trim().length > 0) {
+                        const rawPassword = pwInput.value.trim();
+                        if (rawPassword.length < 6) throw new Error("Password must be at least 6 characters.");
+                        
+                        const secondaryApp = initializeApp(firebaseConfig, "SecondaryAuthApp" + Date.now());
+                        const secondaryAuth = getAuth(secondaryApp);
+                        await createUserWithEmailAndPassword(secondaryAuth, staffData.email, rawPassword);
+                        await secondaryAuth.signOut();
+                    }
                     staffData.createdAt = serverTimestamp();
                     await addDoc(collection(db, 'staff'), staffData);
                     showToast('Faculty member added!', 'success');
+                } else {
+                    await updateDoc(doc(db, 'staff', editingStaffId), staffData);
+                    showToast('Faculty member updated!', 'success');
                 }
                 closeStaffModal();
             } catch (err) {
                 showToast('Save failed: ' + err.message, 'error');
             }
             btn.disabled = false;
+            btn.innerHTML = origHtml;
         };
 
         function renderStaff(staff) {
@@ -4171,6 +4190,12 @@ const body = document.getElementById('resultsBody');
             document.getElementById('s_subjects').value = (s.subjects || []).join(', ');
             document.getElementById('s_photo').value = s.photoURL || '';
             document.getElementById('s_bio').value = s.bio || '';
+            
+            const pwInput = document.getElementById('s_password');
+            if(pwInput) pwInput.value = '';
+            const pwGroup = document.getElementById('staffPasswordGroup');
+            if(pwGroup) pwGroup.style.display = 'none';
+
             document.getElementById('staffPhotoUploadStatus').textContent = '';
             document.getElementById('staffModal').classList.add('active');
         };
