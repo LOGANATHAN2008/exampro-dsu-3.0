@@ -2110,19 +2110,116 @@
         </div>
         
         <!-- Submit Achievement Modal -->
+        <style>
+            #submitAchievementModal .modal {
+                border-radius: 24px;
+                padding: 28px 24px;
+                border: 1px solid var(--glass-border);
+            }
+            #submitAchievementModal h2 {
+                text-align: center;
+                font-weight: 700;
+                font-size: 22px;
+                margin-bottom: 24px;
+                position: relative;
+            }
+            #submitAchievementModal .close-modal-btn {
+                position: absolute;
+                right: 0;
+                top: 50%;
+                transform: translateY(-50%);
+                background: rgba(128, 128, 128, 0.1);
+                border: none;
+                color: var(--text-muted);
+                cursor: pointer;
+                font-size: 16px;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s;
+            }
+            #submitAchievementModal .close-modal-btn:hover {
+                background: rgba(128, 128, 128, 0.2);
+                color: var(--text);
+            }
+            #submitAchievementModal .form-group {
+                margin-bottom: 18px;
+            }
+            #submitAchievementModal .form-group label {
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 8px;
+                display: block;
+                margin-left: 4px;
+            }
+            #submitAchievementModal .form-control {
+                border-radius: 14px;
+                padding: 14px 16px;
+                border: 1.5px solid transparent;
+                background: rgba(128, 128, 128, 0.06);
+                font-size: 15px;
+                width: 100%;
+                color: var(--text);
+                transition: all 0.2s ease;
+            }
+            #submitAchievementModal .form-control:focus {
+                background: transparent;
+                border-color: var(--primary);
+                box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 15%, transparent);
+                outline: none;
+            }
+            #submitAchievementModal .modal-btns {
+                display: flex;
+                gap: 12px;
+                margin-top: 28px;
+            }
+            #submitAchievementModal .modal-btns button {
+                flex: 1;
+                border-radius: 14px;
+                padding: 14px;
+                font-weight: 600;
+                font-size: 16px;
+                border: none;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            #submitAchievementModal .btn-cancel {
+                background: rgba(128, 128, 128, 0.1);
+                color: var(--text);
+            }
+            #submitAchievementModal .btn-cancel:hover {
+                background: rgba(128, 128, 128, 0.2);
+            }
+            #submitAchievementModal .btn-submit {
+                background: var(--primary);
+                color: #fff;
+                box-shadow: 0 4px 15px color-mix(in srgb, var(--primary) 40%, transparent);
+            }
+            #submitAchievementModal .btn-submit:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px color-mix(in srgb, var(--primary) 50%, transparent);
+            }
+        </style>
         <div class="modal-overlay" id="submitAchievementModal">
-            <div class="modal" style="max-width:550px">
-                <h2><i class="fas fa-medal" style="color:var(--success)"></i> Submit Achievement
-                    <button onclick="document.getElementById('submitAchievementModal').classList.remove('active')" style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px"><i class="fas fa-times"></i></button>
+            <div class="modal" style="max-width:500px">
+                <h2>
+                    <i class="fas fa-medal" style="color:var(--success); margin-right:8px;"></i> Submit Achievement
+                    <button class="close-modal-btn" type="button" onclick="document.getElementById('submitAchievementModal').classList.remove('active')"><i class="fas fa-times"></i></button>
                 </h2>
                 <form id="achievementForm" onsubmit="submitAchievement(event)">
-                    <div class="form-group" style="margin-bottom:15px">
-                        <label>Achievement Title *</label>
-                        <input type="text" id="ach_title" class="form-control" required placeholder="e.g. 1st Place in Hackathon, AWS Certified Solutions Architect">
+                    <div class="form-group">
+                        <label>Achievement Title</label>
+                        <input type="text" id="ach_title" class="form-control" required placeholder="e.g. 1st Place in Hackathon">
                     </div>
-                    <div class="form-grid" style="margin-bottom:15px">
-                        <div class="form-group">
-                            <label>Type *</label>
+                    <div style="display:flex; gap:16px;">
+                        <div class="form-group" style="flex:1">
+                            <label>Type</label>
                             <select id="ach_type" class="form-control" required>
                                 <option value="Hackathon">Hackathon</option>
                                 <option value="Certification">Certification</option>
@@ -2133,22 +2230,22 @@
                                 <option value="Other">Other</option>
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Date Achieved *</label>
+                        <div class="form-group" style="flex:1">
+                            <label>Date Achieved</label>
                             <input type="date" id="ach_date" class="form-control" required>
                         </div>
                     </div>
-                    <div class="form-group" style="margin-bottom:15px">
-                        <label>Description (Short) *</label>
+                    <div class="form-group">
+                        <label>Description (Short)</label>
                         <textarea id="ach_desc" class="form-control" rows="3" required placeholder="Briefly describe what you did and your role..."></textarea>
                     </div>
-                    <div class="form-group" style="margin-bottom:20px">
-                        <label>Proof Link (Certificate/Post) *</label>
-                        <input type="url" id="ach_link" class="form-control" required placeholder="https://linkedin.com/... or Google Drive link">
+                    <div class="form-group">
+                        <label>Proof Link</label>
+                        <input type="url" id="ach_link" class="form-control" required placeholder="https://linkedin.com/... or Drive link">
                     </div>
                     <div class="modal-btns">
-                        <button type="button" class="btn btn-outline" onclick="document.getElementById('submitAchievementModal').classList.remove('active')">Cancel</button>
-                        <button type="submit" class="btn btn-primary" id="achSubmitBtn"><i class="fas fa-paper-plane"></i> Submit for Approval</button>
+                        <button type="button" class="btn-cancel" onclick="document.getElementById('submitAchievementModal').classList.remove('active')">Cancel</button>
+                        <button type="submit" class="btn-submit" id="achSubmitBtn"><i class="fas fa-paper-plane" style="margin-right:6px"></i> Submit</button>
                     </div>
                 </form>
             </div>
