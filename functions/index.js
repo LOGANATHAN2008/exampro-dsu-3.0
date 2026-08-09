@@ -121,3 +121,50 @@ exports.denyQrSession = functions.https.onCall(async (data, context) => {
     return { success: true };
   });
 });
+
+// 4. Securely lookup email for login via Reg No / Phone
+exports.getLoginEmail = functions.https.onCall(async (data, context) => {
+  const { identifier } = data;
+  if (!identifier) {
+    throw new functions.https.HttpsError("invalid-argument", "Missing identifier.");
+  }
+  
+  const raw = identifier.trim().toLowerCase();
+  const cleanDigits = raw.replace(/\D/g, '');
+  const db = admin.firestore();
+  
+  const queries = [];
+  const regCandidates = [raw, raw.toUpperCase()];
+  const regFields = ['registerNumber', 'usn', 'regNo', 'regno', 'studentId'];
+  
+  for (const field of regFields) {
+      for (const candidate of regCandidates) {
+          queries.push(db.collection('students').where(field, '==', candidate).get());
+      }
+  }
+  
+  if (cleanDigits.length >= 8) {
+      const phoneVariations = [
+          cleanDigits,
+          `+91${cleanDigits.slice(-10)}`,
+          cleanDigits.slice(-10)
+      ];
+      for (const phone of phoneVariations) {
+          queries.push(db.collection('students').where('phone', '==', phone).get());
+      }
+  }
+  
+  const results = await Promise.all(queries);
+  const emails = new Set();
+  
+  results.forEach(snap => {
+      snap.forEach(doc => {
+          const docData = doc.data();
+          if (docData.email) {
+              emails.add(docData.email.toLowerCase());
+          }
+      });
+  });
+  
+  return { emails: Array.from(emails) };
+});
