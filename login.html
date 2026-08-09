@@ -518,16 +518,18 @@
                         </div>
 
                         <div class="captcha-container" style="border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; background: rgba(255,255,255,0.02);">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap;">
+                            <!-- Row 1: Label + Code + Refresh -->
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <div style="display: flex; align-items: center; gap: 5px; color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; white-space: nowrap; flex-shrink: 0;">
                                     <i class="fas fa-shield-alt" style="color: var(--primary); font-size: 11px;"></i> Captcha:
                                 </div>
                                 <div id="captchaText" style="font-size: 17px; font-weight: 700; color: #38bdf8; letter-spacing: 6px; font-family: monospace; flex: 1; text-align: center; white-space: nowrap; overflow: hidden;">0U1EE</div>
                                 <button type="button" onclick="generateCaptcha()" title="Refresh" style="background: var(--primary); color: white; border: none; border-radius: 6px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-size: 11px;">
                                     <i class="fas fa-sync-alt"></i>
                                 </button>
-                                <input type="text" id="captchaInput" placeholder="Enter code" required style="width: 110px; flex-shrink: 0; padding: 6px 10px; background: var(--input-bg, rgba(255,255,255,0.05)); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 13px; outline: none;">
                             </div>
+                            <!-- Row 2: Input full width -->
+                            <input type="text" id="captchaInput" placeholder="Enter captcha code" required autocomplete="off" style="width: 100%; box-sizing: border-box; padding: 9px 12px; background: var(--input-bg, rgba(255,255,255,0.05)); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; outline: none;">
                         </div>
 
                         <div class="btn-group">
