@@ -1601,6 +1601,8 @@
                         class="fas fa-id-card"></i> Hall Ticket</a>
                 <a class="nav-item" href="#sec-history" onclick="smoothScroll('sec-history')"><i
                         class="fas fa-history"></i> Exam History</a>
+                <a class="nav-item" href="#sec-achievements" onclick="smoothScroll('sec-achievements')"><i
+                        class="fas fa-medal"></i> Achievements Wall</a>
             </div>
             <div class="nav-section">
                 <div class="nav-label">Account</div>
@@ -2068,6 +2070,34 @@
             </div>
         </section>
 
+        <!-- ==========================================================
+             Section 9: ACHIEVEMENTS WALL
+        ----------------------------------------------------------- -->
+        <section id="sec-achievements" class="dsh-section" style="margin-top:0">
+            <div class="section-header">
+                <div class="section-title" style="font-size:17px;font-weight:700;display:flex;align-items:center;gap:10px">
+                    <i class="fas fa-medal" style="color:var(--success)"></i> Achievements Wall
+                </div>
+                <button onclick="showSubmitAchievementModal()"
+                    style="padding:10px 20px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 15px color-mix(in srgb,var(--primary) 40%,transparent)">
+                    <i class="fas fa-plus"></i> Submit Yours
+                </button>
+            </div>
+            
+            <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:12px;padding:20px;margin-bottom:20px">
+                <div style="font-size:14px;color:var(--text-muted);line-height:1.6;margin-bottom:20px;text-align:center">
+                    Celebrate your wins! Submitted achievements will appear on the public wall after admin approval.
+                </div>
+                
+                <div id="achievementsWallGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px">
+                    <!-- Approved Achievements go here -->
+                    <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)">
+                        Loading achievements...
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <footer>
             Developed by <a href="https://loganathanm.in" target="_blank">Loganathan</a>
         </footer>
@@ -2076,6 +2106,51 @@
             <div class="modal" style="width:90%; max-width:400px; text-align:center; padding:40px 30px; background:var(--bg2); border:4px solid var(--primary); border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,0.5); position:relative;">
                 <div id="noticePopupContent"></div>
                 <button onclick="closeNoticePopup()" style="margin-top:30px; width:100%; padding:14px; background:var(--primary); color:#fff; border:none; border-radius:8px; font-weight:800; font-size:15px; cursor:pointer; font-family:'Inter', sans-serif; text-transform:uppercase; letter-spacing:1px; box-shadow:0 4px 12px color-mix(in srgb, var(--primary) 40%, transparent); transition:transform 0.2s;">OK, I GOT IT</button>
+            </div>
+        </div>
+        
+        <!-- Submit Achievement Modal -->
+        <div class="modal-overlay" id="submitAchievementModal">
+            <div class="modal" style="max-width:550px">
+                <h2><i class="fas fa-medal" style="color:var(--success)"></i> Submit Achievement
+                    <button onclick="document.getElementById('submitAchievementModal').classList.remove('active')" style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px"><i class="fas fa-times"></i></button>
+                </h2>
+                <form id="achievementForm" onsubmit="submitAchievement(event)">
+                    <div class="form-group" style="margin-bottom:15px">
+                        <label>Achievement Title *</label>
+                        <input type="text" id="ach_title" class="form-control" required placeholder="e.g. 1st Place in Hackathon, AWS Certified Solutions Architect">
+                    </div>
+                    <div class="form-grid" style="margin-bottom:15px">
+                        <div class="form-group">
+                            <label>Type *</label>
+                            <select id="ach_type" class="form-control" required>
+                                <option value="Hackathon">Hackathon</option>
+                                <option value="Certification">Certification</option>
+                                <option value="Internship">Internship</option>
+                                <option value="Sports">Sports</option>
+                                <option value="Cultural">Cultural / Arts</option>
+                                <option value="Academic">Academic Excellence</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Date Achieved *</label>
+                            <input type="date" id="ach_date" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:15px">
+                        <label>Description (Short) *</label>
+                        <textarea id="ach_desc" class="form-control" rows="3" required placeholder="Briefly describe what you did and your role..."></textarea>
+                    </div>
+                    <div class="form-group" style="margin-bottom:20px">
+                        <label>Proof Link (Certificate/Post) *</label>
+                        <input type="url" id="ach_link" class="form-control" required placeholder="https://linkedin.com/... or Google Drive link">
+                    </div>
+                    <div class="modal-btns">
+                        <button type="button" class="btn btn-outline" onclick="document.getElementById('submitAchievementModal').classList.remove('active')">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="achSubmitBtn"><i class="fas fa-paper-plane"></i> Submit for Approval</button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -2641,6 +2716,12 @@
                     const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                     renderAnnouncements(list);
                 });
+
+                // Achievements Listener
+                onSnapshot(collection(db, 'achievements'), snap => {
+                    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    renderAchievementsDashboard(list);
+                });
 } catch (err) {
                 console.error("Dashboard Load Global Error:", err);
 showToast('Error loading dashboard: ' + (err.message || 'Unknown error'), 'error');
@@ -2649,6 +2730,77 @@ showToast('Error loading dashboard: ' + (err.message || 'Unknown error'), 'error
 
         function updateStatTests(n) { document.getElementById('statTests').textContent = n; }
         function updateStatCompleted(n) { document.getElementById('statCompleted').textContent = n; }
+
+        // =======================================================
+        // Achievements logic
+        // =======================================================
+        window.showSubmitAchievementModal = function() {
+            document.getElementById('submitAchievementModal').classList.add('active');
+        };
+
+        window.submitAchievement = async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('achSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+            try {
+                await addDoc(collection(db, 'achievements'), {
+                    studentId: userProfile.uid,
+                    studentName: userProfile.name,
+                    registerNumber: userProfile.registerNumber,
+                    department: userProfile.department,
+                    title: document.getElementById('ach_title').value,
+                    type: document.getElementById('ach_type').value,
+                    dateAchieved: document.getElementById('ach_date').value,
+                    description: document.getElementById('ach_desc').value,
+                    proofURL: document.getElementById('ach_link').value,
+                    status: 'pending',
+                    submittedAt: serverTimestamp()
+                });
+                showToast('Achievement submitted successfully!', 'success');
+                document.getElementById('achievementForm').reset();
+                document.getElementById('submitAchievementModal').classList.remove('active');
+            } catch(err) {
+                showToast('Failed to submit: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Approval';
+            }
+        };
+
+        function renderAchievementsDashboard(list) {
+            const grid = document.getElementById('achievementsWallGrid');
+            if(!grid) return;
+            const approved = list.filter(a => a.status === 'approved').sort((a,b) => (b.submittedAt?.seconds || 0) - (a.submittedAt?.seconds || 0));
+            if(!approved.length) {
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)"><i class="fas fa-medal" style="font-size:32px;opacity:0.3;display:block;margin-bottom:12px"></i>No achievements on the wall yet. Be the first to submit!</div>';
+                return;
+            }
+            grid.innerHTML = approved.map(a => {
+                let icon = 'fa-medal';
+                if(a.type === 'Hackathon') icon = 'fa-laptop-code';
+                else if(a.type === 'Certification') icon = 'fa-certificate';
+                else if(a.type === 'Sports') icon = 'fa-trophy';
+                return `
+                <div style="background:rgba(255,255,255,0.02);border:1px solid var(--glass-border);border-radius:12px;padding:20px;position:relative">
+                    <div style="position:absolute;top:20px;right:20px;color:var(--accent);opacity:0.5;font-size:24px"><i class="fas ${icon}"></i></div>
+                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                        <div class="user-avatar" style="width:40px;height:40px;font-size:16px">${a.studentName?.charAt(0) || 'S'}</div>
+                        <div>
+                            <div style="font-weight:700;font-size:14px">${escapeHtml(a.studentName || 'Student')}</div>
+                            <div style="font-size:11px;color:var(--text-muted)">${escapeHtml(a.department || '')}</div>
+                        </div>
+                    </div>
+                    <div style="font-weight:600;margin-bottom:8px;font-size:14px;color:var(--success)">${escapeHtml(a.title)}</div>
+                    <div style="font-size:13px;color:rgba(255,255,255,0.8);line-height:1.5;margin-bottom:12px">${escapeHtml(a.description)}</div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-muted);border-top:1px solid var(--glass-border);padding-top:12px">
+                        <span><i class="fas fa-calendar-check"></i> ${a.dateAchieved || '-'}</span>
+                        ${a.proofURL ? `<a href="${a.proofURL}" target="_blank" style="color:var(--primary);text-decoration:none"><i class="fas fa-external-link-alt"></i> Proof</a>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
 
         function renderTests(tests) {
             const grid = document.getElementById('testsGrid');

@@ -1305,6 +1305,8 @@
                     id="malCount">0</span></button>
             <button class="nav-item" onclick="showSection('feedback',this)"><i class="fas fa-comments"></i>
                 Feedback</button>
+            <button class="nav-item" onclick="showSection('achievements',this)"><i class="fas fa-medal"></i>
+                Achievements Wall <span class="nav-badge" id="achievementsCount" style="background:var(--success)">0</span></button>
             <button class="nav-item" id="adminManagementTab" style="display:none;" onclick="showSection('adminmgmt',this)"><i class="fas fa-user-shield"></i>
                 Admin Management</button>
             <button class="nav-item" id="approvalsTab" onclick="showSection('approvals',this)"><i class="fas fa-user-check"></i>
@@ -1910,6 +1912,26 @@
                         <thead><tr><th>Date</th><th>Feedback</th><th>Actions</th></tr></thead>
                         <tbody id="feedbackTableBody">
                             <tr><td colspan="3" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ACHIEVEMENTS SECTION -->
+        <section class="section" id="section-achievements">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-medal" style="color:var(--success)"></i> Achievements Moderation</div>
+            </div>
+            <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:12px;padding:16px 20px;margin-bottom:20px;font-size:13px;color:var(--text-muted)">
+                <i class="fas fa-info-circle" style="color:var(--success)"></i> Students submit their achievements (Certificates, Hackathons, Internships) from their dashboard. Review and approve them to display on the public Achievement Wall.
+            </div>
+            <div class="table-wrap">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Student</th><th>Achievement Details</th><th>Type</th><th>Date Submitted</th><th>Action</th></tr></thead>
+                        <tbody id="achievementsBody">
+                            <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -2797,6 +2819,15 @@ const body = document.getElementById('resultsBody');
                 }
             });
 
+            // Achievements (Section 9)
+            onSnapshot(collection(db, 'achievements'), snap => {
+                const achievements = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (b.submittedAt?.seconds || 0) - (a.submittedAt?.seconds || 0));
+                const badge = document.getElementById('achievementsCount');
+                const pendingCount = achievements.filter(a => a.status === 'pending').length;
+                if (badge) badge.textContent = pendingCount;
+                renderAchievements(achievements);
+            });
+
             // === Section 2: Pending Approvals listener ===
             const pendingQ = query(collection(db, 'students'), where('approvalStatus', '==', 'pending'));
             onSnapshot(pendingQ, snap => {
@@ -3012,6 +3043,55 @@ const body = document.getElementById('resultsBody');
                 showToast('Failed: ' + err.message, 'error');
             }
         };
+
+        window.setAchievementStatus = async function(id, status) {
+            try {
+                await updateDoc(doc(db, 'achievements', id), {
+                    status: status,
+                    updatedAt: serverTimestamp(),
+                    approvedBy: currentAdmin?.email || 'admin'
+                });
+                showToast(`Achievement ${status}!`, 'success');
+            } catch(err) { showToast('Failed: ' + err.message, 'error'); }
+        };
+
+        window.deleteAchievement = async function(id) {
+            if(!confirm('Delete this achievement submission?')) return;
+            try {
+                await deleteDoc(doc(db, 'achievements', id));
+                showToast('Achievement deleted!', 'success');
+            } catch(err) { showToast('Failed: ' + err.message, 'error'); }
+        };
+
+        function renderAchievements(list) {
+            const tbody = document.getElementById('achievementsBody');
+            if(!tbody) return;
+            if(!list.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted)">No achievements submitted yet.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = list.map(a => {
+                const isPending = a.status === 'pending';
+                const statusBadge = isPending ? '<span class="chip chip-warn">Pending</span>' : (a.status === 'approved' ? '<span class="chip chip-success">Approved</span>' : '<span class="chip chip-danger">Rejected</span>');
+                return `<tr>
+                    <td><div style="font-weight:600">${escapeHtml(a.studentName || 'Student')}</div><div style="font-size:11px;color:var(--text-muted)">${escapeHtml(a.registerNumber || '')} | ${escapeHtml(a.department || '')}</div></td>
+                    <td>
+                        <div style="font-weight:600">${escapeHtml(a.title || 'Untitled')}</div>
+                        <div style="font-size:12px;color:var(--text-muted);max-width:250px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(a.description || '')}</div>
+                        ${a.proofURL ? `<a href="${a.proofURL}" target="_blank" style="font-size:11px;color:var(--secondary);text-decoration:none"><i class="fas fa-external-link-alt"></i> View Proof</a>` : ''}
+                    </td>
+                    <td><span style="font-size:11px;padding:3px 8px;background:rgba(255,255,255,.05);border-radius:6px;border:1px solid var(--glass-border)">${escapeHtml(a.type || 'Other')}</span></td>
+                    <td><div style="font-size:12px">${a.submittedAt ? new Date(a.submittedAt.seconds * 1000).toLocaleDateString('en-IN') : '-'}</div><div style="margin-top:4px">${statusBadge}</div></td>
+                    <td>
+                        ${isPending ? `
+                        <div style="display:flex;gap:6px">
+                            <button class="btn btn-success btn-sm" onclick="setAchievementStatus('${a.id}','approved')" title="Approve"><i class="fas fa-check"></i></button>
+                            <button class="btn btn-outline btn-sm" onclick="setAchievementStatus('${a.id}','rejected')" title="Reject" style="color:var(--accent);border-color:var(--accent)"><i class="fas fa-times"></i></button>
+                        </div>` : `<button class="icon-action icon-del" onclick="deleteAchievement('${a.id}')"><i class="fas fa-trash"></i></button>`}
+                    </td>
+                </tr>`;
+            }).join('');
+        }
 
         // ===== Section 3: MAINTENANCE MODE =====
         let _maintEnabled = false;
@@ -4597,7 +4677,7 @@ const body = document.getElementById('resultsBody');
             document.getElementById('section-' + id).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            const titles = { overview: 'Dashboard', leaderboard: 'Top Performers', students: 'All Students', staff: 'Staff Management', materials: 'Study Materials', tests: 'Tests', examschedule: 'Exam Schedule', results: 'Results', announcements: 'Broadcast Center', malpractice: 'Malpractice Logs', feedback: 'Feedback / Complaints', adminmgmt: 'Admin Management', approvals: 'Student Approvals', maintenance: 'Maintenance Mode' };
+            const titles = { overview: 'Dashboard', leaderboard: 'Top Performers', students: 'All Students', staff: 'Staff Management', materials: 'Study Materials', tests: 'Tests', examschedule: 'Exam Schedule', results: 'Results', announcements: 'Broadcast Center', malpractice: 'Malpractice Logs', feedback: 'Feedback / Complaints', adminmgmt: 'Admin Management', approvals: 'Student Approvals', maintenance: 'Maintenance Mode', achievements: 'Achievements Wall' };
             document.getElementById('pageTitle').textContent = titles[id] || id;
             if (window.innerWidth <= 768) closeSidebar();
         };
