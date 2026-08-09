@@ -915,7 +915,7 @@
                                 </div>
                                 ${!isCurrent && data.deviceId ? `
                                 <div>
-                                    <button onclick="revokeDevice('${data.deviceId}', '${docId}')" style="background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; padding:4px 10px; font-size:12px; cursor:pointer; font-weight:600; transition:all 0.2s;">
+                                    <button onclick="revokeDevice(this, '${data.deviceId}', '${docId}')" style="background:transparent; border:1px solid var(--danger); color:var(--danger); border-radius:6px; padding:4px 10px; font-size:12px; cursor:pointer; font-weight:600; transition:all 0.2s;">
                                         Log Out
                                     </button>
                                 </div>` : ''}
@@ -929,7 +929,11 @@
                     });
                     
                     // Expose revokeDevice to window
-                    window.revokeDevice = async (deviceId, historyDocId) => {
+                    window.revokeDevice = async (btn, deviceId, historyDocId) => {
+                        const originalHtml = btn.innerHTML;
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                        btn.style.opacity = '0.5';
                         try {
                             // Add to revoked list
                             await setDoc(doc(db, 'students', user.uid), {
@@ -939,6 +943,9 @@
                             await deleteDoc(doc(db, 'students', user.uid, 'loginHistory', historyDocId));
                             showToast("Device session revoked", "success");
                         } catch (err) {
+                            btn.disabled = false;
+                            btn.innerHTML = originalHtml;
+                            btn.style.opacity = '1';
                             showToast("Failed to revoke device", "error");
                         }
                     };
