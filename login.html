@@ -957,8 +957,19 @@
             btn.disabled = true;
 
             try {
-                let finalEmail = identifier;
-                if (!finalEmail.includes('@')) {
+                let finalEmail = identifier.toLowerCase();
+                
+                if (finalEmail.includes('@')) {
+                    if (!ADMIN_EMAILS.includes(finalEmail)) {
+                        const studentsSnap = await getDocs(query(collection(db, 'students'), where('email', '==', finalEmail)));
+                        if (studentsSnap.empty) {
+                            showToast('Account not found with this Email address.', 'error');
+                            btn.innerHTML = originalText;
+                            btn.disabled = false;
+                            return;
+                        }
+                    }
+                } else {
                     const foundAccounts = await findAccountsByIdentifier(finalEmail);
                     if (foundAccounts.length === 0) {
                         showToast('Account not found with this Register / Mobile Number.', 'error');
