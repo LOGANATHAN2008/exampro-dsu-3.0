@@ -4112,7 +4112,17 @@ const body = document.getElementById('resultsBody');
                         
                         const secondaryApp = initializeApp(firebaseConfig, "SecondaryAuthApp" + Date.now());
                         const secondaryAuth = getAuth(secondaryApp);
-                        await createUserWithEmailAndPassword(secondaryAuth, staffData.email, rawPassword);
+                        const userCred = await createUserWithEmailAndPassword(secondaryAuth, staffData.email, rawPassword);
+                        const newUid = userCred.user.uid;
+                        
+                        await setDoc(doc(db, 'admins', newUid), {
+                            email: staffData.email,
+                            role: 'staff',
+                            department: staffData.department,
+                            name: staffData.name,
+                            createdAt: serverTimestamp()
+                        });
+                        
                         await secondaryAuth.signOut();
                     }
                     staffData.createdAt = serverTimestamp();
