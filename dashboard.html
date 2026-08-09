@@ -2818,6 +2818,10 @@
                 onSnapshot(collection(db, 'achievements'), snap => {
                     const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                     renderAchievementsDashboard(list);
+                }, err => {
+                    console.error("Achievements Listener Error:", err);
+                    const grid = document.getElementById('achievementsWallGrid');
+                    if (grid) grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--danger)">Error loading achievements: ${err.message}. Please ask admin to deploy Firestore Rules.</div>`;
                 });
 } catch (err) {
                 console.error("Dashboard Load Global Error:", err);

@@ -2826,6 +2826,10 @@ const body = document.getElementById('resultsBody');
                 const pendingCount = achievements.filter(a => a.status === 'pending').length;
                 if (badge) badge.textContent = pendingCount;
                 renderAchievements(achievements);
+            }, err => {
+                console.error("Achievements Listener Error:", err);
+                const tbody = document.getElementById('achievementsBody');
+                if(tbody) tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--danger)">Error loading: ${err.message}. Please run 'firebase deploy --only firestore:rules'</td></tr>`;
             });
 
             // === Section 2: Pending Approvals listener ===
