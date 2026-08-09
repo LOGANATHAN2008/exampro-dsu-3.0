@@ -1085,7 +1085,24 @@
                     lastLogin: serverTimestamp()
                 });
 
-                // 4. Notify admins of new registration
+                // 4. Write to studentLookup (Section 1.1 — public lookup, email only, no PII)
+                //    This lets login.html resolve register number / phone to email
+                //    without needing public read access on the full students collection.
+                try {
+                    await setDoc(doc(db, 'studentLookup', cred.user.uid), {
+                        email: email.trim().toLowerCase(),
+                        uid: cred.user.uid,
+                        registerNumber: registerNumber || '',
+                        usn: registerNumber || '',
+                        phone: phone || '',
+                        mobile: phone || '',
+                        createdAt: serverTimestamp()
+                    });
+                } catch (lookupErr) {
+                    console.warn('studentLookup write failed (non-critical):', lookupErr);
+                }
+
+                // 5. Notify admins of new registration
                 try {
                     await addDoc(collection(db, 'notifications'), {
                         type: 'new_registration',

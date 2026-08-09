@@ -603,14 +603,18 @@
             }
         };
 
-        // Fast Parallel Account Lookup by Email, Register No / USN, or Mobile / Phone No
+        // ===================================================================
+        // Account Lookup by Register No / Phone — queries studentLookup only
+        // (Section 1.1: students collection is now auth-gated; this lookup
+        //  collection is public-read but contains email addresses only, no PII)
+        // ===================================================================
         async function findAccountsByIdentifier(identifier) {
             const raw = (identifier || '').trim();
             if (!raw) return [];
             if (raw.includes('@')) return [raw.toLowerCase()];
 
             const foundEmails = new Set();
-            const studentsRef = collection(db, 'students');
+            const lookupRef = collection(db, 'studentLookup');
             const queries = [];
 
             // 1. Try Register Number / USN / RegNo variations
@@ -619,7 +623,7 @@
 
             for (const field of regFields) {
                 for (const candidate of regCandidates) {
-                    queries.push(getDocs(query(studentsRef, where(field, '==', candidate))));
+                    queries.push(getDocs(query(lookupRef, where(field, '==', candidate))));
                 }
             }
 
@@ -642,7 +646,7 @@
             const phoneFields = ['phone', 'mobile', 'phoneNumber', 'contact', 'mobileNumber'];
             for (const field of phoneFields) {
                 for (const candidate of uniquePhoneCandidates) {
-                    queries.push(getDocs(query(studentsRef, where(field, '==', candidate))));
+                    queries.push(getDocs(query(lookupRef, where(field, '==', candidate))));
                 }
             }
 
@@ -739,6 +743,7 @@
                 // ============================================================
                 // Strict Role Validation
                 // Priority: admins/{uid} Firestore doc → ADMIN_EMAILS fallback
+                // ⚠️ SYNC: if ADMIN_EMAILS changes here, mirror in firestore.rules isSuperAdmin()
                 // ============================================================
                 let isAdminData = null;
                 let isSuperAdmin = ADMIN_EMAILS.includes(finalEmail.toLowerCase());
@@ -753,18 +758,44 @@
 
                 const isAdmin = (isAdminData !== null) || isSuperAdmin;
 
-                // 1. If Staff/Admin Role selected, but account is NOT Admin
-                if (userType === 'admin' && !isAdmin) {
+                // [DEV] Debug log: shows which path resolved isAdmin
+                if (IS_DEV) {
+                    if (isSuperAdmin) console.info('[DEV] isAdmin resolved via ADMIN_EMAILS hardcoded list');
+                    else if (isAdminData) console.info('[DEV] isAdmin resolved via admins/{uid} Firestore doc. Role:', isAdminData.role, '| Dept:', isAdminData.department || 'N/A');
+                    else console.info('[DEV] isAdmin = false — no match in ADMIN_EMAILS or admins collection');
+                }
+
+                // ==========================================================
+                // Section 5.1: Staff Portal routing
+                // Check if this user is a subject-scoped staff member
+                // Staff go to staff.html, NOT admin.html
+                // ==========================================================
+                let isStaffMember = false;
+                let staffData = null;
+                if (!isAdmin) {
+                    try {
+                        const staffDoc = await getDoc(doc(db, 'staff', cred.user.uid));
+                        if (staffDoc.exists()) {
+                            staffData = staffDoc.data();
+                            isStaffMember = true;
+                        }
+                    } catch (staffErr) {
+                        if (IS_DEV) console.warn('[DEV] staff doc fetch skipped:', staffErr.message);
+                    }
+                }
+
+                // 1. If Staff/Admin Role selected, but account is neither Admin nor Staff
+                if (userType === 'admin' && !isAdmin && !isStaffMember) {
                     await signOut(auth);
-                    showToast('❌ Student account detected! Please select "Student" role to login.', 'error');
+                    showToast('❌ This account has no admin role assigned. Contact super admin.', 'error');
                     resetBtn();
                     return;
                 }
 
-                // 2. If Student Role selected, but account IS Admin
-                if (userType === 'student' && isAdmin) {
+                // 2. If Student Role selected, but account IS Admin or Staff
+                if (userType === 'student' && (isAdmin || isStaffMember)) {
                     await signOut(auth);
-                    showToast('⚠️ Admin / Staff account detected! Please select "Role Staff" to login.', 'error');
+                    showToast('⚠️ Admin / Staff account detected! Please select the "Staff" tab to login.', 'error');
                     resetBtn();
                     return;
                 }
@@ -777,19 +808,19 @@
                     const approvalStatus = userData.approvalStatus || 'approved';
                     if (approvalStatus === 'pending') {
                         await signOut(auth);
-                        showToast('⏳ Registration approval pending from Admin. Please wait.', 'info');
+                        showToast('⏳ Admin approval pending. Please wait a few minutes and try again.', 'info');
                         resetBtn();
                         return;
                     }
                     if (approvalStatus === 'rejected') {
                         await signOut(auth);
-                        showToast('❌ Registration rejected by Admin. Please contact university admin.', 'error');
+                        showToast('❌ Admin Rejected Approval — Please check your Name, Email, Phone, USN and re-register or contact admin.', 'error');
                         resetBtn();
                         return;
                     }
                     if (approvalStatus === 'blocked') {
                         await signOut(auth);
-                        showToast('🚫 Account blocked for security violation. Contact admin at support.loga@gmail.com.', 'error');
+                        showToast('🚫 You have been blocked. Suspicious/spam activity detected. Please contact admin at support.loga@gmail.com.', 'error');
                         resetBtn();
                         return;
                     }
@@ -907,7 +938,9 @@
                         await setDoc(otpDocRef, { verified: true }, { merge: true });
                         showToast('Verified successfully! Redirecting...', 'success');
                         setTimeout(() => {
-                            window.location.replace(isAdmin ? 'admin.html' : 'dashboard.html');
+                            if (isAdmin) window.location.replace('admin.html');
+                            else if (isStaffMember) window.location.replace('staff.html');
+                            else window.location.replace('dashboard.html');
                         }, 1000);
                     };
 
@@ -917,7 +950,10 @@
 
                 showToast('Login successful! Redirecting...', 'success');
                 setTimeout(() => {
-                    window.location.replace(isAdmin ? 'admin.html' : 'dashboard.html');
+                    // Routing priority: Admin → admin.html | Staff → staff.html | Student → dashboard.html
+                    if (isAdmin) window.location.replace('admin.html');
+                    else if (isStaffMember) window.location.replace('staff.html');
+                    else window.location.replace('dashboard.html');
                 }, 1000);
 
             } catch (err) {

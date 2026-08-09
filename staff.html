@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Staff Portal | ExamPro DSU</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <style>
+        body { opacity: 0; transition: opacity 0.5s ease; }
+        body.staff-verified { opacity: 1; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
+        :root {
+            --primary: #6c63ff; --primary-dark: #4f46e5;
+            --secondary: #06b6d4; --accent: #f59e0b;
+            --success: #10b981; --danger: #ef4444;
+            --bg: #0a0a1a; --glass: rgba(255,255,255,0.06);
+            --glass-border: rgba(255,255,255,0.1); --text: #e2e8f0;
+            --text-muted: #94a3b8; --radius: 14px; --sidebar-w: 240px;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+        .sidebar { width: var(--sidebar-w); height: 100vh; background: rgba(10,10,40,0.98); border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; position: fixed; left: 0; top: 0; z-index: 100; }
+        .sidebar-logo { padding: 20px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--glass-border); }
+        .logo-icon { width: 38px; height: 38px; background: linear-gradient(135deg,var(--secondary),var(--primary)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; color: #fff; flex-shrink: 0; }
+        .logo-text { font-size: 14px; font-weight: 800; background: linear-gradient(135deg,#fff,var(--secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo-badge { font-size: 9px; font-weight: 700; background: var(--secondary); color: #fff; padding: 2px 5px; border-radius: 4px; -webkit-text-fill-color: #fff; }
+        .nav-section { padding: 12px 10px; flex: 1; overflow-y: auto; }
+        .nav-label { font-size: 9px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; padding: 6px 8px; margin-bottom: 2px; }
+        .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; transition: all .2s; color: var(--text-muted); font-size: 13px; font-weight: 500; margin-bottom: 2px; border: none; background: none; width: 100%; text-align: left; font-family: 'Inter', sans-serif; }
+        .nav-item:hover { background: rgba(255,255,255,.07); color: var(--text); }
+        .nav-item.active { background: linear-gradient(135deg,var(--secondary),#0891b2); color: #fff; }
+        .nav-item i { width: 16px; text-align: center; font-size: 13px; }
+        .sidebar-bottom { margin-top: auto; padding: 12px; border-top: 1px solid var(--glass-border); }
+        .staff-info { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 10px; }
+        .staff-avatar { width: 34px; height: 34px; border-radius: 8px; background: linear-gradient(135deg,var(--secondary),var(--primary)); display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; flex-shrink: 0; }
+        .staff-name { font-size: 12px; font-weight: 600; }
+        .staff-role { font-size: 10px; color: var(--text-muted); }
+        .main { margin-left: var(--sidebar-w); flex: 1; padding: 20px; min-height: 100vh; }
+        .top-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+        .page-title { font-size: 20px; font-weight: 800; flex: 1; }
+        .scope-badge { background: rgba(6,182,212,.15); color: var(--secondary); border: 1px solid rgba(6,182,212,.3); padding: 5px 12px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+        .tab-section { display: none; }
+        .tab-section.active { display: block; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 18px; text-align: center; }
+        .stat-num { font-size: 26px; font-weight: 800; background: linear-gradient(135deg,var(--secondary),var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        .card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+        .card-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .btn { padding: 9px 18px; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; font-family: 'Inter',sans-serif; transition: all .2s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: linear-gradient(135deg,var(--secondary),var(--primary)); color: #fff; }
+        .btn-outline { background: transparent; border: 1px solid var(--glass-border); color: var(--text); }
+        .btn-outline:hover { background: var(--glass); }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .form-control { width: 100%; padding: 10px 14px; background: rgba(255,255,255,.06); border: 1px solid var(--glass-border); border-radius: 9px; color: var(--text); font-size: 13px; font-family: 'Inter',sans-serif; outline: none; transition: all .2s; }
+        .form-control:focus { border-color: var(--secondary); background: rgba(6,182,212,.08); }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .5px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        table { width: 100%; border-collapse: collapse; }
+        thead th { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; padding: 10px 12px; background: rgba(255,255,255,.03); border-bottom: 1px solid var(--glass-border); text-align: left; }
+        tbody tr { border-bottom: 1px solid rgba(255,255,255,.04); transition: background .15s; }
+        tbody tr:hover { background: rgba(255,255,255,.03); }
+        tbody td { padding: 12px; font-size: 13px; }
+        .chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+        .chip-success { background: rgba(16,185,129,.15); color: var(--success); }
+        .chip-warn { background: rgba(245,158,11,.15); color: var(--accent); }
+        .chip-danger { background: rgba(239,68,68,.15); color: var(--danger); }
+        .chip-info { background: rgba(6,182,212,.15); color: var(--secondary); }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #0f0f2e; border: 1px solid var(--glass-border); border-radius: 18px; padding: 28px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
+        .modal h2 { font-size: 17px; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .q-item { background: rgba(255,255,255,.04); border: 1px solid var(--glass-border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .q-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .q-label { font-size: 12px; font-weight: 700; background: linear-gradient(135deg,var(--secondary),var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .options-list { display: grid; gap: 6px; margin-bottom: 8px; }
+        .option-row { display: flex; align-items: center; gap: 8px; }
+        .option-row input[type=text] { flex: 1; padding: 7px 12px; background: rgba(255,255,255,.05); border: 1px solid var(--glass-border); border-radius: 7px; color: var(--text); font-size: 12px; font-family: 'Inter',sans-serif; outline: none; }
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+        .toast { padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; min-width: 280px; box-shadow: 0 8px 24px rgba(0,0,0,.4); animation: slideIn .3s ease; }
+        .toast.success { background: rgba(16,185,129,.95); color: #fff; }
+        .toast.error { background: rgba(239,68,68,.95); color: #fff; }
+        .toast.info { background: rgba(108,99,255,.95); color: #fff; }
+        @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .empty-state { text-align: center; padding: 48px; color: var(--text-muted); }
+        .empty-state i { font-size: 40px; margin-bottom: 12px; display: block; opacity: .4; }
+        .scope-locked { display: inline-flex; align-items: center; gap: 5px; padding: 8px 12px; background: rgba(6,182,212,.1); border: 1px solid rgba(6,182,212,.2); border-radius: 7px; font-size: 13px; color: var(--secondary); font-weight: 600; cursor: not-allowed; width: 100%; }
+        .actions-cell { display: flex; gap: 6px; }
+        .icon-action { width: 30px; height: 30px; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: all .2s; text-decoration: none; }
+        .icon-edit { background: rgba(108,99,255,.15); color: var(--primary); }
+        .icon-del { background: rgba(239,68,68,.15); color: var(--danger); }
+        @media(max-width:768px) { .sidebar { display: none; } .main { margin-left: 0; } .form-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon"><i class="fas fa-chalkboard-teacher"></i></div>
+        <div>
+            <span class="logo-text">ExamPro DSU </span><span class="logo-badge">STAFF</span>
+        </div>
+    </div>
+    <div class="nav-section">
+        <div class="nav-label">My Portal</div>
+        <button class="nav-item active" onclick="showTab('overview','Overview')"><i class="fas fa-home"></i> Overview</button>
+        <button class="nav-item" onclick="showTab('tests','My Tests')"><i class="fas fa-file-alt"></i> My Tests</button>
+        <button class="nav-item" onclick="showTab('results','Student Results')"><i class="fas fa-chart-bar"></i> Results</button>
+        <button class="nav-item" onclick="showTab('materials','Study Materials')"><i class="fas fa-book-open"></i> Materials</button>
+        <button class="nav-item" onclick="showTab('schedule','Exam Schedule')"><i class="fas fa-calendar-alt"></i> Exam Schedule</button>
+        <button class="nav-item" onclick="showTab('notices','Notices')"><i class="fas fa-bell"></i> Notices</button>
+        <button class="nav-item" onclick="showTab('malpractice','Malpractice')"><i class="fas fa-exclamation-triangle"></i> Malpractice</button>
+    </div>
+    <div class="sidebar-bottom">
+        <div class="staff-info">
+            <div class="staff-avatar"><i class="fas fa-user-tie"></i></div>
+            <div>
+                <div class="staff-name" id="staffName">Loading...</div>
+                <div class="staff-role" id="staffSubjectLabel">Staff Portal</div>
+            </div>
+        </div>
+        <button class="btn btn-outline" style="width:100%;margin-top:8px;font-size:12px" onclick="handleLogout()">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+    </div>
+</aside>
+
+<main class="main">
+    <div class="top-bar">
+        <div class="page-title" id="pageTitle">Staff Overview</div>
+        <div class="scope-badge" id="scopeBadge"><i class="fas fa-lock"></i> Loading...</div>
+    </div>
+
+    <div class="tab-section active" id="tab-overview">
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-num" id="statTests">0</div><div class="stat-label"><i class="fas fa-file-alt"></i> My Tests</div></div>
+            <div class="stat-card"><div class="stat-num" id="statResults">0</div><div class="stat-label"><i class="fas fa-chart-bar"></i> Results</div></div>
+            <div class="stat-card"><div class="stat-num" id="statMaterials">0</div><div class="stat-label"><i class="fas fa-book-open"></i> Materials</div></div>
+            <div class="stat-card"><div class="stat-num" id="statAvg">0%</div><div class="stat-label"><i class="fas fa-percentage"></i> Avg Score</div></div>
+        </div>
+        <div class="card">
+            <div class="card-title"><i class="fas fa-info-circle" style="color:var(--secondary)"></i> Your Subject Scope</div>
+            <div id="scopeInfo" style="font-size:14px;color:var(--text-muted)">Loading...</div>
+        </div>
+        <div class="card">
+            <div class="card-title"><i class="fas fa-clock" style="color:var(--accent)"></i> Recent Tests</div>
+            <div id="recentTests"><div class="empty-state"><i class="fas fa-file-alt"></i> No tests yet</div></div>
+        </div>
+    </div>
+
+    <div class="tab-section" id="tab-tests">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div style="font-size:14px;color:var(--text-muted)">Tests scoped to your subject only</div>
+            <button class="btn btn-primary" onclick="openTestModal()"><i class="fas fa-plus"></i> Create Test</button>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+            <table><thead><tr><th>Test Name</th><th>Questions</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="testsBody"><tr><td colspan="5" class="empty-state"><i class="fas fa-spinner fa-spin"></i></td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="tab-section" id="tab-results">
+        <div style="margin-bottom:16px">
+            <input type="text" class="form-control" placeholder="Search student..." id="resultsSearch" style="max-width:320px" oninput="filterResults()">
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+            <table><thead><tr><th>Student</th><th>Reg No</th><th>Test</th><th>Score</th><th>%</th><th>Date</th></tr></thead>
+            <tbody id="resultsBody"></tbody></table>
+        </div>
+    </div>
+
+    <div class="tab-section" id="tab-materials">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div style="font-size:14px;color:var(--text-muted)">Materials for your subject only</div>
+            <button class="btn btn-primary" onclick="openMaterialModal()"><i class="fas fa-plus"></i> Upload</button>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+            <table><thead><tr><th>Title</th><th>Type</th><th>Downloads</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="materialsBody"></tbody></table>
+        </div>
+    </div>
+
+    <div class="tab-section" id="tab-schedule">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div style="font-size:14px;color:var(--text-muted)">Exam schedule for your subject</div>
+            <button class="btn btn-primary" onclick="openScheduleModal()"><i class="fas fa-plus"></i> Add</button>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+            <table><thead><tr><th>Date</th><th>Time</th><th>Venue</th><th>Notes</th><th>Actions</th></tr></thead>
+            <tbody id="scheduleBody"></tbody></table>
+        </div>
+    </div>
+
+    <div class="tab-section" id="tab-notices">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div style="font-size:14px;color:var(--text-muted)">Notices for your subject students</div>
+            <button class="btn btn-primary" onclick="openNoticeModal()"><i class="fas fa-plus"></i> Post Notice</button>
+        </div>
+        <div id="noticesList"></div>
+    </div>
+
+    <div class="tab-section" id="tab-malpractice">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div style="font-size:14px;color:var(--text-muted)">Malpractice for your subject only</div>
+            <button class="btn btn-danger" onclick="openMalpracticeModal()"><i class="fas fa-flag"></i> Report</button>
+        </div>
+        <div class="card" style="padding:0;overflow:hidden">
+            <table><thead><tr><th>Student</th><th>Test</th><th>Description</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody id="malpracticeBody"></tbody></table>
+        </div>
+    </div>
+</main>
+
+<!-- Test Modal -->
+<div class="modal-overlay" id="testModal">
+    <div class="modal" style="max-width:680px">
+        <h2><i class="fas fa-file-alt" style="color:var(--secondary)"></i> <span id="testModalTitle">Create Test</span>
+            <button onclick="closeTestModal()" style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px"><i class="fas fa-times"></i></button>
+        </h2>
+        <form id="testForm" onsubmit="saveTest(event)">
+            <div class="form-grid" style="margin-bottom:12px">
+                <div class="form-group"><label>Test Title *</label><input type="text" id="t_title" class="form-control" required placeholder="Unit 1 Test"></div>
+                <div class="form-group"><label>Subject (Locked)</label><div class="scope-locked"><i class="fas fa-lock"></i> <span id="t_subjectVal">-</span></div></div>
+            </div>
+            <div class="form-grid" style="margin-bottom:12px">
+                <div class="form-group"><label>Department (Locked)</label><div class="scope-locked"><i class="fas fa-lock"></i> <span id="t_deptDisplay">-</span></div></div>
+                <div class="form-group"><label>Duration (min)</label><input type="number" id="t_duration" class="form-control" value="30" min="5"></div>
+            </div>
+            <div class="form-grid" style="margin-bottom:12px">
+                <div class="form-group"><label>Total Marks</label><input type="number" id="t_marks" class="form-control" value="100" min="1"></div>
+                <div class="form-group"><label>Marks/Question</label><input type="number" id="t_mpq" class="form-control" value="5" min="1"></div>
+            </div>
+            <div class="form-group" style="margin-bottom:12px"><label>Description</label><textarea id="t_desc" class="form-control" rows="2"></textarea></div>
+            <div style="margin-bottom:12px">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600">
+                    <input type="checkbox" id="t_isActive" style="width:18px;height:18px;accent-color:var(--success)">
+                    <i class="fas fa-broadcast-tower" style="color:var(--success)"></i> Test is LIVE (Active)
+                </label>
+            </div>
+            <div style="margin-bottom:12px">
+                <div style="font-size:13px;font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center">
+                    <span><i class="fas fa-question-circle" style="color:var(--primary)"></i> Questions</span>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="addQuestion()"><i class="fas fa-plus"></i> Add</button>
+                </div>
+                <div id="questionBuilder"></div>
+            </div>
+            <div class="modal-btns">
+                <button type="button" class="btn btn-outline" onclick="closeTestModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="testSaveBtn"><i class="fas fa-save"></i> Save Test</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Material Modal -->
+<div class="modal-overlay" id="materialModal">
+    <div class="modal">
+        <h2><i class="fas fa-book-open" style="color:var(--secondary)"></i> <span id="materialModalTitle">Upload Material</span>
+            <button onclick="closeMaterialModal()" style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px"><i class="fas fa-times"></i></button>
+        </h2>
+        <form id="materialForm" onsubmit="saveMaterial(event)">
+            <div class="form-group"><label>Title *</label><input type="text" id="m_title" class="form-control" required placeholder="Unit 1 Notes"></div>
+            <div class="form-grid">
+                <div class="form-group"><label>Subject (Locked)</label><div class="scope-locked"><i class="fas fa-lock"></i> <span id="m_subjectDisplay">-</span></div></div>
+                <div class="form-group"><label>Type *</label>
+                    <select id="m_type" class="form-control">
+                        <option value="Notes">Notes</option><option value="PYQ">PYQ</option>
+                        <option value="Lab Manual">Lab Manual</option><option value="Syllabus">Syllabus</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group"><label>File URL *</label><input type="url" id="m_fileUrl" class="form-control" required placeholder="https://..."></div>
+            <div class="form-group"><label>Description</label><textarea id="m_desc" class="form-control" rows="2"></textarea></div>
+            <div class="modal-btns">
+                <button type="button" class="btn btn-outline" onclick="closeMaterialModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="materialSaveBtn"><i class="fas fa-save"></i> Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Schedule Modal -->
+<div class="modal-overlay" id="scheduleModal">
+    <div class="modal">
+        <h2><i class="fas fa-calendar-alt" style="color:var(--accent)"></i> Add Exam Schedule
+            <button onclick="closeScheduleModal()" style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px"><i class="fas fa-times"></i></button>
+        </h2>
+        <form id="scheduleForm" onsubmit="saveSchedule(event)">
+            <div class="form-group"><label>Subject (Locked)</label><div class="scope-locked"><i class="fas fa-lock"></i> <span id="sch_subjectDisplay">-</span></div></div>
+            <div class="form-grid">
+                <div class="form-group"><label>Exam Date *</label><input type="date" id="sch_date" class="form-control" required></div>
+                <div class="form-group"><label>Exam Time *</label><input type="time" id="sch_time" class="form-control" required></div>
+            </div>
+            <div class="form-group"><label>Venue</label><input type="text" id="sch_venue" class="form-control" placeholder="Hall A, Room 301"></div>
+            <div class="form-group"><label>Notes</label><textarea id="sch_notes" class="form-control" rows="2"></textarea></div>
+            <div class="modal-btns">
+                <button type="button" class="btn btn-outline" onclick="closeScheduleModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Notice Modal -->
+<div class="modal-overlay" id="noticeModal">
+    <div class="modal">
+        <h2><i class="fas fa-bell" style="color:var(--accent)"></i> Post Notice
+            <button onclick="closeNoticeModal()" style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px"><i class="fas fa-times"></i></button>
+        </h2>
+        <form id="noticeForm" onsubmit="saveNotice(event)">
+            <div class="form-group"><label>Title *</label><input type="text" id="n_title" class="form-control" required placeholder="Notice title"></div>
+            <div class="form-group"><label>Message *</label><textarea id="n_message" class="form-control" rows="4" required></textarea></div>
+            <div class="form-group"><label>Priority</label>
+                <select id="n_priority" class="form-control">
+                    <option value="normal">Normal</option><option value="important">Important</option><option value="urgent">Urgent</option>
+                </select>
+            </div>
+            <div class="modal-btns">
+                <button type="button" class="btn btn-outline" onclick="closeNoticeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Post</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Malpractice Modal -->
+<div class="modal-overlay" id="malpracticeModal">
+    <div class="modal">
+        <h2><i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i> Report Malpractice
+            <button onclick="closeMalpracticeModal()" style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px"><i class="fas fa-times"></i></button>
+        </h2>
+        <form id="malpracticeForm" onsubmit="saveMalpractice(event)">
+            <div class="form-group"><label>Student Name *</label><input type="text" id="mp_name" class="form-control" required></div>
+            <div class="form-group"><label>Register Number *</label><input type="text" id="mp_reg" class="form-control" required></div>
+            <div class="form-group"><label>Test Name</label><input type="text" id="mp_test" class="form-control"></div>
+            <div class="form-group"><label>Description *</label><textarea id="mp_desc" class="form-control" rows="3" required></textarea></div>
+            <div class="modal-btns">
+                <button type="button" class="btn btn-outline" onclick="closeMalpracticeModal()">Cancel</button>
+                <button type="submit" class="btn btn-danger"><i class="fas fa-flag"></i> Submit Report</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, onSnapshot, doc, getDoc, deleteDoc, addDoc, updateDoc, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
+        authDomain: "dsu-exam-system.firebaseapp.com",
+        projectId: "dsu-exam-system",
+        storageBucket: "dsu-exam-system.firebasestorage.app",
+        messagingSenderId: "155083834622",
+        appId: "1:155083834622:web:ff0a9780b88bad0b8811af"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentStaff = null;
+    let allTests = [], allResults = [], allMaterials = [], allSchedule = [], allNotices = [], allMalpractice = [];
+    let editingTestId = null, questionCount = 0;
+
+    onAuthStateChanged(auth, async user => {
+        if (!user) { window.location.replace('login.html'); return; }
+        try {
+            const staffDoc = await getDoc(doc(db, 'staff', user.uid));
+            if (!staffDoc.exists()) {
+                const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+                if (adminDoc.exists()) { window.location.replace('admin.html'); return; }
+                window.location.replace('login.html');
+                return;
+            }
+            currentStaff = { uid: user.uid, ...staffDoc.data() };
+
+            if (!currentStaff.subject || !currentStaff.department) {
+                document.body.style.opacity = '1';
+                document.querySelector('.main').innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;text-align:center;gap:16px"><div style="font-size:60px">&#9888;&#65039;</div><h2>Incomplete Staff Profile</h2><p style="color:var(--text-muted)">Your staff account is missing a <strong>subject</strong> or <strong>department</strong>.<br>Please contact your Admin to update your staff profile.</p><button class="btn btn-outline" onclick="window.location.replace('login.html')"><i class="fas fa-sign-out-alt"></i> Back to Login</button></div>`;
+                return;
+            }
+
+            document.body.classList.add('staff-verified');
+            document.getElementById('staffName').textContent = currentStaff.name || user.email.split('@')[0];
+            document.getElementById('staffSubjectLabel').textContent = currentStaff.subject + ' | ' + currentStaff.department;
+            document.getElementById('scopeBadge').innerHTML = '<i class="fas fa-lock"></i> ' + currentStaff.subject + ' | ' + currentStaff.department;
+            document.getElementById('t_subjectVal').textContent = currentStaff.subject;
+            document.getElementById('t_deptDisplay').textContent = currentStaff.department;
+            document.getElementById('m_subjectDisplay').textContent = currentStaff.subject;
+            document.getElementById('sch_subjectDisplay').textContent = currentStaff.subject;
+            document.getElementById('scopeInfo').innerHTML = '<table style="width:100%;font-size:13px"><tbody>' +
+                '<tr><td style="color:var(--text-muted);padding:4px 8px;width:130px">Name</td><td>' + (currentStaff.name||'-') + '</td></tr>' +
+                '<tr><td style="color:var(--text-muted);padding:4px 8px">Subject</td><td><strong style="color:var(--secondary)">' + currentStaff.subject + '</strong></td></tr>' +
+                '<tr><td style="color:var(--text-muted);padding:4px 8px">Department</td><td>' + currentStaff.department + '</td></tr>' +
+                '<tr><td style="color:var(--text-muted);padding:4px 8px">Designation</td><td>' + (currentStaff.role||currentStaff.designation||'-') + '</td></tr>' +
+                '<tr><td style="color:var(--text-muted);padding:4px 8px">Email</td><td>' + (currentStaff.email||user.email) + '</td></tr>' +
+                '</tbody></table>' +
+                '<div style="margin-top:12px;padding:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;font-size:12px;color:var(--text-muted)">' +
+                '<i class="fas fa-shield-alt" style="color:var(--danger)"></i> <strong>Security:</strong> You can only manage data for <strong>' + currentStaff.subject + '</strong> in <strong>' + currentStaff.department + '</strong>. Other data is blocked by Firestore rules.</div>';
+            loadAll();
+        } catch (err) { console.error(err); window.location.replace('login.html'); }
+    });
+
+    function loadAll() {
+        const s = currentStaff.subject, d = currentStaff.department;
+        onSnapshot(query(collection(db,'tests'), where('subject','==',s), where('department','==',d)), snap => {
+            allTests = snap.docs.map(doc => ({id:doc.id,...doc.data()}));
+            document.getElementById('statTests').textContent = allTests.length;
+            renderTests();
+        });
+        onSnapshot(query(collection(db,'results'), where('subject','==',s), where('department','==',d)), snap => {
+            allResults = snap.docs.map(doc => ({id:doc.id,...doc.data()}));
+            document.getElementById('statResults').textContent = allResults.length;
+            const avg = allResults.length ? Math.round(allResults.reduce((a,r) => a+(r.percentage||0),0)/allResults.length) : 0;
+            document.getElementById('statAvg').textContent = avg + '%';
+            renderResults(allResults);
+        });
+        onSnapshot(query(collection(db,'studyMaterials'), where('subject','==',s), where('department','==',d)), snap => {
+            allMaterials = snap.docs.map(doc => ({id:doc.id,...doc.data()}));
+            document.getElementById('statMaterials').textContent = allMaterials.length;
+            renderMaterials();
+        });
+        onSnapshot(query(collection(db,'exam_schedule'), where('subject','==',s), where('department','==',d)), snap => {
+            allSchedule = snap.docs.map(doc => ({id:doc.id,...doc.data()}));
+            renderSchedule();
+        });
+        onSnapshot(query(collection(db,'notices'), where('subject','==',s)), snap => {
+            allNotices = snap.docs.map(doc => ({id:doc.id,...doc.data()}));
+            renderNotices();
+        });
+        onSnapshot(query(collection(db,'malpracticeLogs'), where('subject','==',s), where('department','==',d)), snap => {
+            allMalpractice = snap.docs.map(doc => ({id:doc.id,...doc.data()}));
+            renderMalpractice();
+        });
+    }
+
+    function fmt(ts) { if(!ts) return '-'; const d = ts.toDate ? ts.toDate() : new Date(ts.seconds*1000); return d.toLocaleDateString(); }
+    function escH(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    function renderTests() {
+        const tb = document.getElementById('testsBody');
+        if (!allTests.length) { tb.innerHTML = '<tr><td colspan="5"><div class="empty-state"><i class="fas fa-file-alt"></i> No tests yet. Create your first!</div></td></tr>'; return; }
+        tb.innerHTML = allTests.map(t => `<tr>
+            <td><strong>${escH(t.title)}</strong><div style="font-size:11px;color:var(--text-muted)">${escH(t.description||'')}</div></td>
+            <td>${(t.questions||[]).length}</td><td>${t.duration||'-'} min</td>
+            <td><span class="chip ${t.isActive?'chip-success':'chip-danger'}">${t.isActive?'Live':'Closed'}</span></td>
+            <td><div class="actions-cell">
+                <button class="icon-action icon-edit" onclick="editTest('${t.id}')" title="Edit"><i class="fas fa-edit"></i></button>
+                <button class="icon-action icon-del" onclick="deleteTest('${t.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+            </div></td>
+        </tr>`).join('');
+        const recent = allTests.slice(0,3);
+        document.getElementById('recentTests').innerHTML = recent.map(t =>
+            `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--glass-border)">
+                <div><strong>${escH(t.title)}</strong><div style="font-size:11px;color:var(--text-muted)">${(t.questions||[]).length} questions</div></div>
+                <span class="chip ${t.isActive?'chip-success':'chip-danger'}">${t.isActive?'Live':'Closed'}</span>
+            </div>`).join('') || '<div class="empty-state"><i class="fas fa-file-alt"></i> No tests yet</div>';
+    }
+
+    function renderResults(data) {
+        const tb = document.getElementById('resultsBody');
+        if (!data.length) { tb.innerHTML = '<tr><td colspan="6"><div class="empty-state"><i class="fas fa-chart-bar"></i> No results yet</div></td></tr>'; return; }
+        tb.innerHTML = data.map(r => `<tr>
+            <td>${escH(r.studentName||'-')}</td>
+            <td>${escH(r.registerNumber||'-')}</td>
+            <td>${escH(r.testTitle||'-')}</td>
+            <td>${r.score||0}/${r.totalMarks||'-'}</td>
+            <td><span class="chip ${(r.percentage||0)>=60?'chip-success':'chip-danger'}">${Math.round(r.percentage||0)}%</span></td>
+            <td style="font-size:11px;color:var(--text-muted)">${fmt(r.submittedAt)}</td>
+        </tr>`).join('');
+    }
+
+    window.filterResults = () => {
+        const q = document.getElementById('resultsSearch').value.toLowerCase();
+        renderResults(allResults.filter(r => (r.studentName||'').toLowerCase().includes(q) || (r.registerNumber||'').toLowerCase().includes(q)));
+    };
+
+    function renderMaterials() {
+        const tb = document.getElementById('materialsBody');
+        if (!allMaterials.length) { tb.innerHTML = '<tr><td colspan="5"><div class="empty-state"><i class="fas fa-book-open"></i> No materials</div></td></tr>'; return; }
+        tb.innerHTML = allMaterials.map(m => `<tr>
+            <td><strong>${escH(m.title||'-')}</strong></td>
+            <td><span class="chip chip-info">${m.type||'Notes'}</span></td>
+            <td>${m.downloadCount||0}</td>
+            <td style="font-size:11px;color:var(--text-muted)">${fmt(m.uploadedAt)}</td>
+            <td><div class="actions-cell">
+                <a href="${m.fileURL||'#'}" target="_blank" class="icon-action icon-edit" title="View"><i class="fas fa-external-link-alt"></i></a>
+                <button class="icon-action icon-del" onclick="deleteMaterial('${m.id}')"><i class="fas fa-trash"></i></button>
+            </div></td>
+        </tr>`).join('');
+    }
+
+    function renderSchedule() {
+        const tb = document.getElementById('scheduleBody');
+        if (!allSchedule.length) { tb.innerHTML = '<tr><td colspan="5"><div class="empty-state"><i class="fas fa-calendar-alt"></i> No schedule</div></td></tr>'; return; }
+        tb.innerHTML = allSchedule.sort((a,b)=>(a.examDate||'')>(b.examDate||'')?1:-1).map(s => `<tr>
+            <td><strong>${escH(s.examDate||'-')}</strong></td>
+            <td>${escH(s.examTime||'-')}</td>
+            <td>${escH(s.venue||'-')}</td>
+            <td style="font-size:12px;color:var(--text-muted)">${escH(s.notes||'-')}</td>
+            <td><button class="icon-action icon-del" onclick="deleteSchedule('${s.id}')"><i class="fas fa-trash"></i></button></td>
+        </tr>`).join('');
+    }
+
+    function renderNotices() {
+        const el = document.getElementById('noticesList');
+        if (!allNotices.length) { el.innerHTML = '<div class="empty-state"><i class="fas fa-bell"></i> No notices</div>'; return; }
+        el.innerHTML = allNotices.map(n => `<div class="card" style="margin-bottom:12px;border-left:3px solid var(${n.priority==='urgent'?'--danger':n.priority==='important'?'--accent':'--secondary'})">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <div>
+                    <div style="font-weight:700;margin-bottom:4px">${escH(n.title||'-')}</div>
+                    <div style="font-size:13px;color:var(--text-muted);line-height:1.6">${escH(n.message||'')}</div>
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:8px">${fmt(n.createdAt)}</div>
+                </div>
+                ${n.createdBy===currentStaff.uid?`<button class="icon-action icon-del" onclick="deleteNotice('${n.id}')"><i class="fas fa-trash"></i></button>`:''}
+            </div>
+        </div>`).join('');
+    }
+
+    function renderMalpractice() {
+        const tb = document.getElementById('malpracticeBody');
+        if (!allMalpractice.length) { tb.innerHTML = '<tr><td colspan="5"><div class="empty-state"><i class="fas fa-check-circle"></i> No reports</div></td></tr>'; return; }
+        tb.innerHTML = allMalpractice.map(m => `<tr>
+            <td><strong>${escH(m.studentName||'-')}</strong><div style="font-size:11px;color:var(--text-muted)">${escH(m.registerNumber||'')}</div></td>
+            <td>${escH(m.testName||'-')}</td>
+            <td style="max-width:200px">${escH(m.description||'-')}</td>
+            <td style="font-size:11px;color:var(--text-muted)">${fmt(m.reportedAt)}</td>
+            <td><span class="chip chip-warn">${m.status||'pending'}</span></td>
+        </tr>`).join('');
+    }
+
+    window.showTab = function(tab, title) {
+        document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        const btn = document.querySelector(`[onclick="showTab('${tab}','${title}')"]`);
+        if (btn) btn.classList.add('active');
+        document.getElementById('pageTitle').textContent = title || 'Staff Portal';
+    };
+
+    window.openTestModal = function() {
+        editingTestId = null;
+        document.getElementById('testModalTitle').textContent = 'Create Test';
+        document.getElementById('testForm').reset();
+        document.getElementById('questionBuilder').innerHTML = '';
+        questionCount = 0;
+        document.getElementById('testModal').classList.add('active');
+    };
+    window.closeTestModal = () => document.getElementById('testModal').classList.remove('active');
+
+    window.addQuestion = function() {
+        questionCount++;
+        const n = questionCount;
+        const qb = document.getElementById('questionBuilder');
+        const div = document.createElement('div');
+        div.className = 'q-item';
+        div.innerHTML = `<div class="q-header"><span class="q-label">Q${n}</span><button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.q-item').remove()" style="padding:4px 10px"><i class="fas fa-times"></i></button></div>
+            <input class="form-control" style="margin-bottom:8px" id="q${n}_text" placeholder="Question text..." />
+            <div class="options-list">${['A','B','C','D'].map((l,i) => `<div class="option-row"><input type="radio" name="correct_${n}" value="${i}" id="r${n}_${i}"/><label for="r${n}_${i}" style="font-size:11px;font-weight:700;color:var(--secondary);margin:0;min-width:18px">${l}</label><input type="text" id="q${n}_opt${i}" placeholder="Option ${l}"/></div>`).join('')}</div>
+            <div style="font-size:11px;color:var(--text-muted)">Select correct answer radio button.</div>`;
+        qb.appendChild(div);
+    };
+
+    window.saveTest = async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('testSaveBtn');
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        const questions = [];
+        document.querySelectorAll('.q-item').forEach((qEl, idx) => {
+            const n = idx + 1;
+            const qText = qEl.querySelector(`#q${n}_text`)?.value.trim();
+            if (!qText) return;
+            const options = [0,1,2,3].map(i => qEl.querySelector(`#q${n}_opt${i}`)?.value.trim() || '');
+            const cr = qEl.querySelector(`input[name="correct_${n}"]:checked`);
+            questions.push({ question: qText, options, correctIndex: cr ? parseInt(cr.value) : 0 });
+        });
+        const data = {
+            title: document.getElementById('t_title').value.trim(),
+            subject: currentStaff.subject, department: currentStaff.department,
+            description: document.getElementById('t_desc').value.trim() || '',
+            duration: parseInt(document.getElementById('t_duration').value)||30,
+            totalMarks: parseInt(document.getElementById('t_marks').value)||100,
+            marksPerQuestion: parseInt(document.getElementById('t_mpq').value)||5,
+            isActive: document.getElementById('t_isActive').checked, questions,
+            createdBy: currentStaff.uid, updatedAt: serverTimestamp()
+        };
+        try {
+            if (editingTestId) { await updateDoc(doc(db,'tests',editingTestId), data); showToast('Test updated!','success'); }
+            else { data.createdAt = serverTimestamp(); await addDoc(collection(db,'tests'), data); showToast('Test created!','success'); }
+            closeTestModal();
+        } catch(e) { showToast('Error: '+e.message,'error'); }
+        btn.disabled = false; btn.innerHTML = '<i class="fas fa-save"></i> Save Test';
+    };
+
+    window.editTest = function(id) {
+        const t = allTests.find(x => x.id===id);
+        if (!t) return;
+        editingTestId = id;
+        document.getElementById('testModalTitle').textContent = 'Edit Test';
+        document.getElementById('t_title').value = t.title||'';
+        document.getElementById('t_desc').value = t.description||'';
+        document.getElementById('t_duration').value = t.duration||30;
+        document.getElementById('t_marks').value = t.totalMarks||100;
+        document.getElementById('t_mpq').value = t.marksPerQuestion||5;
+        document.getElementById('t_isActive').checked = t.isActive||false;
+        document.getElementById('questionBuilder').innerHTML = '';
+        questionCount = 0;
+        (t.questions||[]).forEach(q => {
+            questionCount++;
+            const n = questionCount, qb = document.getElementById('questionBuilder');
+            const div = document.createElement('div');
+            div.className = 'q-item';
+            div.innerHTML = `<div class="q-header"><span class="q-label">Q${n}</span><button type="button" class="btn btn-danger btn-sm" onclick="this.closest('.q-item').remove()" style="padding:4px 10px"><i class="fas fa-times"></i></button></div>
+                <input class="form-control" style="margin-bottom:8px" id="q${n}_text" value="${escH(q.question||'')}" />
+                <div class="options-list">${['A','B','C','D'].map((l,i) => `<div class="option-row"><input type="radio" name="correct_${n}" value="${i}" id="r${n}_${i}" ${q.correctIndex===i?'checked':''}/><label for="r${n}_${i}" style="font-size:11px;font-weight:700;color:var(--secondary);margin:0;min-width:18px">${l}</label><input type="text" id="q${n}_opt${i}" value="${escH(q.options?.[i]||'')}"/></div>`).join('')}</div>`;
+            qb.appendChild(div);
+        });
+        document.getElementById('testModal').classList.add('active');
+    };
+
+    window.deleteTest = async function(id) {
+        if (!confirm('Delete this test?')) return;
+        try { await deleteDoc(doc(db,'tests',id)); showToast('Deleted','success'); } catch(e) { showToast(e.message,'error'); }
+    };
+
+    window.openMaterialModal = () => { document.getElementById('materialForm').reset(); document.getElementById('materialModal').classList.add('active'); };
+    window.closeMaterialModal = () => document.getElementById('materialModal').classList.remove('active');
+    window.saveMaterial = async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('materialSaveBtn');
+        btn.disabled = true;
+        try {
+            await addDoc(collection(db,'studyMaterials'), {
+                title: document.getElementById('m_title').value.trim(), type: document.getElementById('m_type').value,
+                subject: currentStaff.subject, department: currentStaff.department,
+                fileURL: document.getElementById('m_fileUrl').value.trim(),
+                description: document.getElementById('m_desc').value.trim()||'',
+                uploadedBy: currentStaff.uid, uploadedAt: serverTimestamp(), downloadCount: 0
+            });
+            showToast('Material uploaded!','success'); closeMaterialModal();
+        } catch(e) { showToast(e.message,'error'); }
+        btn.disabled = false;
+    };
+    window.deleteMaterial = async function(id) {
+        if (!confirm('Delete?')) return;
+        try { await deleteDoc(doc(db,'studyMaterials',id)); showToast('Deleted','success'); } catch(e) { showToast(e.message,'error'); }
+    };
+
+    window.openScheduleModal = () => { document.getElementById('scheduleForm').reset(); document.getElementById('scheduleModal').classList.add('active'); };
+    window.closeScheduleModal = () => document.getElementById('scheduleModal').classList.remove('active');
+    window.saveSchedule = async function(e) {
+        e.preventDefault();
+        try {
+            await addDoc(collection(db,'exam_schedule'), {
+                subject: currentStaff.subject, department: currentStaff.department,
+                examDate: document.getElementById('sch_date').value, examTime: document.getElementById('sch_time').value,
+                venue: document.getElementById('sch_venue').value.trim()||'',
+                notes: document.getElementById('sch_notes').value.trim()||'',
+                createdBy: currentStaff.uid, createdAt: serverTimestamp()
+            });
+            showToast('Schedule added!','success'); closeScheduleModal();
+        } catch(e) { showToast(e.message,'error'); }
+    };
+    window.deleteSchedule = async function(id) {
+        if (!confirm('Delete?')) return;
+        try { await deleteDoc(doc(db,'exam_schedule',id)); showToast('Deleted','success'); } catch(e) { showToast(e.message,'error'); }
+    };
+
+    window.openNoticeModal = () => { document.getElementById('noticeForm').reset(); document.getElementById('noticeModal').classList.add('active'); };
+    window.closeNoticeModal = () => document.getElementById('noticeModal').classList.remove('active');
+    window.saveNotice = async function(e) {
+        e.preventDefault();
+        try {
+            await addDoc(collection(db,'notices'), {
+                title: document.getElementById('n_title').value.trim(), message: document.getElementById('n_message').value.trim(),
+                priority: document.getElementById('n_priority').value,
+                subject: currentStaff.subject, department: currentStaff.department,
+                createdBy: currentStaff.uid, createdByName: currentStaff.name||'', createdAt: serverTimestamp()
+            });
+            showToast('Notice posted!','success'); closeNoticeModal();
+        } catch(e) { showToast(e.message,'error'); }
+    };
+    window.deleteNotice = async function(id) {
+        if (!confirm('Delete?')) return;
+        try { await deleteDoc(doc(db,'notices',id)); showToast('Deleted','success'); } catch(e) { showToast(e.message,'error'); }
+    };
+
+    window.openMalpracticeModal = () => { document.getElementById('malpracticeForm').reset(); document.getElementById('malpracticeModal').classList.add('active'); };
+    window.closeMalpracticeModal = () => document.getElementById('malpracticeModal').classList.remove('active');
+    window.saveMalpractice = async function(e) {
+        e.preventDefault();
+        try {
+            await addDoc(collection(db,'malpracticeLogs'), {
+                studentName: document.getElementById('mp_name').value.trim(),
+                registerNumber: document.getElementById('mp_reg').value.trim(),
+                testName: document.getElementById('mp_test').value.trim()||'',
+                description: document.getElementById('mp_desc').value.trim(),
+                subject: currentStaff.subject, department: currentStaff.department,
+                reportedBy: currentStaff.uid, reportedByName: currentStaff.name||'',
+                reportedAt: serverTimestamp(), status: 'pending'
+            });
+            showToast('Report submitted!','success'); closeMalpracticeModal();
+        } catch(e) { showToast(e.message,'error'); }
+    };
+
+    window.handleLogout = async function() { await signOut(auth); window.location.replace('login.html'); };
+
+    function showToast(msg, type='info') {
+        const c = document.getElementById('toastContainer'), t = document.createElement('div');
+        t.className = 'toast ' + type;
+        const icons = {success:'fa-check-circle',error:'fa-times-circle',info:'fa-info-circle'};
+        t.innerHTML = '<i class="fas ' + (icons[type]||'fa-info-circle') + '"></i> ' + msg;
+        c.appendChild(t);
+        setTimeout(() => t.remove(), 3500);
+    }
+    window.showToast = showToast;
+</script>
+</body>
+</html>
