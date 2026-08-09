@@ -517,6 +517,26 @@
                             <input type="password" id="adminCode" placeholder="Enter 4-digit security code">
                         </div>
 
+                        <div class="captcha-container" style="border: 1px solid var(--border); border-radius: 12px; padding: 15px; margin-bottom: 20px; background: rgba(255,255,255,0.02);">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 15px; color: var(--text); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">
+                                <i class="fas fa-shield-alt" style="color: var(--primary);"></i> SECURITY CAPTCHA
+                            </div>
+                            
+                            <div style="display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--primary-light); background: rgba(108, 99, 255, 0.05); border-radius: 10px; padding: 12px 15px; margin-bottom: 12px;">
+                                <div style="font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: 1px;">VERIFY:</div>
+                                
+                                <div id="captchaText" style="font-size: 24px; font-weight: 700; color: #38bdf8; letter-spacing: 6px; font-family: monospace; text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);">
+                                    0 U 1 E E
+                                </div>
+                                
+                                <button type="button" onclick="generateCaptcha()" style="background: var(--primary); color: white; border: none; border-radius: 8px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 40%, transparent);">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                            
+                            <input type="text" id="captchaInput" placeholder="Enter captcha code" required style="width: 100%; padding: 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-size: 15px; outline: none; transition: 0.2s;">
+                        </div>
+
                         <div class="btn-group">
                             <button type="submit" class="btn btn-login" id="loginBtn">Login</button>
                             <div class="action-btns">
@@ -877,6 +897,22 @@
             passInput.type = checkbox.checked ? 'text' : 'password';
         };
 
+        let currentCaptcha = "";
+        window.generateCaptcha = function() {
+            const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            let captcha = "";
+            for (let i = 0; i < 5; i++) {
+                captcha += chars[Math.floor(Math.random() * chars.length)] + " ";
+            }
+            currentCaptcha = captcha.trim();
+            const textEl = document.getElementById('captchaText');
+            if(textEl) textEl.textContent = currentCaptcha;
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if(window.generateCaptcha) window.generateCaptcha();
+        });
+
         window.handleLogin = async (e) => {
             e.preventDefault();
             const identifier = document.getElementById('email').value.trim();
@@ -884,6 +920,15 @@
             const adminCodeInput = document.getElementById('adminCode');
             const adminCode = adminCodeInput ? adminCodeInput.value.trim() : '';
             const btn = document.getElementById('loginBtn');
+
+            const enteredCaptcha = document.getElementById('captchaInput').value.trim().toUpperCase().replace(/\s+/g, '');
+            const expectedCaptcha = currentCaptcha.replace(/\s+/g, '');
+            if (enteredCaptcha !== expectedCaptcha) {
+                showToast('Invalid CAPTCHA code. Please try again.', 'error');
+                generateCaptcha();
+                document.getElementById('captchaInput').value = '';
+                return;
+            }
 
             if (!identifier) {
                 showToast('Please enter your Email, Register No, or Mobile No.', 'error');
