@@ -799,16 +799,54 @@
             if (!raw) return [];
             if (raw.includes('@')) return [raw.toLowerCase()];
 
-            try {
-                const getLoginEmailFn = httpsCallable(functions, 'getLoginEmail');
-                const result = await getLoginEmailFn({ identifier: raw });
-                if (result.data && result.data.emails) {
-                    return result.data.emails;
+            const foundEmails = new Set();
+            const lookupRef = collection(db, 'students');
+            const queries = [];
+
+            // 1. Try Register Number / USN / RegNo variations
+            const regCandidates = Array.from(new Set([raw, raw.toUpperCase(), raw.toLowerCase()]));
+            const regFields = ['registerNumber', 'usn', 'regNo', 'regno', 'studentId'];
+
+            for (const field of regFields) {
+                for (const candidate of regCandidates) {
+                    queries.push(getDocs(query(lookupRef, where(field, '==', candidate))));
                 }
-            } catch (err) {
-                console.error("Cloud function getLoginEmail failed:", err);
             }
-            return [];
+
+            // 2. Try Mobile / Phone variations
+            const cleanDigits = raw.replace(/\D/g, '');
+            const phoneCandidates = [raw];
+            if (cleanDigits) {
+                phoneCandidates.push(cleanDigits);
+                if (cleanDigits.length >= 10) {
+                    const last10 = cleanDigits.slice(-10);
+                    phoneCandidates.push(last10);
+                    phoneCandidates.push('+91' + last10);
+                    phoneCandidates.push('+91 ' + last10);
+                    phoneCandidates.push('91' + last10);
+                    phoneCandidates.push('0' + last10);
+                }
+            }
+
+            const uniquePhoneCandidates = Array.from(new Set(phoneCandidates));
+            const phoneFields = ['phone', 'mobile', 'phoneNumber', 'contact', 'mobileNumber'];
+            for (const field of phoneFields) {
+                for (const candidate of uniquePhoneCandidates) {
+                    queries.push(getDocs(query(lookupRef, where(field, '==', candidate))));
+                }
+            }
+
+            const results = await Promise.allSettled(queries);
+            for (const res of results) {
+                if (res.status === 'fulfilled' && res.value && !res.value.empty) {
+                    res.value.forEach(docSnap => {
+                        const data = docSnap.data();
+                        if (data && data.email) foundEmails.add(data.email.trim().toLowerCase());
+                    });
+                }
+            }
+
+            return Array.from(foundEmails);
         }
 
         window.togglePasswordVisibility = () => {

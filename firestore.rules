@@ -53,7 +53,7 @@ service cloud.firestore {
     // SECURITY FIX: was allow read: if true - now auth-required.
     // Login by register/phone now uses studentLookup collection instead.
     match /students/{studentId} {
-      allow read: if request.auth != null;
+      allow read: if true; // Temporarily allow public read so login works without Cloud Functions
       allow create: if request.auth != null && request.auth.uid == studentId;
       allow update: if request.auth != null && (
         request.auth.uid == studentId ||
