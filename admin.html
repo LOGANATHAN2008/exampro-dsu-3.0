@@ -4182,8 +4182,10 @@ const body = document.getElementById('resultsBody');
                 await sendPasswordResetEmail(auth, email);
                 showToast('Auth synced and password reset link sent to ' + email, 'success');
             } catch (err) {
-                console.error(err);
-                showToast('Error sending reset link: ' + err.message, 'error');
+                console.error("Full error object:", err);
+                let errMsg = err.message || JSON.stringify(err);
+                if (err.code) errMsg = `[${err.code}] ` + errMsg;
+                showToast('Error sending reset link: ' + errMsg, 'error');
             } finally {
                 btn.innerHTML = origHtml;
                 btn.disabled = false;

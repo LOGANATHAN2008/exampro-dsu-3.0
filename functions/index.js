@@ -275,6 +275,18 @@ exports.createStaffAccount = functions.https.onCall(async (data, context) => {
     return { success: true, uid: userRecord.uid };
   } catch (error) {
     console.error("Error creating/updating staff account:", error);
-    throw new functions.https.HttpsError("internal", error.message);
+    let code = "internal";
+    let msg = (error && error.message) ? error.message : "Unknown error";
+    
+    if (error && typeof error.code === 'string') {
+        if (error.code.startsWith('auth/')) {
+            code = "invalid-argument";
+        } else {
+            // HttpsError requires specific error code strings. Fallback to internal if not valid.
+            code = "internal";
+        }
+    }
+    
+    throw new functions.https.HttpsError(code, msg);
   }
 });
