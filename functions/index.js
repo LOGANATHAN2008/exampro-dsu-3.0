@@ -244,37 +244,32 @@ exports.createStaffAccount = functions.https.onCall(async (data, context) => {
   }
 
   const { email, password, displayName, uid } = data;
-  if (!email || !password) {
-    throw new functions.https.HttpsError("invalid-argument", "Email and password are required.");
+  if (!email) {
+    throw new functions.https.HttpsError("invalid-argument", "Email is required.");
   }
 
   try {
     let userRecord;
-    
-    if (uid) {
-        try {
-            // Try updating if account already exists
-            userRecord = await admin.auth().updateUser(uid, { password: password });
-        } catch (updateErr) {
-            if (updateErr.code === 'auth/user-not-found') {
-                // If it doesn't exist, create it forcing the specific UID
-                userRecord = await admin.auth().createUser({
-                    uid: uid,
-                    email: email,
-                    password: password,
-                    displayName: displayName || "Staff Member"
-                });
-            } else {
-                throw updateErr;
-            }
+    try {
+        // Always try to fetch existing user by email first
+        userRecord = await admin.auth().getUserByEmail(email);
+        if (password) {
+            userRecord = await admin.auth().updateUser(userRecord.uid, { password: password });
         }
-    } else {
-        // Normal creation (no pre-existing UID)
-        userRecord = await admin.auth().createUser({
-            email: email,
-            password: password,
-            displayName: displayName || "Staff Member"
-        });
+    } catch (err) {
+        if (err.code === 'auth/user-not-found') {
+            // User doesn't exist, create them
+            const createParams = {
+                email: email,
+                displayName: displayName || "Staff Member"
+            };
+            if (password) createParams.password = password;
+            if (uid) createParams.uid = uid; // Only force UID if creating new
+            
+            userRecord = await admin.auth().createUser(createParams);
+        } else {
+            throw err;
+        }
     }
 
     return { success: true, uid: userRecord.uid };

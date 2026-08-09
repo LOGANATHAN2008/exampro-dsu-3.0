@@ -4156,28 +4156,31 @@ const body = document.getElementById('resultsBody');
             btn.disabled = true;
 
             try {
-                try {
-                    await sendPasswordResetEmail(auth, email);
-                    showToast('Password reset link sent to ' + email, 'success');
-                } catch (err) {
-                    if (err.code === 'auth/user-not-found') {
-                        // Account doesn't exist yet! We must create it with a random password first.
-                        const name = document.getElementById('s_name').value.trim() || 'Staff';
-                        const randomPw = 'Dsu!' + Math.floor(Math.random() * 1000000);
-                        const createStaffAccount = httpsCallable(functions, 'createStaffAccount');
-                        await createStaffAccount({ 
-                            email: email, 
-                            password: randomPw, 
-                            displayName: name,
-                            uid: editingStaffId || undefined
-                        });
-                        // Now that it's created, send the reset email
-                        await sendPasswordResetEmail(auth, email);
-                        showToast('Account created and reset link sent to ' + email, 'success');
-                    } else {
-                        throw err;
+                // Ensure account exists in Auth and get the REAL Auth UID (even if they were a student before)
+                const name = document.getElementById('s_name').value.trim() || 'Staff';
+                const createStaffAccount = httpsCallable(functions, 'createStaffAccount');
+                const result = await createStaffAccount({ 
+                    email: email, 
+                    password: '', // empty password means just return UID or create with no password (if they don't exist, we will send reset link anyway)
+                    displayName: name,
+                    uid: editingStaffId || undefined
+                });
+                
+                const actualUid = result.data.uid;
+                
+                // If they already existed in Auth with a DIFFERENT uid, we MUST sync the staff doc ID!
+                if (editingStaffId && actualUid !== editingStaffId) {
+                    const oldDocRef = doc(db, 'staff', editingStaffId);
+                    const oldDocSnap = await getDoc(oldDocRef);
+                    if (oldDocSnap.exists()) {
+                        await setDoc(doc(db, 'staff', actualUid), oldDocSnap.data());
+                        await deleteDoc(oldDocRef);
+                        editingStaffId = actualUid; 
                     }
                 }
+
+                await sendPasswordResetEmail(auth, email);
+                showToast('Auth synced and password reset link sent to ' + email, 'success');
             } catch (err) {
                 console.error(err);
                 showToast('Error sending reset link: ' + err.message, 'error');
@@ -4288,10 +4291,14 @@ const body = document.getElementById('resultsBody');
                     showToast('Faculty member added!', 'success');
                 } else {
                     if (newUid && newUid !== editingStaffId) {
-                        // Normally won't hit here because we pass uid: editingStaffId,
-                        // but setting Auth now creates an account securely bound to this random ID.
+                        // Auth UID is different from our document ID (e.g. they were a student before)
+                        // Migrate the document to sync it with Auth!
+                        await setDoc(doc(db, 'staff', newUid), staffData);
+                        await deleteDoc(doc(db, 'staff', editingStaffId));
+                        editingStaffId = newUid;
+                    } else {
+                        await updateDoc(doc(db, 'staff', editingStaffId), staffData);
                     }
-                    await updateDoc(doc(db, 'staff', editingStaffId), staffData);
                     showToast('Faculty member updated!', 'success');
                 }
                 closeStaffModal();
