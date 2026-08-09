@@ -4205,8 +4205,9 @@ const body = document.getElementById('resultsBody');
                 let newUid = null;
                 
                 // Always set/update Auth account with default password on save
-                const nameStr = staffData.name;
-                const firstFour = nameStr.length > 0 ? nameStr.substring(0, 4) : "Staf";
+                // Strip non-alpha characters (e.g., "Dr. Loganathan" -> "DrLoganathan")
+                const alphaName = staffData.name.replace(/[^A-Za-z]/g, '');
+                const firstFour = alphaName.length >= 4 ? alphaName.substring(0, 4) : (alphaName + "Staf").substring(0, 4);
                 const capFirstFour = firstFour.charAt(0).toUpperCase() + firstFour.slice(1).toLowerCase();
                 const dobYear = staffData.dob ? staffData.dob.split('-')[0] : new Date().getFullYear();
                 const defaultPassword = `${capFirstFour}@${dobYear}`;
@@ -4233,6 +4234,7 @@ const body = document.getElementById('resultsBody');
                     }
                     
                     showToast('Faculty member added!', 'success');
+                    alert(`Staff account created successfully!\n\nEmail: ${staffData.email}\nPassword: ${defaultPassword}`);
                 } else {
                     if (newUid && newUid !== editingStaffId) {
                         // Auth UID is different from our document ID (e.g. they were a student before)
@@ -4244,11 +4246,18 @@ const body = document.getElementById('resultsBody');
                         await updateDoc(doc(db, 'staff', editingStaffId), staffData);
                     }
                     showToast('Faculty member updated!', 'success');
+                    alert(`Staff account updated successfully!\n\nEmail: ${staffData.email}\nPassword: ${defaultPassword}`);
                 }
                 closeStaffModal();
             } catch (err) {
-                showToast('Save failed: ' + err.message, 'error');
-                console.error(err);
+                console.error("Full save error:", err);
+                let errMsg = err.message || JSON.stringify(err);
+                if (err.code) errMsg = `[${err.code}] ` + errMsg;
+                showToast('Save failed: ' + errMsg, 'error');
+                
+                if (errMsg.includes('internal')) {
+                    alert("CRITICAL ERROR:\nThe Cloud Function crashed or was not deployed. You MUST run 'firebase deploy --only functions' in your terminal for this to work.");
+                }
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = origHtml;
