@@ -168,3 +168,55 @@ exports.getLoginEmail = functions.https.onCall(async (data, context) => {
   
   return { emails: Array.from(emails) };
 });
+
+// 5. Rate Limiter (Anti-Abuse)
+exports.checkRateLimit = functions.https.onCall(async (data, context) => {
+  const { action, identifier } = data;
+  if (!action || !identifier) {
+    throw new functions.https.HttpsError("invalid-argument", "Missing action or identifier.");
+  }
+
+  const ip = context.rawRequest.ip || "unknown_ip";
+  // We hash the IP to avoid storing raw IPs if privacy is a concern, but for simplicity here we just use it.
+  // Rate limit key combines action, identifier, and IP.
+  const limitKey = crypto.createHash("sha256").update(`${action}_${identifier}_${ip}`).digest("hex");
+
+  const db = admin.firestore();
+  const rateLimitRef = db.collection("rate_limits").doc(limitKey);
+
+  return db.runTransaction(async (transaction) => {
+    const doc = await transaction.get(rateLimitRef);
+    const now = admin.firestore.Timestamp.now();
+    const tenMinutesAgo = new Date(now.toDate().getTime() - 10 * 60000);
+
+    let attempts = 1;
+
+    if (doc.exists) {
+      const data = doc.data();
+      // If the last attempt was within 10 minutes, increment the counter
+      if (data.lastAttempt && data.lastAttempt.toDate() > tenMinutesAgo) {
+        attempts = (data.attempts || 0) + 1;
+      } else {
+        // Reset counter if outside the 10-minute window
+        attempts = 1;
+      }
+    }
+
+    if (attempts > 5) {
+      const waitMinutes = Math.pow(2, attempts - 5); // Exponential backoff messaging (informational)
+      throw new functions.https.HttpsError(
+        "resource-exhausted",
+        `Too many attempts. Please try again in ${waitMinutes} minutes.`
+      );
+    }
+
+    transaction.set(rateLimitRef, {
+      attempts: attempts,
+      lastAttempt: now,
+      action: action,
+      ip_hash: crypto.createHash("sha256").update(ip).digest("hex") // Store hashed IP instead of raw
+    }, { merge: true });
+
+    return { success: true, attemptsRemaining: 5 - attempts };
+  });
+});

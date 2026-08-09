@@ -882,6 +882,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -895,6 +896,10 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const appCheck = initializeAppCheck(app, {
+            provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_SITE_KEY'),
+            isTokenAutoRefreshEnabled: true
+        });
         const auth = getAuth(app);
 
         const ADMIN_EMAILS = ["admin@dsu.edu", "loganathan@dsu.edu", "mloganathan082008@gmail.com"];

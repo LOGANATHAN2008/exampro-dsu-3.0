@@ -903,8 +903,10 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
         import { getAuth, createUserWithEmailAndPassword, updateProfile, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, serverTimestamp, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
@@ -917,8 +919,30 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const appCheck = initializeAppCheck(app, {
+            provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_SITE_KEY'),
+            isTokenAutoRefreshEnabled: true
+        });
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const functions = getFunctions(app);
+
+        // --- Rate Limiting Helper ---
+        const checkRateLimitFn = httpsCallable(functions, 'checkRateLimit');
+        async function enforceRateLimit(action, identifier) {
+            try {
+                await checkRateLimitFn({ action, identifier });
+                return true;
+            } catch (error) {
+                if (error.code === 'resource-exhausted') {
+                    showToast(error.message, 'error');
+                } else {
+                    console.error("Rate limit check error:", error);
+                    showToast("Error verifying rate limit. Please try again.", "error");
+                }
+                return false;
+            }
+        }
 
         // --- Theme Management ---
         const themeToggle = document.getElementById('themeToggle');
@@ -1007,6 +1031,11 @@
             const btn = document.getElementById('registerBtn');
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner"></span> Creating Account...';
+
+            if (!(await enforceRateLimit('registration', email))) {
+                resetBtn();
+                return;
+            }
 
             let photoURL = '';
             // Upload Profile Picture if selected

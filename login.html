@@ -598,6 +598,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
         import {
             getAuth, signInWithEmailAndPassword, sendPasswordResetEmail,
             onAuthStateChanged, signOut, signInWithCustomToken
@@ -616,9 +617,30 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const appCheck = initializeAppCheck(app, {
+            provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_SITE_KEY'),
+            isTokenAutoRefreshEnabled: true
+        });
         const auth = getAuth(app);
         const db = getFirestore(app);
         const functions = getFunctions(app);
+
+        // --- Rate Limiting Helper ---
+        const checkRateLimitFn = httpsCallable(functions, 'checkRateLimit');
+        async function enforceRateLimit(action, identifier) {
+            try {
+                await checkRateLimitFn({ action, identifier });
+                return true;
+            } catch (error) {
+                if (error.code === 'resource-exhausted') {
+                    showToast(error.message, 'error');
+                } else {
+                    console.error("Rate limit check error:", error);
+                    showToast("Error verifying rate limit. Please try again.", "error");
+                }
+                return false;
+            }
+        }
 
         // ============================================================
         // QR LOGIN LOGIC (Section 8.1)
@@ -885,6 +907,12 @@
 
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating...';
+
+            if (!(await enforceRateLimit('login', identifier))) {
+                resetBtn();
+                return;
+            }
+
             let finalEmail = identifier;
             try {
                 let foundAccounts = [];
@@ -1188,6 +1216,12 @@
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             btn.disabled = true;
+
+            if (!(await enforceRateLimit('reset', identifier))) {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
 
             try {
                 let finalEmail = identifier.toLowerCase();

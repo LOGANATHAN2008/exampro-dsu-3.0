@@ -544,6 +544,7 @@
     </script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
         import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -556,6 +557,10 @@
         };
 
         const app = initializeApp(firebaseConfig);
+        const appCheck = initializeAppCheck(app, {
+            provider: new ReCaptchaV3Provider('YOUR_RECAPTCHA_SITE_KEY'),
+            isTokenAutoRefreshEnabled: true
+        });
         const db = getFirestore(app);
 
         document.getElementById('resultForm').addEventListener('submit', async (e) => {
