@@ -410,9 +410,46 @@
                 transform: rotate(360deg);
             }
         }
+        
+        .login-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            background: rgba(128, 128, 128, 0.05);
+            padding: 4px;
+            border-radius: 12px;
+        }
+        
+        .login-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 8px;
+            color: var(--text-muted);
+            transition: all 0.3s;
+        }
+        
+        .login-tab.active {
+            background: var(--white);
+            color: var(--primary);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
     </style>
     <link rel="stylesheet" href="theme.css">
     <script src="theme.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 
 <body>
@@ -440,52 +477,72 @@
                     <img src="dsu_logo.png" alt="DSU Logo">
                 </div>
 
-                <form id="loginForm" onsubmit="handleLogin(event)">
-                    <div class="role-selection">
-                        <label class="role-item">
-                            <input type="radio" name="role" value="staff" id="roleStaffRadio" onchange="toggleUserType('admin')">
-                            Role Staff
-                        </label>
-                        <label class="role-item">
-                            <input type="radio" name="role" value="student" id="roleStudentRadio" checked
-                                onchange="toggleUserType('student')">
-                            Student
-                        </label>
-                    </div>
+                <div class="login-tabs">
+                    <div class="login-tab active" onclick="switchLoginTab('email')">Email / Pass</div>
+                    <div class="login-tab" onclick="switchLoginTab('qr')">QR Login</div>
+                </div>
 
-                    <div class="input-group">
-                        <label id="usernameLabel">Email / Register No. / Mobile No. <span>*</span></label>
-                        <input type="text" id="email" placeholder="Email, Register No, or Mobile No" required autocomplete="username">
-                    </div>
-
-                    <div class="input-group">
-                        <label>Password <span>*</span></label>
-                        <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
-                    </div>
-
-                    <div class="show-pass-row">
-                        <label style="display: flex; align-items:center; gap:8px; cursor:pointer;">
-                            <input type="checkbox" id="showPassCheckbox" onchange="togglePasswordVisibility()">
-                            Show Password
-                        </label>
-                    </div>
-
-                    <div class="input-group" id="adminCodeGroup" style="display: none;">
-                        <label>Admin Security Code <span>*</span></label>
-                        <input type="password" id="adminCode" placeholder="Enter 4-digit security code">
-                    </div>
-
-                    <div class="btn-group">
-                        <button type="submit" class="btn btn-login" id="loginBtn">Login</button>
-                        <div class="action-btns">
-                            <button type="button" class="btn btn-forgot" onclick="openForgotModal(event)">Forgot
-                                Password</button>
+                <div id="tab-email" class="tab-content active">
+                    <form id="loginForm" onsubmit="handleLogin(event)">
+                        <div class="role-selection">
+                            <label class="role-item">
+                                <input type="radio" name="role" value="staff" id="roleStaffRadio" onchange="toggleUserType('admin')">
+                                Role Staff
+                            </label>
+                            <label class="role-item">
+                                <input type="radio" name="role" value="student" id="roleStudentRadio" checked
+                                    onchange="toggleUserType('student')">
+                                Role Student
+                            </label>
                         </div>
-                        <a href="check-result.html" class="btn"
-                            style="background: var(--white); color: var(--secondary); border: 1px solid var(--border); margin-top: 10px;">Check
-                            Result without login</a>
+
+                        <div class="input-group">
+                            <label id="usernameLabel">Email / Register No. / Mobile No. <span>*</span></label>
+                            <input type="text" id="email" placeholder="Email, Register No, or Mobile No" required autocomplete="username">
+                        </div>
+                        <div class="input-group">
+                            <label>Password <span>*</span></label>
+                            <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
+                        </div>
+
+                        <div class="show-pass-row">
+                            <label style="display: flex; align-items:center; gap:8px; cursor:pointer;">
+                                <input type="checkbox" id="showPassCheckbox" onchange="togglePasswordVisibility()">
+                                Show Password
+                            </label>
+                        </div>
+
+                        <div class="input-group" id="adminCodeGroup" style="display: none;">
+                            <label>Admin Security Code <span>*</span></label>
+                            <input type="password" id="adminCode" placeholder="Enter 4-digit security code">
+                        </div>
+
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-login" id="loginBtn">Login</button>
+                            <div class="action-btns">
+                                <button type="button" class="btn btn-forgot" onclick="openForgotModal(event)">Forgot Password</button>
+                            </div>
+                            <a href="check-result.html" class="btn"
+                                style="background: var(--white); color: var(--secondary); border: 1px solid var(--border); margin-top: 10px;">Check Result without login</a>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="tab-qr" class="tab-content">
+                    <div style="text-align: center; padding: 10px 0;">
+                        <h3 style="font-size:18px; margin-bottom: 8px;">Log in with QR code</h3>
+                        <ol style="text-align:left; font-size:14px; color:var(--text-muted); line-height:1.6; margin:0 auto 20px auto; max-width: 250px; padding-left: 20px;">
+                            <li>Open ExamPro DSU app on your phone</li>
+                            <li>Tap Menu &rarr; Linked Devices</li>
+                            <li>Point your phone at this screen to capture the code</li>
+                        </ol>
+                        
+                        <div id="qrCodeContainer" style="background:white; padding:15px; border-radius:12px; display:inline-block; margin-bottom:15px; min-width:200px; min-height:200px;">
+                            <div id="qrCode"></div>
+                        </div>
+                        <div id="qrStatus" style="font-size:14px; font-weight:600; color:var(--text-muted);">Generating QR code...</div>
                     </div>
-                </form>
+                </div>
 
                 <p class="chrome-tip">Please use Google Chrome for better experience</p>
 
@@ -543,9 +600,10 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import {
             getAuth, signInWithEmailAndPassword, sendPasswordResetEmail,
-            onAuthStateChanged, signOut
+            onAuthStateChanged, signOut, signInWithCustomToken
         } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, collection, query, where, orderBy, getDocs, addDoc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, collection, query, where, orderBy, getDocs, addDoc, serverTimestamp, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
@@ -560,7 +618,135 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const functions = getFunctions(app);
 
+        // ============================================================
+        // QR LOGIN LOGIC (Section 8.1)
+        // ============================================================
+        let currentQrSessionUnsubscribe = null;
+        let qrCodeInstance = null;
+
+        window.switchLoginTab = (tab) => {
+            document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            if (tab === 'email') {
+                document.querySelector('.login-tab:nth-child(1)').classList.add('active');
+                document.getElementById('tab-email').classList.add('active');
+                if (currentQrSessionUnsubscribe) {
+                    currentQrSessionUnsubscribe();
+                    currentQrSessionUnsubscribe = null;
+                }
+            } else if (tab === 'qr') {
+                document.querySelector('.login-tab:nth-child(2)').classList.add('active');
+                document.getElementById('tab-qr').classList.add('active');
+                initQrLogin();
+            }
+        };
+
+        // SHA-256 Hash for local secret
+        async function hashSecret(secret) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(secret);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function fetchLocationInfo() {
+            try {
+                const res = await fetch('https://ipapi.co/json/');
+                const data = await res.json();
+                return {
+                    ip: data.ip || 'Unknown',
+                    approxLocation: `${data.city || 'Unknown'}, ${data.region || ''}`,
+                    browser: navigator.userAgent.substring(0, 50),
+                    os: navigator.platform || 'Unknown'
+                };
+            } catch (e) {
+                return { ip: 'Unknown', approxLocation: 'Unknown', browser: navigator.userAgent.substring(0, 50), os: navigator.platform };
+            }
+        }
+
+        window.initQrLogin = async () => {
+            if (currentQrSessionUnsubscribe) currentQrSessionUnsubscribe();
+            
+            const qrStatus = document.getElementById('qrStatus');
+            qrStatus.textContent = "Generating secure session...";
+            qrStatus.style.color = "var(--text-muted)";
+            
+            const sessionId = crypto.randomUUID();
+            const localSecret = crypto.randomUUID();
+            const secretHash = await hashSecret(localSecret);
+            const deviceInfo = await fetchLocationInfo();
+            
+            const expiresAt = new Date(Date.now() + 2 * 60 * 1000); // 2 mins
+
+            try {
+                await setDoc(doc(db, 'qrSessions', sessionId), {
+                    status: 'pending',
+                    createdAt: serverTimestamp(),
+                    expiresAt: expiresAt,
+                    webDeviceInfo: deviceInfo,
+                    secretHash: secretHash
+                });
+
+                if (!qrCodeInstance) {
+                    qrCodeInstance = new QRCode(document.getElementById("qrCode"), {
+                        width: 200, height: 200, colorDark: "#000000", colorLight: "#ffffff"
+                    });
+                }
+                qrCodeInstance.clear();
+                qrCodeInstance.makeCode(`examprodsu://qrlogin?session=${sessionId}`);
+                
+                qrStatus.textContent = "Scan this code with the ExamPro DSU App";
+
+                // Listen for changes
+                currentQrSessionUnsubscribe = onSnapshot(doc(db, 'qrSessions', sessionId), async (docSnap) => {
+                    if (!docSnap.exists()) return;
+                    const data = docSnap.data();
+                    
+                    if (data.status === 'scanned') {
+                        qrStatus.textContent = "Scanned! Please confirm on your phone.";
+                        qrStatus.style.color = "var(--primary)";
+                    } else if (data.status === 'approved') {
+                        qrStatus.textContent = "Approved! Logging in securely...";
+                        qrStatus.style.color = "var(--success)";
+                        
+                        // Exchange session for Custom Token
+                        try {
+                            const exchangeFn = httpsCallable(functions, 'exchangeQrSession');
+                            const result = await exchangeFn({ sessionId, localSecret });
+                            await signInWithCustomToken(auth, result.data.token);
+                            // Auth state listener handles the redirect
+                        } catch (err) {
+                            showToast("QR Login failed: " + err.message, "error");
+                            initQrLogin(); // Regenerate on failure
+                        }
+                    } else if (data.status === 'denied') {
+                        qrStatus.textContent = "Login denied from phone. Generating new code...";
+                        qrStatus.style.color = "var(--danger)";
+                        setTimeout(initQrLogin, 2000);
+                    } else if (data.status === 'expired') {
+                        qrStatus.textContent = "QR Code expired. Generating new code...";
+                        qrStatus.style.color = "var(--danger)";
+                        setTimeout(initQrLogin, 2000);
+                    }
+                });
+                
+                // Auto refresh if not scanned after 2 minutes
+                setTimeout(() => {
+                    if (document.getElementById('tab-qr').classList.contains('active')) {
+                        initQrLogin();
+                    }
+                }, 120000);
+
+            } catch (err) {
+                console.error(err);
+                qrStatus.textContent = "Failed to generate QR Code. Please try Email login.";
+                qrStatus.style.color = "var(--danger)";
+            }
+        };
         // ============================================================
         // BOOTSTRAP SUPER-ADMIN EMAIL LIST
         // ============================================================
@@ -846,12 +1032,23 @@
                 }
 
                 try {
+                    let deviceId = localStorage.getItem('dsu_deviceId');
+                    if (!deviceId) {
+                        deviceId = crypto.randomUUID();
+                        localStorage.setItem('dsu_deviceId', deviceId);
+                    }
+                    
+                    const locInfo = typeof fetchLocationInfo === 'function' ? await fetchLocationInfo() : {};
+                    
                     const historyRef = collection(db, 'students', cred.user.uid, 'loginHistory');
                     await addDoc(historyRef, {
                         timestamp: serverTimestamp(),
                         userAgent: navigator.userAgent,
                         approxDevice: getDeviceLabel(),
-                        loginRole: userType
+                        loginRole: userType,
+                        deviceId: deviceId,
+                        ip: locInfo.ip || 'Unknown',
+                        location: locInfo.approxLocation || 'Unknown'
                     });
                     const hq = query(historyRef, orderBy('timestamp', 'desc'));
                     const historyDocs = await getDocs(hq);

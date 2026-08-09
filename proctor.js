@@ -69,7 +69,15 @@ const ExamProctor = (() => {
         _updateStatus('green');
         _startFaceDetection();
         _registerTabListeners();
-        _showToast('🔒 AI Proctoring is active. Keep your face visible.', 'info-proctor', 4500);
+        _registerLockdownListeners();
+        
+        try {
+            if (document.documentElement.requestFullscreen) {
+                await document.documentElement.requestFullscreen();
+            }
+        } catch (e) { console.warn("Fullscreen request failed", e); }
+        
+        _showToast('🔒 AI Proctoring is active. Fullscreen locked.', 'info-proctor', 4500);
         return true;
     }
 
@@ -85,6 +93,13 @@ const ExamProctor = (() => {
             document.removeEventListener('visibilitychange', _state._tabSwitchHandler);
         if (_state._blurHandler)
             window.removeEventListener('blur', _state._blurHandler);
+            
+        _removeLockdownListeners();
+        
+        if (document.fullscreenElement) {
+            document.exitFullscreen().catch(e => console.warn(e));
+        }
+        
         const widget = document.getElementById('proctor-webcam-widget');
         if (widget) widget.style.display = 'none';
     }
@@ -466,6 +481,32 @@ const ExamProctor = (() => {
         _state._blurHandler      = _handleWindowBlur;
         document.addEventListener('visibilitychange', _state._tabSwitchHandler);
         window.addEventListener('blur', _state._blurHandler);
+    }
+
+    function _registerLockdownListeners() {
+        _state._contextMenuHandler = (e) => { e.preventDefault(); };
+        _state._keyDownHandler = (e) => {
+            // Prevent F12, Ctrl+Shift+I, Ctrl+C, Ctrl+V, etc.
+            if (
+                e.key === 'F12' ||
+                (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+                (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+                (e.ctrlKey && e.key === 'U') ||
+                (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'v' || e.key === 'V'))
+            ) {
+                e.preventDefault();
+            }
+            
+            // Auto submit if escape is pressed (if in fullscreen, this triggers resize/blur, but we can catch Esc directly too)
+        };
+        
+        document.addEventListener('contextmenu', _state._contextMenuHandler);
+        document.addEventListener('keydown', _state._keyDownHandler);
+    }
+
+    function _removeLockdownListeners() {
+        if (_state._contextMenuHandler) document.removeEventListener('contextmenu', _state._contextMenuHandler);
+        if (_state._keyDownHandler) document.removeEventListener('keydown', _state._keyDownHandler);
     }
 
     function _handleTabSwitch() {

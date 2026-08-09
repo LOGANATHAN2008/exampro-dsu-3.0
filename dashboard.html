@@ -2600,10 +2600,39 @@
 
         async function loadDashboard(user) {
             try {
+                // Start realtime listener for the student document to handle remote sign-out
+                onSnapshot(doc(db, 'students', user.uid), async (docSnap) => {
+                    if (!docSnap.exists()) return;
+                    const data = docSnap.data();
+                    
+                    // Check if current device was revoked
+                    const localDeviceId = localStorage.getItem('dsu_deviceId');
+                    if (localDeviceId && data.revokedDevices && data.revokedDevices.includes(localDeviceId)) {
+                        // Remove it from local storage and sign out
+                        localStorage.removeItem('dsu_deviceId');
+                        await signOut(auth);
+                        window.location.href = "login.html";
+                        return;
+                    }
+
+                });
+
                 // Load student profile
                 try {
                     const studentDoc = await getDoc(doc(db, 'students', user.uid));
                     if (studentDoc.exists()) {
+                        
+                        // Log dashboard access activity
+                        try {
+                            if (!window._loggedDashboardAccess) {
+                                window._loggedDashboardAccess = true;
+                                await addDoc(collection(db, 'students', user.uid, 'activityLogs'), {
+                                    action: 'dashboard_accessed',
+                                    timestamp: serverTimestamp()
+                                });
+                            }
+                        } catch(e) { console.error("Error logging activity", e); }
+
                         const data = studentDoc.data();
                         document.getElementById('studentName').textContent = data.name || 'Student';
                         document.getElementById('sidebarName').textContent = data.name || 'Student';

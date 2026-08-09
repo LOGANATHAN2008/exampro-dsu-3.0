@@ -1212,6 +1212,14 @@
                         renderQuestion();
                         startTimer();
                         registerAntiCheat(); // existing tab/key anti-cheat still runs alongside
+                        try {
+                            await addDoc(collection(db, 'students', currentUser.uid, 'activityLogs'), {
+                                action: 'test_started',
+                                testId: selectedTest.id,
+                                testTitle: selectedTest.title,
+                                timestamp: serverTimestamp()
+                            });
+                        } catch (e) { console.error(e); }
                     },
                     // onCancel – student clicked "Cancel"
                     () => {
@@ -1405,6 +1413,20 @@
                     },
                     submittedAt: serverTimestamp()
                 });
+
+                // Log activity
+                try {
+                    await addDoc(collection(db, 'students', currentUser.uid, 'activityLogs'), {
+                        action: 'test_submitted',
+                        testId: selectedTest.id,
+                        testTitle: selectedTest.title,
+                        score: score,
+                        percentage: percentage,
+                        autoSubmit: autoSubmit,
+                        malpractice: malpractice,
+                        timestamp: serverTimestamp()
+                    });
+                } catch (e) { console.error(e); }
 
                 // Log malpractice in Firestore
                 if (malpractice || procSummary.flagged) {
