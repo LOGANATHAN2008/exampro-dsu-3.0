@@ -634,11 +634,11 @@
             } catch (error) {
                 if (error.code === 'resource-exhausted') {
                     showToast(error.message, 'error');
+                    return false;
                 } else {
-                    console.error("Rate limit check error:", error);
-                    showToast("Error verifying rate limit. Please try again.", "error");
+                    console.warn("Rate limit check bypassed due to error:", error);
+                    return true;
                 }
-                return false;
             }
         }
 
