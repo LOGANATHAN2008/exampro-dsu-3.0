@@ -243,21 +243,43 @@ exports.createStaffAccount = functions.https.onCall(async (data, context) => {
     }
   }
 
-  const { email, password, displayName } = data;
+  const { email, password, displayName, uid } = data;
   if (!email || !password) {
     throw new functions.https.HttpsError("invalid-argument", "Email and password are required.");
   }
 
   try {
-    const userRecord = await admin.auth().createUser({
-      email: email,
-      password: password,
-      displayName: displayName || "Staff Member"
-    });
+    let userRecord;
+    
+    if (uid) {
+        try {
+            // Try updating if account already exists
+            userRecord = await admin.auth().updateUser(uid, { password: password });
+        } catch (updateErr) {
+            if (updateErr.code === 'auth/user-not-found') {
+                // If it doesn't exist, create it forcing the specific UID
+                userRecord = await admin.auth().createUser({
+                    uid: uid,
+                    email: email,
+                    password: password,
+                    displayName: displayName || "Staff Member"
+                });
+            } else {
+                throw updateErr;
+            }
+        }
+    } else {
+        // Normal creation (no pre-existing UID)
+        userRecord = await admin.auth().createUser({
+            email: email,
+            password: password,
+            displayName: displayName || "Staff Member"
+        });
+    }
 
     return { success: true, uid: userRecord.uid };
   } catch (error) {
-    console.error("Error creating staff account:", error);
+    console.error("Error creating/updating staff account:", error);
     throw new functions.https.HttpsError("internal", error.message);
   }
 });

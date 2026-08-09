@@ -4199,24 +4199,26 @@ const body = document.getElementById('resultsBody');
             };
 
             try {
+                const pwInput = document.getElementById('s_password');
+                let newUid = null;
+                
+                if (pwInput && pwInput.value.trim().length > 0) {
+                    const rawPassword = pwInput.value.trim();
+                    if (rawPassword.length < 6) throw new Error("Password must be at least 6 characters.");
+                    
+                    const createStaffAccount = httpsCallable(functions, 'createStaffAccount');
+                    const result = await createStaffAccount({ 
+                        email: staffData.email, 
+                        password: rawPassword, 
+                        displayName: staffData.name,
+                        uid: editingStaffId || undefined
+                    });
+                    newUid = result.data.uid;
+                }
+
                 if (!editingStaffId) {
                     staffData.addedBy = auth.currentUser.uid;
                     staffData.createdAt = serverTimestamp();
-                    let newUid = null;
-
-                    const pwInput = document.getElementById('s_password');
-                    if (pwInput && pwInput.value.trim().length > 0) {
-                        const rawPassword = pwInput.value.trim();
-                        if (rawPassword.length < 6) throw new Error("Password must be at least 6 characters.");
-                        
-                        const createStaffAccount = httpsCallable(functions, 'createStaffAccount');
-                        const result = await createStaffAccount({ 
-                            email: staffData.email, 
-                            password: rawPassword, 
-                            displayName: staffData.name 
-                        });
-                        newUid = result.data.uid;
-                    }
                     
                     if (newUid) {
                         // Use the auth UID as the document ID so rules can map request.auth.uid properly
@@ -4228,15 +4230,21 @@ const body = document.getElementById('resultsBody');
                     
                     showToast('Faculty member added!', 'success');
                 } else {
+                    if (newUid && newUid !== editingStaffId) {
+                        // Normally won't hit here because we pass uid: editingStaffId,
+                        // but setting Auth now creates an account securely bound to this random ID.
+                    }
                     await updateDoc(doc(db, 'staff', editingStaffId), staffData);
                     showToast('Faculty member updated!', 'success');
                 }
                 closeStaffModal();
             } catch (err) {
                 showToast('Save failed: ' + err.message, 'error');
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
             }
-            btn.disabled = false;
-            btn.innerHTML = origHtml;
         };
 
         function renderStaff(staff) {
@@ -4307,7 +4315,10 @@ const body = document.getElementById('resultsBody');
             const pwInput = document.getElementById('s_password');
             if(pwInput) pwInput.value = '';
             const pwGroup = document.getElementById('staffPasswordGroup');
-            if(pwGroup) pwGroup.style.display = 'none';
+            if(pwGroup) {
+                pwGroup.style.display = 'block';
+                pwGroup.querySelector('label').textContent = 'Set / Reset Login Password (Optional)';
+            }
 
             document.getElementById('staffPhotoUploadStatus').textContent = '';
             document.getElementById('staffModal').classList.add('active');
