@@ -2242,14 +2242,19 @@
                 </div>
                 <div class="form-grid" style="margin-bottom:12px">
                     <div class="form-group">
+                        <label>Date of Birth * (For Login Password)</label>
+                        <input type="date" id="s_dob" class="form-control" required>
+                    </div>
+                    <div class="form-group">
                         <label>Contact Phone</label>
                         <input type="tel" id="s_phone" class="form-control" placeholder="+91 98765 43210">
                     </div>
+                </div>
+                <div class="form-grid" style="margin-bottom:12px">
                     <div class="form-group">
                         <label>Cabin / Office Location</label>
                         <input type="text" id="s_cabin" class="form-control" placeholder="Block A, Room 304">
                     </div>
-                </div>
                 <div class="form-grid" style="margin-bottom:12px">
                     <div class="form-group">
                         <label>Office Hours / Availability</label>
@@ -2270,15 +2275,7 @@
                         <input type="text" id="s_batch" class="form-control" required placeholder="2023-2027">
                     </div>
                 </div>
-                <div class="form-group" id="staffPasswordGroup" style="margin-bottom:12px">
-                    <label id="staffPasswordLabel">Login Password (Optional - Creates Auth Account)</label>
-                    <div style="display:flex;gap:8px;align-items:center;">
-                        <input type="text" id="s_password" class="form-control" placeholder="Enter min 6 chars to create a login. Leave empty to skip.">
-                        <button type="button" id="staffResetPwBtn" class="btn btn-outline btn-sm" style="display:none;white-space:nowrap;" onclick="sendStaffResetEmail()">
-                            <i class="fas fa-envelope"></i> Send Reset Link
-                        </button>
-                    </div>
-                </div>
+
                 <div class="form-group" style="margin-bottom:12px">
                     <label>Photo URL (or upload below)</label>
                     <div style="display:flex;gap:8px">
@@ -4143,69 +4140,12 @@ const body = document.getElementById('resultsBody');
         let allStaff = [];
         let editingStaffId = null;
 
-        window.sendStaffResetEmail = async function() {
-            const email = document.getElementById('s_email').value.trim().toLowerCase();
-            if (!email) {
-                showToast('Please enter an email address first.', 'error');
-                return;
-            }
-            
-            const btn = document.getElementById('staffResetPwBtn');
-            const origHtml = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            btn.disabled = true;
 
-            try {
-                // Ensure account exists in Auth and get the REAL Auth UID (even if they were a student before)
-                const name = document.getElementById('s_name').value.trim() || 'Staff';
-                const createStaffAccount = httpsCallable(functions, 'createStaffAccount');
-                const result = await createStaffAccount({ 
-                    email: email, 
-                    password: '', // empty password means just return UID or create with no password (if they don't exist, we will send reset link anyway)
-                    displayName: name,
-                    uid: editingStaffId || undefined
-                });
-                
-                const actualUid = result.data.uid;
-                
-                // If they already existed in Auth with a DIFFERENT uid, we MUST sync the staff doc ID!
-                if (editingStaffId && actualUid !== editingStaffId) {
-                    const oldDocRef = doc(db, 'staff', editingStaffId);
-                    const oldDocSnap = await getDoc(oldDocRef);
-                    if (oldDocSnap.exists()) {
-                        await setDoc(doc(db, 'staff', actualUid), oldDocSnap.data());
-                        await deleteDoc(oldDocRef);
-                        editingStaffId = actualUid; 
-                    }
-                }
-
-                await sendPasswordResetEmail(auth, email);
-                showToast('Auth synced and password reset link sent to ' + email, 'success');
-            } catch (err) {
-                console.error("Full error object:", err);
-                let errMsg = err.message || JSON.stringify(err);
-                if (err.code) errMsg = `[${err.code}] ` + errMsg;
-                showToast('Error sending reset link: ' + errMsg, 'error');
-            } finally {
-                btn.innerHTML = origHtml;
-                btn.disabled = false;
-            }
-        };
 
         window.openStaffModal = function () {
             editingStaffId = null;
             document.getElementById('staffModalTitle').textContent = 'Add Staff Member';
             document.getElementById('staffForm').reset();
-            const pwGroup = document.getElementById('staffPasswordGroup');
-            if(pwGroup) {
-                pwGroup.style.display = 'block';
-                pwGroup.querySelector('label').textContent = 'Login Password (Optional - Creates Auth Account)';
-            }
-            const pwInput = document.getElementById('s_password');
-            if(pwInput) pwInput.style.display = 'block';
-            const resetBtn = document.getElementById('staffResetPwBtn');
-            if(resetBtn) resetBtn.style.display = 'none';
-
             document.getElementById('staffPhotoUploadStatus').textContent = '';
             document.getElementById('staffModal').classList.add('active');
         };
@@ -4247,6 +4187,7 @@ const body = document.getElementById('resultsBody');
             const staffData = {
                 name: document.getElementById('s_name').value.trim(),
                 email: document.getElementById('s_email').value.trim().toLowerCase(),
+                dob: document.getElementById('s_dob').value,
                 designation: document.getElementById('s_role').value.trim(),
                 department: document.getElementById('s_dept').value,
                 phone: document.getElementById('s_phone').value.trim() || '',
@@ -4261,22 +4202,23 @@ const body = document.getElementById('resultsBody');
             };
 
             try {
-                const pwInput = document.getElementById('s_password');
                 let newUid = null;
                 
-                if (pwInput && pwInput.value.trim().length > 0) {
-                    const rawPassword = pwInput.value.trim();
-                    if (rawPassword.length < 6) throw new Error("Password must be at least 6 characters.");
-                    
-                    const createStaffAccount = httpsCallable(functions, 'createStaffAccount');
-                    const result = await createStaffAccount({ 
-                        email: staffData.email, 
-                        password: rawPassword, 
-                        displayName: staffData.name,
-                        uid: editingStaffId || undefined
-                    });
-                    newUid = result.data.uid;
-                }
+                // Always set/update Auth account with default password on save
+                const nameStr = staffData.name;
+                const firstFour = nameStr.length > 0 ? nameStr.substring(0, 4) : "Staf";
+                const capFirstFour = firstFour.charAt(0).toUpperCase() + firstFour.slice(1).toLowerCase();
+                const dobYear = staffData.dob ? staffData.dob.split('-')[0] : new Date().getFullYear();
+                const defaultPassword = `${capFirstFour}@${dobYear}`;
+                
+                const createStaffAccount = httpsCallable(functions, 'createStaffAccount');
+                const result = await createStaffAccount({ 
+                    email: staffData.email, 
+                    password: defaultPassword, 
+                    displayName: staffData.name,
+                    uid: editingStaffId || undefined
+                });
+                newUid = result.data.uid;
 
                 if (!editingStaffId) {
                     staffData.addedBy = auth.currentUser.uid;
@@ -4367,6 +4309,7 @@ const body = document.getElementById('resultsBody');
             document.getElementById('staffModalTitle').textContent = 'Edit Faculty Member';
             document.getElementById('s_name').value = s.name || '';
             document.getElementById('s_email').value = s.email || '';
+            document.getElementById('s_dob').value = s.dob || '';
             document.getElementById('s_role').value = s.designation || '';
             document.getElementById('s_dept').value = s.department || 'Computer Science';
             document.getElementById('s_phone').value = s.phone || '';
@@ -4378,18 +4321,6 @@ const body = document.getElementById('resultsBody');
             document.getElementById('s_photo').value = s.photoURL || '';
             document.getElementById('s_bio').value = s.bio || '';
             
-            const pwInput = document.getElementById('s_password');
-            if(pwInput) pwInput.style.display = 'none';
-            
-            const resetBtn = document.getElementById('staffResetPwBtn');
-            if(resetBtn) resetBtn.style.display = 'block';
-
-            const pwGroup = document.getElementById('staffPasswordGroup');
-            if(pwGroup) {
-                pwGroup.style.display = 'block';
-                pwGroup.querySelector('label').textContent = 'Login Access';
-            }
-
             document.getElementById('staffPhotoUploadStatus').textContent = '';
             document.getElementById('staffModal').classList.add('active');
         };
