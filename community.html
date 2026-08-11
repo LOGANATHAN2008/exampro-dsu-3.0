@@ -2138,7 +2138,12 @@ window.confirmDelete = async function(type) {
     
     try {
         if(type === 'everyone') {
-            await deleteDoc(msgRef);
+            await updateDoc(msgRef, {
+                isDeletedForEveryone: true,
+                text: "This message was deleted",
+                reactions: {},
+                replyTo: null
+            });
         } else if(type === 'me') {
             await updateDoc(msgRef, {
                 deletedFor: arrayUnion(currentUser.uid)
@@ -2333,6 +2338,14 @@ function loadDepartmentChat() {
                 }
             }
 
+            const isDeletedAll = msg.isDeletedForEveryone === true;
+            let displayHtml = escapeHtml(msg.text);
+            if(isDeletedAll) {
+                displayHtml = `<span style="font-style:italic; color:var(--text-muted)"><i class="fas fa-ban" style="margin-right:5px"></i>${isMine ? 'You deleted this message' : 'This message was deleted'}</span>`;
+                quotedHtml = '';
+                reactionsHtml = '';
+            }
+
             // Escaped text for inline functions
             const safeText = escapeHtml(msg.text).replace(/'/g, "\\'");
             const safeSender = escapeHtml(msg.senderName).replace(/'/g, "\\'");
@@ -2341,14 +2354,18 @@ function loadDepartmentChat() {
             msgDiv.innerHTML = `
                 ${!isMine ? `<div class="sender">${escapeHtml(msg.senderName)}</div>` : ''}
                 ${quotedHtml}
-                <div>${escapeHtml(msg.text)}</div>
+                <div>${displayHtml}</div>
                 ${reactionsHtml ? `<div style="margin-top:4px">${reactionsHtml}</div>` : ''}
                 <div class="time">${timeStr}</div>
             `;
             
             msgDiv.ondblclick = function(e) {
                 e.stopPropagation();
-                openIOSContext(docSnap.id, dept, isMine, safeSender, safeText, 'msg-' + docSnap.id);
+                if(isDeletedAll) {
+                    openWaDeleteModal(docSnap.id, dept, false);
+                } else {
+                    openIOSContext(docSnap.id, dept, isMine, safeSender, safeText, 'msg-' + docSnap.id);
+                }
             };
             
             chatBox.appendChild(msgDiv);
