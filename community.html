@@ -1900,7 +1900,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('studentName').innerText = userData.name || 'Student';
                     document.getElementById('sidebarName').innerText = userData.name || 'Student';
                     if(document.getElementById('chatDeptName')) {
-                        document.getElementById('chatDeptName').innerText = userData.department || 'General';
+                        document.getElementById('chatDeptName').innerText = userData.branch || 'General';
                     }
                     
                     // Default tab is chat
@@ -1919,10 +1919,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Chat Logic
 function loadDepartmentChat() {
-    if (!userData || !userData.department) return;
+    if (!userData || !userData.branch) return;
     
     const chatBox = document.getElementById('chatBox');
-    const dept = userData.department;
+    const dept = userData.branch;
     
     if (chatUnsubscribe) chatUnsubscribe(); // Unsub previous if any
     
@@ -1972,12 +1972,12 @@ function loadDepartmentChat() {
 window.sendChatMessage = async function() {
     const input = document.getElementById('chatInput');
     const text = input.value.trim();
-    if (!text || !userData || !userData.department) return;
+    if (!text || !userData || !userData.branch) return;
     
     input.value = '';
     
     try {
-        const messagesRef = collection(db, 'chatRooms', userData.department, 'messages');
+        const messagesRef = collection(db, 'chatRooms', userData.branch, 'messages');
         await addDoc(messagesRef, {
             text: text,
             senderUID: currentUser.uid,
