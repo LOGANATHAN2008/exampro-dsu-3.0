@@ -89,7 +89,7 @@
             z-index: 10;
             backdrop-filter: blur(5px);
         }
-        .chat-msg:hover .msg-actions { display: flex; }
+        
         .chat-msg.mine .msg-actions { right: 100%; margin-right: 10px; }
         .chat-msg.others .msg-actions { left: 100%; margin-left: 10px; }
         
@@ -157,7 +157,30 @@
         .emoji-btn { background: none; border: none; font-size: 18px; cursor: pointer; transition: 0.2s; padding: 2px;}
         .emoji-btn:hover { transform: scale(1.3); }
 
-        </style>
+        
+        .active-context {
+            z-index: 1001 !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: 0.3s ease;
+            position: relative;
+        }
+        .ios-ctx-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 14px;
+            color: #fff;
+            min-width: 150px;
+        }
+        .ios-ctx-item:last-child { border-bottom: none; }
+        .ios-ctx-item:hover { background: rgba(255,255,255,0.1); }
+        .ios-ctx-emoji { font-size: 24px; cursor: pointer; transition: 0.2s; }
+        .ios-ctx-emoji:hover { transform: scale(1.3); }
+
+</style>
     <script>
         if (localStorage.getItem('currentUser') || sessionStorage.getItem('appLoaded')) {
             document.addEventListener('DOMContentLoaded', () => {
@@ -1658,6 +1681,32 @@
     <!-- Overlay -->
     <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
     <!-- Sidebar -->
+    
+    <!-- iOS WhatsApp Context Menu Overlay -->
+    <div id="iosContextMenuOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); backdrop-filter:blur(3px); z-index:1000; transition:0.3s;" onclick="closeIOSContext()"></div>
+    
+    <div id="iosContextMenu" style="display:none; position:absolute; z-index:1002; flex-direction:column; gap:10px; opacity:0; transform:scale(0.9); transition:0.2s; transform-origin: top left;">
+        <div style="background:rgba(40,40,40,0.85); border-radius:30px; padding:10px 15px; display:flex; gap:15px; box-shadow:0 10px 30px rgba(0,0,0,0.5); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.1);">
+            <span class="ios-ctx-emoji" onclick="reactContext('👍')">👍</span>
+            <span class="ios-ctx-emoji" onclick="reactContext('❤️')">❤️</span>
+            <span class="ios-ctx-emoji" onclick="reactContext('😂')">😂</span>
+            <span class="ios-ctx-emoji" onclick="reactContext('😮')">😮</span>
+            <span class="ios-ctx-emoji" onclick="reactContext('😢')">😢</span>
+            <span class="ios-ctx-emoji" onclick="reactContext('🙏')">🙏</span>
+        </div>
+        <div style="background:rgba(40,40,40,0.85); border-radius:15px; display:flex; flex-direction:column; box-shadow:0 10px 30px rgba(0,0,0,0.5); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.1); overflow:hidden;">
+            <div class="ios-ctx-item" onclick="replyContext()">
+                <span>Reply</span> <i class="fas fa-reply"></i>
+            </div>
+            <div class="ios-ctx-item" onclick="shareContext()">
+                <span>Copy</span> <i class="fas fa-copy"></i>
+            </div>
+            <div class="ios-ctx-item" id="iosCtxDelete" onclick="deleteContext()" style="color:var(--danger)">
+                <span>Delete</span> <i class="fas fa-trash"></i>
+            </div>
+        </div>
+    </div>
+    
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-logo">
             <div class="logo-icon" style="background: transparent;">
@@ -2066,6 +2115,78 @@ window.reactMessage = async function(msgId, dept, emoji) {
     }
 };
 
+
+window.currentCtx = null;
+window.openIOSContext = function(msgId, dept, isMine, sender, text, elementId) {
+    window.currentCtx = { msgId, dept, sender, text };
+    const el = document.getElementById(elementId);
+    if(!el) return;
+    
+    el.classList.add('active-context');
+    const rect = el.getBoundingClientRect();
+    
+    const overlay = document.getElementById('iosContextMenuOverlay');
+    const menu = document.getElementById('iosContextMenu');
+    
+    overlay.style.display = 'block';
+    
+    menu.style.display = 'flex';
+    menu.style.top = (rect.bottom + window.scrollY + 10) + 'px';
+    if(isMine) {
+        menu.style.transformOrigin = 'top right';
+        menu.style.right = (window.innerWidth - rect.right) + 'px';
+        menu.style.left = 'auto';
+    } else {
+        menu.style.transformOrigin = 'top left';
+        menu.style.left = rect.left + 'px';
+        menu.style.right = 'auto';
+    }
+    
+    // Animate in
+    setTimeout(() => {
+        menu.style.opacity = '1';
+        menu.style.transform = 'scale(1)';
+    }, 10);
+    
+    document.getElementById('iosCtxDelete').style.display = isMine ? 'flex' : 'none';
+};
+
+window.closeIOSContext = function() {
+    document.querySelectorAll('.active-context').forEach(el => el.classList.remove('active-context'));
+    const menu = document.getElementById('iosContextMenu');
+    if(menu) {
+        menu.style.opacity = '0';
+        menu.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+            menu.style.display = 'none';
+            document.getElementById('iosContextMenuOverlay').style.display = 'none';
+        }, 200);
+    }
+    window.currentCtx = null;
+};
+
+window.reactContext = function(emoji) {
+    if(!window.currentCtx) return;
+    reactMessage(window.currentCtx.msgId, window.currentCtx.dept, emoji);
+    closeIOSContext();
+};
+window.replyContext = function() {
+    if(!window.currentCtx) return;
+    replyMessage(window.currentCtx.msgId, window.currentCtx.sender, window.currentCtx.text);
+    closeIOSContext();
+};
+window.shareContext = function() {
+    if(!window.currentCtx) return;
+    shareMessage(window.currentCtx.text);
+    closeIOSContext();
+};
+window.deleteContext = function() {
+    if(!window.currentCtx) return;
+    deleteMessage(window.currentCtx.msgId, window.currentCtx.dept);
+    closeIOSContext();
+};
+
+
 window.scrollToMessage = function(msgId) {
     const el = document.getElementById('msg-' + msgId);
     if(el) {
@@ -2145,34 +2266,22 @@ function loadDepartmentChat() {
             const safeText = escapeHtml(msg.text).replace(/'/g, "\\'");
             const safeSender = escapeHtml(msg.senderName).replace(/'/g, "\\'");
 
+            
             msgDiv.innerHTML = `
                 ${!isMine ? `<div class="sender">${escapeHtml(msg.senderName)}</div>` : ''}
                 ${quotedHtml}
                 <div>${escapeHtml(msg.text)}</div>
                 ${reactionsHtml ? `<div style="margin-top:4px">${reactionsHtml}</div>` : ''}
                 <div class="time">${timeStr}</div>
-                
-                <div class="msg-actions">
-                    <button class="msg-action-btn" onclick="replyMessage('${docSnap.id}', '${safeSender}', '${safeText}')" title="Reply"><i class="fas fa-reply"></i></button>
-                    
-                    <div style="position:relative;">
-                        <button class="msg-action-btn" onclick="toggleEmojiPicker('${docSnap.id}')" title="React"><i class="fas fa-smile"></i></button>
-                        <div class="emoji-picker-popover" id="emoji-${docSnap.id}">
-                            <button class="emoji-btn" onclick="reactMessage('${docSnap.id}', '${dept}', '👍')">👍</button>
-                            <button class="emoji-btn" onclick="reactMessage('${docSnap.id}', '${dept}', '❤️')">❤️</button>
-                            <button class="emoji-btn" onclick="reactMessage('${docSnap.id}', '${dept}', '😂')">😂</button>
-                            <button class="emoji-btn" onclick="reactMessage('${docSnap.id}', '${dept}', '😮')">😮</button>
-                            <button class="emoji-btn" onclick="reactMessage('${docSnap.id}', '${dept}', '😢')">😢</button>
-                        </div>
-                    </div>
-                    
-                    <button class="msg-action-btn" onclick="shareMessage('${safeText}')" title="Copy text"><i class="fas fa-copy"></i></button>
-                    
-                    ${isMine ? `<button class="msg-action-btn" style="color:var(--danger)" onclick="deleteMessage('${docSnap.id}', '${dept}')" title="Delete"><i class="fas fa-trash"></i></button>` : ''}
-                </div>
             `;
             
+            msgDiv.ondblclick = function(e) {
+                e.stopPropagation();
+                openIOSContext(docSnap.id, dept, isMine, safeSender, safeText, 'msg-' + docSnap.id);
+            };
+            
             chatBox.appendChild(msgDiv);
+
 
         });
         
