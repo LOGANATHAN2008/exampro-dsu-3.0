@@ -1305,6 +1305,8 @@
                     id="malCount">0</span></button>
             <button class="nav-item" onclick="showSection('feedback',this)"><i class="fas fa-comments"></i>
                 Feedback</button>
+            <button class="nav-item" onclick="showSection('moderation',this)"><i class="fas fa-shield-alt"></i>
+                Moderation Queue <span class="nav-badge" id="modCount" style="background:var(--danger); display:none;">0</span></button>
             <button class="nav-item" onclick="showSection('achievements',this)"><i class="fas fa-medal"></i>
                 Achievements Wall <span class="nav-badge" id="achievementsCount" style="background:var(--success)">0</span></button>
             <button class="nav-item" id="adminManagementTab" style="display:none;" onclick="showSection('adminmgmt',this)"><i class="fas fa-user-shield"></i>
@@ -1912,6 +1914,23 @@
                         <thead><tr><th>Date</th><th>Feedback</th><th>Actions</th></tr></thead>
                         <tbody id="feedbackTableBody">
                             <tr><td colspan="3" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODERATION QUEUE SECTION -->
+        <section class="section" id="section-moderation">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-shield-alt" style="color:var(--danger)"></i> Moderation Queue</div>
+            </div>
+            <div class="table-wrap">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Content Type</th><th>Details</th><th>Reported By</th><th>Date</th><th>Action</th></tr></thead>
+                        <tbody id="moderationTableBody">
+                            <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -2858,6 +2877,18 @@ const body = document.getElementById('resultsBody');
                 const badge = document.getElementById('pendingCount');
                 if (badge) badge.textContent = pending.length;
                 renderApprovals(pending);
+            });
+
+            // === Section 2.5: Moderation Queue listener ===
+            onSnapshot(query(collection(db, 'reports'), orderBy('timestamp', 'desc')), snap => {
+                const reports = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                const pendingCount = reports.filter(r => r.status === 'pending').length;
+                const badge = document.getElementById('modCount');
+                if (badge) {
+                    badge.textContent = pendingCount;
+                    badge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+                }
+                renderModeration(reports);
             });
 
             // === Section 3: Maintenance Mode live listener ===
@@ -4682,6 +4713,66 @@ const body = document.getElementById('resultsBody');
             }
         };
 
+        window.renderModeration = function(reports) {
+            const tbody = document.getElementById('moderationTableBody');
+            if (!tbody) return;
+            if (reports.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted)">No reports found. Community is clean!</td></tr>';
+                return;
+            }
+            let html = '';
+            reports.forEach(r => {
+                const date = r.timestamp ? r.timestamp.toDate().toLocaleDateString() : 'N/A';
+                const type = escapeHtml(r.type || 'Unknown').toUpperCase();
+                const btnStyle = r.status === 'resolved' ? 'background:var(--success)' : 'background:var(--primary)';
+                const btnText = r.status === 'resolved' ? 'Resolved' : 'Resolve & Delete';
+                
+                html += \`<tr>
+                    <td>\${date}</td>
+                    <td><span class="status-badge status-active">\${type}</span></td>
+                    <td>\${escapeHtml(r.reportedBy || 'Unknown')}</td>
+                    <td><span style="color:\${r.status === 'resolved' ? 'var(--success)' : 'var(--danger)'}">\${r.status === 'resolved' ? 'Resolved' : 'Pending'}</span></td>
+                    <td>
+                        <button class="btn-action" style="\${btnStyle}" \${r.status === 'resolved' ? 'disabled' : ''} onclick="resolveReport('\${r.id}', '\${r.contentId}', '\${r.type}', '\${r.extraPath}')">
+                            \${btnText}
+                        </button>
+                    </td>
+                </tr>\`;
+            });
+            tbody.innerHTML = html;
+        };
+
+        window.resolveReport = async function(reportId, contentId, type, extraPath) {
+            if(!confirm("This will mark the report as resolved and DELETE the reported community content. Continue?")) return;
+            
+            try {
+                // Delete content
+                if (type === 'chat') {
+                    await deleteDoc(doc(db, 'chatRooms', extraPath, 'messages', contentId));
+                } else if (type === 'project') {
+                    await deleteDoc(doc(db, 'projectListings', contentId));
+                } else if (type === 'study') {
+                    await deleteDoc(doc(db, 'studyGroups', contentId));
+                } else if (type === 'poll') {
+                    await deleteDoc(doc(db, 'polls', contentId));
+                } else if (type === 'forum') {
+                    await deleteDoc(doc(db, 'forumThreads', contentId));
+                } else if (type === 'lostfound') {
+                    await deleteDoc(doc(db, 'lostAndFound', contentId));
+                }
+                
+                // Mark report as resolved
+                await updateDoc(doc(db, 'reports', reportId), {
+                    status: 'resolved'
+                });
+                
+                showToast('Content deleted and report resolved.', 'success');
+            } catch(err) {
+                console.error("Resolution error:", err);
+                showToast('Failed to resolve report: ' + err.message, 'error');
+            }
+        };
+
         function escapeHtml(str) {
             if (!str) return '';
             return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
@@ -4720,7 +4811,7 @@ const body = document.getElementById('resultsBody');
             document.getElementById('section-' + id).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            const titles = { overview: 'Dashboard', leaderboard: 'Top Performers', students: 'All Students', staff: 'Staff Management', materials: 'Study Materials', tests: 'Tests', examschedule: 'Exam Schedule', results: 'Results', announcements: 'Broadcast Center', malpractice: 'Malpractice Logs', feedback: 'Feedback / Complaints', adminmgmt: 'Admin Management', approvals: 'Student Approvals', maintenance: 'Maintenance Mode', achievements: 'Achievements Wall' };
+            const titles = { overview: 'Dashboard', leaderboard: 'Top Performers', students: 'All Students', staff: 'Staff Management', materials: 'Study Materials', tests: 'Tests', examschedule: 'Exam Schedule', results: 'Results', announcements: 'Broadcast Center', malpractice: 'Malpractice Logs', feedback: 'Feedback / Complaints', moderation: 'Moderation Queue', adminmgmt: 'Admin Management', approvals: 'Student Approvals', maintenance: 'Maintenance Mode', achievements: 'Achievements Wall' };
             document.getElementById('pageTitle').textContent = titles[id] || id;
             if (window.innerWidth <= 768) closeSidebar();
         };

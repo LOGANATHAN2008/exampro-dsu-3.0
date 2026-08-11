@@ -1585,13 +1585,13 @@
         <div class="sidebar-nav">
             <div class="nav-section">
                 <div class="nav-label">Main</div>
-                <a class="nav-item active" href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+                <a class="nav-item" href="dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
                 <a class="nav-item" href="materials.html"><i class="fas fa-book-reader"></i> Study Materials</a>
                 <a class="nav-item" href="faculty.html"><i class="fas fa-chalkboard-teacher"></i> Faculty</a>
                 <a class="nav-item" href="test.html"><i class="fas fa-clipboard-check"></i> Tests <span
                         class="nav-badge">3</span></a>
                 <a class="nav-item" href="result.html"><i class="fas fa-chart-bar"></i> Results</a>
-                <a class="nav-item" href="community.html"><i class="fas fa-users"></i> Community</a>
+                <a class="nav-item active" href="community.html"><i class="fas fa-users"></i> Community</a>
             </div>
             <div class="nav-section">
                 <div class="nav-label">Academics</div>
@@ -1649,11 +1649,11 @@
         <!-- Header -->
         <div class="header" style="align-items: flex-start; margin-bottom: 40px;">
             <div class="header-left">
-                <div class="greeting">Hello, <br><span id="studentName">Student</span></div>
+                <div class="greeting">Student <br><span>Community Hub</span></div>
                 <div class="greeting-sub-row">
                     <span class="wave-emoji">👋</span>
                     <div class="header-sub">
-                        <span id="greetingTime">Good day!</span>
+                        <span>Connect and Collaborate</span>
                         <span style="opacity: 0.5;">•</span>
                         <span id="currentDay">Today is loading...</span>
                     </div>
@@ -1700,559 +1700,134 @@
             </div>
         </div>
 
-        <!-- Dashboard Section Wrapper -->
-        <section id="sec-dashboard" class="dsh-section active">
-
-        <!-- Stats Grid -->
-        <div class="stats-grid" id="statsGrid">
-            <div class="stat-card" style="--card-color:#6c63ff">
-                <div class="stat-icon" style="background:linear-gradient(135deg,#6c63ff,#4f46e5)"><i
-                        class="fas fa-clipboard-list"></i></div>
-                <div class="stat-info">
-                    <div class="value" id="statTests">-</div>
-                    <div class="label">Available Tests</div>
-                    <div class="change up"><i class="fas fa-arrow-up"></i> 2 new this week</div>
-                </div>
-            </div>
-            <div class="stat-card" style="--card-color:#10b981">
-                <div class="stat-icon" style="background:linear-gradient(135deg,#10b981,#059669)"><i
-                        class="fas fa-check-circle"></i></div>
-                <div class="stat-info">
-                    <div class="value" id="statCompleted">-</div>
-                    <div class="label">Completed</div>
-                    <div class="change up"><i class="fas fa-arrow-up"></i> Good progress!</div>
-                </div>
-            </div>
-            <div class="stat-card" style="--card-color:#f59e0b">
-                <div class="stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i
-                        class="fas fa-star"></i></div>
-                <div class="stat-info">
-                    <div class="value" id="statAvgScore">-</div>
-                    <div class="label">Avg Score</div>
-                    <div class="change up"><i class="fas fa-arrow-up"></i> Above average</div>
-                </div>
-            </div>
-            <div class="stat-card" style="--card-color:#06b6d4">
-                <div class="stat-icon" style="background:linear-gradient(135deg,#06b6d4,#0891b2)"><i
-                        class="fas fa-book-open"></i></div>
-                <div class="stat-info">
-                    <div class="value" id="statCourses">-</div>
-                    <div class="label">Courses Enrolled</div>
-                    <div class="change up"><i class="fas fa-arrow-up"></i> Active learner</div>
-                </div>
-            </div>
+        
+        <!-- Community Sections Wrapper -->
+        <div class="community-tabs" style="display:flex;gap:10px;margin-bottom:20px;overflow-x:auto;padding-bottom:10px;">
+            <button class="comm-tab active" onclick="switchCommTab('chat', this)"><i class="fas fa-comments"></i> Dept Chat</button>
+            <button class="comm-tab" onclick="switchCommTab('projects', this)"><i class="fas fa-project-diagram"></i> Projects</button>
+            <button class="comm-tab" onclick="switchCommTab('study', this)"><i class="fas fa-users"></i> Study Groups</button>
+            <button class="comm-tab" onclick="switchCommTab('polls', this)"><i class="fas fa-poll"></i> Polls</button>
+            <button class="comm-tab" onclick="switchCommTab('forum', this)"><i class="fas fa-comments-dollar"></i> Forum</button>
+            <button class="comm-tab" onclick="switchCommTab('lostfound', this)"><i class="fas fa-search-location"></i> Lost & Found</button>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="quick-actions">
-            <a class="quick-btn" href="test.html"><i class="fas fa-play-circle"
-                    style="color:var(--primary)"></i><span>Take Test</span></a>
-            <a class="quick-btn" href="materials.html"><i class="fas fa-book-reader"
-                    style="color:var(--secondary)"></i><span>Study Materials</span></a>
-            <a class="quick-btn" href="result.html"><i class="fas fa-chart-pie"
-                    style="color:var(--success)"></i><span>Results</span></a>
-            <a class="quick-btn" href="profile.html"><i class="fas fa-user-edit"
-                    style="color:var(--accent)"></i><span>Profile</span></a>
-        </div>
-
-        <!-- Content Grid -->
-        <div class="content-grid">
-            <!-- Tests -->
-            <div>
-                <div class="section-header">
-                    <div class="section-title"><i class="fas fa-clipboard-check" style="color:var(--primary)"></i>
-                        Available Tests</div>
-                    <a class="view-all" href="test.html">View All</a>
-                </div>
-                <div class="tests-grid" id="testsGrid">
-                    <div class="brand-loader-container">
-                        <div class="brand-logo-loader">
-                            <div class="brand-loader-ring"></div>
-                            <img src="dsu_logo.png" alt="DSU Logo" class="brand-loader-img">
-                        </div>
-                        <div class="brand-loader-label">Loading tests...</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Charts & Performance -->
-            <div>
-                <div class="panel" style="margin-bottom:16px">
-                    <div class="panel-title"><i class="fas fa-chart-pie"></i> Performance Overview</div>
-                    <div class="chart-container"><canvas id="perfChart"></canvas></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-title"><i class="fas fa-trophy"></i> Recent Scores</div>
-                    <div id="recentScores">
-                        <div class="perf-item">
-                            <span class="perf-subject">Loading...</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="panel" style="margin-top:16px;">
-                    <div class="panel-title"><i class="fas fa-thumbtack" style="color:var(--danger)"></i> Notice Board</div>
-                    <div id="noticeBoard" style="display:flex;flex-direction:column;gap:12px;max-height:400px;overflow-y:auto;padding-right:8px;">
-                        <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">Loading notices...</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        </section>
-
-        <!-- -----------------------------------------------------------
-             SECTION: EXAM SCHEDULE CALENDAR
-        ----------------------------------------------------------- -->
-        <section id="sec-schedule" class="dsh-section" style="margin-top:0">
-            <div class="section-header">
-                <div class="section-title"
-                    style="font-size:17px;font-weight:700;display:flex;align-items:center;gap:10px">
-                    <i class="fas fa-calendar-alt" style="color:var(--primary)"></i> Exam Schedule
-                </div>
-                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-                    <!-- Reminder Bell -->
-                    <div style="position:relative">
-                        <div class="icon-btn" id="schedBellBtn" onclick="toggleReminderDropdown()"
-                            title="Exam Reminders" style="width:42px;height:42px;border-radius:12px;cursor:pointer">
-                            <i class="fas fa-bell"></i>
-                            <span id="schedBellBadge"
-                                style="position:absolute;top:-4px;right:-4px;background:var(--danger);color:#fff;font-size:9px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:none;align-items:center;justify-content:center;border:2px solid var(--bg);padding:0 4px"></span>
-                        </div>
-                        <div id="schedReminderDd"
-                            style="position:absolute;right:0;top:calc(100% + 8px);background:rgba(26,26,62,.98);border:1px solid var(--glass-border);border-radius:14px;min-width:280px;padding:12px;z-index:200;display:none">
-                            <div
-                                style="font-size:11px;font-weight:700;color:var(--text-muted);padding:0 4px 8px;text-transform:uppercase;letter-spacing:.5px">
-                                Exam Reminders</div>
-                            <div id="schedReminderList">
-                                <div style="text-align:center;padding:16px;color:var(--text-muted);font-size:12px">No
-                                    upcoming reminders</div>
-                            </div>
-                        </div>
-                    </div>
-                    <button onclick="setSchedView('calendar')" id="btnSchedCal"
-                        style="padding:8px 16px;border-radius:20px;border:1px solid var(--glass-border);background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
-                        <i class="fas fa-calendar"></i> Calendar
-                    </button>
-                    <button onclick="setSchedView('list')" id="btnSchedList"
-                        style="padding:8px 16px;border-radius:20px;border:1px solid var(--glass-border);background:var(--glass);color:var(--text-muted);font-size:12px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">
-                        <i class="fas fa-list"></i> List
-                    </button>
-                </div>
-            </div>
-
-            <div
-                style="background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);padding:24px">
-                <!-- Calendar View -->
-                <div id="schedCalView" style="max-width:600px;margin:0 auto">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-                        <button onclick="schedChangeMonth(-1)"
-                            style="background:var(--glass);border:1px solid var(--glass-border);border-radius:10px;width:36px;height:36px;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;justify-content:center"><i
-                                class="fas fa-chevron-left"></i></button>
-                        <div id="schedMonthLbl" style="font-size:16px;font-weight:700">�</div>
-                        <button onclick="schedChangeMonth(1)"
-                            style="background:var(--glass);border:1px solid var(--glass-border);border-radius:10px;width:36px;height:36px;cursor:pointer;color:var(--text-muted);display:flex;align-items:center;justify-content:center"><i
-                                class="fas fa-chevron-right"></i></button>
-                    </div>
-                    <div id="schedCalGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px"></div>
-                </div>
-                <!-- List View -->
-                <div id="schedListView" style="display:none">
-                    <div id="schedListEl" style="display:flex;flex-direction:column;gap:12px"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Exam Detail Modal -->
-        <div id="schedExamModal"
-            style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);z-index:9000;align-items:center;justify-content:center;padding:16px">
-            <div
-                style="background:var(--bg2);border:1px solid var(--glass-border);border-radius:20px;padding:28px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;position:relative;animation:schedModalIn .25s ease;color:var(--text)">
-                <button onclick="document.getElementById('schedExamModal').style.display='none'"
-                    style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,.07);border:none;border-radius:10px;width:32px;height:32px;cursor:pointer;color:var(--text-muted);font-size:14px;display:flex;align-items:center;justify-content:center"><i
-                        class="fas fa-times"></i></button>
-                <div id="sem-title" style="font-size:18px;font-weight:800;margin-bottom:4px">�</div>
-                <div id="sem-sub" style="font-size:13px;color:var(--text-muted);margin-bottom:20px">�</div>
-                <div id="sem-info" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px"></div>
-                <hr style="border:none;border-top:1px solid var(--glass-border);margin:16px 0">
-                <div style="font-size:13px;font-weight:700;margin-bottom:10px"><i class="fas fa-list-ul"
-                        style="color:var(--primary)"></i> Syllabus Topics</div>
-                <ul id="sem-topics" style="list-style:none;display:grid;gap:6px"></ul>
-                <hr style="border:none;border-top:1px solid var(--glass-border);margin:16px 0">
-                <div id="sem-ht-status"></div>
-            </div>
-        </div>
         <style>
-            @keyframes schedModalIn {
-                from {
-                    transform: scale(.95);
-                    opacity: 0
-                }
-
-                to {
-                    transform: scale(1);
-                    opacity: 1
-                }
-            }
+            .community-tabs::-webkit-scrollbar { display: none; }
+            .community-tabs { -ms-overflow-style: none; scrollbar-width: none; }
+            .comm-tab { padding: 10px 15px; border-radius: 8px; border: 1px solid var(--glass-border); background: var(--bg); cursor: pointer; color: var(--text); white-space: nowrap; }
+            .comm-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+            .comm-section { display: none; }
+            .comm-section.active { display: block; }
+            .chat-box { height: 400px; overflow-y: auto; background: rgba(255,255,255,0.02); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--glass-border); display: flex; flex-direction: column; gap: 10px; }
+            .chat-msg { max-width: 80%; padding: 10px 15px; border-radius: 15px; font-size: 14px; line-height: 1.4; position: relative; }
+            .chat-msg.mine { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 4px; }
+            .chat-msg.others { align-self: flex-start; background: rgba(255,255,255,0.05); color: var(--text); border-bottom-left-radius: 4px; border: 1px solid var(--glass-border); }
+            .chat-msg .sender { font-size: 11px; opacity: 0.8; margin-bottom: 4px; font-weight: 600; }
+            .chat-msg .time { font-size: 10px; opacity: 0.6; text-align: right; margin-top: 4px; }
+            .chat-input-area { display: flex; gap: 10px; }
+            .chat-input-area input { flex: 1; padding: 12px 15px; border-radius: 8px; border: 1px solid var(--glass-border); background: var(--bg); color: var(--text); }
+            .chat-input-area button { padding: 0 20px; border-radius: 8px; background: var(--primary); color: white; border: none; cursor: pointer; font-weight: 600; transition: 0.2s; }
+            .chat-input-area button:hover { background: var(--primary-dark); }
+            .community-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+            .comm-card { background: var(--bg); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+            .comm-card h3 { margin-bottom: 10px; font-size: 18px; color: var(--text); }
+            .comm-card p { font-size: 14px; color: var(--text-muted); margin-bottom: 15px; line-height: 1.5; }
+            .comm-card .meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--glass-border); }
+            .comm-card button { width: 100%; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+            .btn-report { background: none; border: none; color: var(--error); font-size: 12px; cursor: pointer; position: absolute; top: 10px; right: -25px; opacity: 0; transition: 0.2s; }
+            .chat-msg:hover .btn-report { opacity: 1; }
         </style>
 
-        <!-- -----------------------------------------------------------
-             SECTION: HALL TICKET
-        ----------------------------------------------------------- -->
-        <section id="sec-hallticket" class="dsh-section" style="margin-top:0">
-            <div class="section-header">
-                <div class="section-title"
-                    style="font-size:17px;font-weight:700;display:flex;align-items:center;gap:10px">
-                    <i class="fas fa-id-card" style="color:var(--primary)"></i> Hall Ticket
-                </div>
-                <button id="htDlBtn" onclick="dshDownloadHallTicketPDF()"
-                    style="padding:10px 22px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .3s">
-                    <i class="fas fa-download"></i> Download PDF
-                </button>
+        <section id="sec-chat" class="comm-section active">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                <h2><i class="fas fa-comments"></i> <span id="chatDeptName">Your Department</span> Chat</h2>
+                <span class="badge" style="background:var(--success);color:white;padding:5px 10px;border-radius:20px;font-size:12px;">Live</span>
             </div>
-
-            <div style="background:rgba(255,255,255,.03);border:1px solid var(--glass-border);border-radius:20px;overflow:hidden"
-                id="dshHtCard">
-                <!-- Header Band -->
-                <div
-                    style="background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:24px 28px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
-                    <div
-                        style="width:60px;height:60px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;overflow:hidden;flex-shrink:0">
-                        <img src="dsu_logo.png" alt="DSU" style="width:100%;height:100%;object-fit:cover"
-                            onerror="this.style.display='none';this.parentElement.innerHTML='&#127979;'">
-                    </div>
-                    <div>
-                        <div style="font-size:16px;font-weight:800;color:#fff">Dayananda Sagar University</div>
-                        <div style="font-size:12px;color:rgba(255,255,255,.7);margin-top:2px">Hosur Rd, Kudlu Gate,
-                            Bengaluru - 560068</div>
-                    </div>
-                    <div
-                        style="margin-left:auto;background:rgba(255,255,255,.15);padding:6px 16px;border-radius:20px;font-size:11px;font-weight:700;color:#fff;letter-spacing:.5px;text-transform:uppercase;border:1px solid rgba(255,255,255,.3)">
-                        Hall Ticket</div>
-                </div>
-                <!-- Body -->
-                <div style="padding:24px 28px">
-                    <div style="display:flex;gap:20px;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap">
-                        <div id="dshHtPhoto"
-                            style="width:90px;height:110px;background:rgba(255,255,255,.06);border:2px dashed var(--glass-border);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;font-size:11px;color:var(--text-muted);flex-shrink:0">
-                            <i class="fas fa-user-circle" style="font-size:28px"></i><span>Photo</span>
-                        </div>
-                        <div style="flex:1;min-width:180px">
-                            <div style="display:flex;margin-bottom:6px;font-size:13px"><span
-                                    style="color:var(--text-muted);width:120px;flex-shrink:0">Name</span><span
-                                    style="font-weight:600" id="dshHtName">Loading...</span></div>
-                            <div style="display:flex;margin-bottom:6px;font-size:13px"><span
-                                    style="color:var(--text-muted);width:120px;flex-shrink:0">Roll No.</span><span
-                                    style="font-weight:600" id="dshHtRoll"></span></div>
-                            <div style="display:flex;margin-bottom:6px;font-size:13px"><span
-                                    style="color:var(--text-muted);width:120px;flex-shrink:0">Register No.</span><span
-                                    style="font-weight:600" id="dshHtReg"></span></div>
-                            <div style="display:flex;margin-bottom:6px;font-size:13px"><span
-                                    style="color:var(--text-muted);width:120px;flex-shrink:0">Semester</span><span
-                                    style="font-weight:600" id="dshHtSem"></span></div>
-                            <div style="display:flex;margin-bottom:6px;font-size:13px"><span
-                                    style="color:var(--text-muted);width:120px;flex-shrink:0">Department</span><span
-                                    style="font-weight:600" id="dshHtDept"></span></div>
-                        </div>
-                        <div id="dshHtQr"
-                            style="width:76px;height:76px;background:rgba(255,255,255,.06);border:2px dashed var(--glass-border);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;font-size:9px;color:var(--text-muted);text-align:center;overflow:hidden;flex-shrink:0">
-                            <i class="fas fa-qrcode" style="font-size:26px"></i><span>QR Code</span>
-                        </div>
-                    </div>
-                    <div style="font-size:13px;font-weight:700;margin-bottom:12px">Examination Schedule</div>
-                    <div style="overflow-x:auto">
-                        <div class="table-responsive"><table style="width:100%;border-collapse:collapse;font-size:12.5px;min-width:520px">
-                            <thead>
-                                <tr id="dshHtThead"></tr>
-                            </thead>
-                            <tbody id="dshHtTbody"></tbody>
-                        </table></div>
-                    </div>
-                    <div
-                        style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--text-muted);margin:16px 0;line-height:1.7">
-                        <strong style="color:var(--danger)">&#9888; Important:</strong> Bring this hall ticket + valid
-                        photo ID. Report 15 minutes early. No electronic devices allowed.
-                    </div>
-                    <div id="dshHtNote"
-                        style="display:none;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--warn);margin-bottom:12px">
-                        <i class="fas fa-info-circle"></i> Hall ticket download will be available <strong
-                            id="dshHtAvailDate"></strong>
-                    </div>
-                </div>
-                <div
-                    style="padding:14px 28px;border-top:1px solid var(--glass-border);display:flex;align-items:center;gap:12px">
-                    <div
-                        style="flex:1;height:36px;background:repeating-linear-gradient(90deg,var(--text-muted) 0px,var(--text-muted) 2px,transparent 2px,transparent 6px);opacity:.2;border-radius:4px;max-width:180px">
-                    </div>
-                    <div style="margin-left:auto;text-align:right;font-size:10px;color:var(--text-muted)">Generated:
-                        <span id="dshHtGenDate"></span><br>ExamPro DSU</div>
-                </div>
+            <div id="chatBox" class="chat-box">
+                <div style="text-align:center; color:var(--text-muted); margin-top: 20px;">Loading messages...</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Type your message..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
+                <button onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
             </div>
         </section>
 
-        <!-- -----------------------------------------------------------
-             SECTION: EXAM HISTORY
-        ----------------------------------------------------------- -->
-        <section id="sec-history" class="dsh-section" style="margin-top:0">
-            <div class="section-header">
-                <div class="section-title"
-                    style="font-size:17px;font-weight:700;display:flex;align-items:center;gap:10px">
-                    <i class="fas fa-history" style="color:var(--primary)"></i> Exam History
-                </div>
-                <button onclick="dshExportHistoryPDF()"
-                    style="padding:10px 20px;background:var(--glass);border:1px solid var(--glass-border);border-radius:12px;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:8px">
-                    <i class="fas fa-file-pdf" style="color:var(--danger)"></i> Export PDF
-                </button>
+        <section id="sec-projects" class="comm-section">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2><i class="fas fa-project-diagram"></i> Project Team Finder</h2>
+                <button class="btn-primary" onclick="openProjectModal()"><i class="fas fa-plus"></i> Post Project</button>
             </div>
-
-            <!-- Stats Bar -->
-            <div id="dshHistStats"
-                style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px">
-            </div>
-
-            <!-- Filters -->
-            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center">
-                <select id="dshFilterSem" onchange="dshApplyFilters()"
-                    style="background:var(--glass);border:1px solid var(--glass-border);border-radius:10px;padding:8px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;cursor:pointer">
-                    <option value="all">All Semesters</option>
-                    <option value="1">Semester 1</option>
-                    <option value="2">Semester 2</option>
-                    <option value="3">Semester 3</option>
-                    <option value="4">Semester 4</option>
-                </select>
-                <select id="dshFilterSubj" onchange="dshApplyFilters()"
-                    style="background:var(--glass);border:1px solid var(--glass-border);border-radius:10px;padding:8px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;cursor:pointer">
-                    <option value="all">All Subjects</option>
-                </select>
-                <select id="dshFilterStat" onchange="dshApplyFilters()"
-                    style="background:var(--glass);border:1px solid var(--glass-border);border-radius:10px;padding:8px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;cursor:pointer">
-                    <option value="all">All Status</option>
-                    <option value="Pass">Pass</option>
-                    <option value="Fail">Fail</option>
-                </select>
-                <select id="dshSortBy" onchange="dshApplyFilters()"
-                    style="background:var(--glass);border:1px solid var(--glass-border);border-radius:10px;padding:8px 14px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;outline:none;cursor:pointer">
-                    <option value="date-desc">Latest First</option>
-                    <option value="date-asc">Oldest First</option>
-                    <option value="score-desc">Highest Score</option>
-                    <option value="score-asc">Lowest Score</option>
-                </select>
-            </div>
-
-            <!-- Table -->
-            <div
-                style="background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);padding:4px 0;overflow-x:auto">
-                <div class="table-responsive"><table id="dshHistTable" style="width:100%;border-collapse:collapse;font-size:13px;min-width:660px">
-                    <thead>
-                        <tr>
-                            <th style="padding:10px 14px;text-align:left;background:rgba(108,99,255,.1);color:var(--primary);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--glass-border);cursor:pointer"
-                                onclick="dshSortHist('subject')">Subject</th>
-                            <th style="padding:10px 14px;text-align:left;background:rgba(108,99,255,.1);color:var(--primary);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--glass-border);cursor:pointer"
-                                onclick="dshSortHist('date')">Date</th>
-                            <th
-                                style="padding:10px 14px;text-align:left;background:rgba(108,99,255,.1);color:var(--primary);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--glass-border)">
-                                Sem</th>
-                            <th style="padding:10px 14px;text-align:left;background:rgba(108,99,255,.1);color:var(--primary);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--glass-border);cursor:pointer"
-                                onclick="dshSortHist('score')">Score</th>
-                            <th
-                                style="padding:10px 14px;text-align:left;background:rgba(108,99,255,.1);color:var(--primary);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--glass-border)">
-                                Grade</th>
-                            <th
-                                style="padding:10px 14px;text-align:left;background:rgba(108,99,255,.1);color:var(--primary);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--glass-border)">
-                                Status</th>
-                            <th
-                                style="padding:10px 14px;background:rgba(108,99,255,.1);border-bottom:1px solid var(--glass-border)">
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody id="dshHistBody"></tbody>
-                </table></div>
-                <div id="dshHistEmpty" style="display:none;text-align:center;padding:40px;color:var(--text-muted)"><i
-                        class="fas fa-history" style="font-size:40px;opacity:.3;display:block;margin-bottom:12px"></i>No
-                    exam history found.</div>
-            </div>
+            <div id="projectsGrid" class="community-grid"></div>
         </section>
 
-        <!-- ==========================================================
-             Section 9: ACHIEVEMENTS WALL
-        ----------------------------------------------------------- -->
-        <section id="sec-achievements" class="dsh-section" style="margin-top:0">
-            <div class="section-header">
-                <div class="section-title" style="font-size:17px;font-weight:700;display:flex;align-items:center;gap:10px">
-                    <i class="fas fa-medal" style="color:var(--success)"></i> Achievements Wall
-                </div>
-                <button onclick="showSubmitAchievementModal()"
-                    style="padding:10px 20px;background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 15px color-mix(in srgb,var(--primary) 40%,transparent)">
-                    <i class="fas fa-plus"></i> Submit Yours
-                </button>
+        <section id="sec-study" class="comm-section">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2><i class="fas fa-users"></i> Study Groups</h2>
+                <button class="btn-primary" onclick="openStudyModal()"><i class="fas fa-plus"></i> Create Group</button>
             </div>
-            
-            <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:12px;padding:20px;margin-bottom:20px">
-                <div style="font-size:14px;color:var(--text-muted);line-height:1.6;margin-bottom:20px;text-align:center">
-                    Celebrate your wins! Submitted achievements will appear on the public wall after admin approval.
-                </div>
-                
-                <div id="achievementsWallGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px">
-                    <!-- Approved Achievements go here -->
-                    <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)">
-                        Loading achievements...
-                    </div>
-                </div>
-            </div>
+            <div id="studyGrid" class="community-grid"></div>
         </section>
 
-        <footer>
-            Developed by <a href="https://loganathanm.in" target="_blank">Loganathan</a>
-        </footer>
-        <!-- Notice Popup Modal (Ad Style) -->
-        <div class="modal-overlay" id="noticePopupModal" style="z-index:9999;">
-            <div class="modal" style="width:90%; max-width:400px; text-align:center; padding:40px 30px; background:var(--bg2); border:4px solid var(--primary); border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,0.5); position:relative;">
-                <div id="noticePopupContent"></div>
-                <button onclick="closeNoticePopup()" style="margin-top:30px; width:100%; padding:14px; background:var(--primary); color:#fff; border:none; border-radius:8px; font-weight:800; font-size:15px; cursor:pointer; font-family:'Inter', sans-serif; text-transform:uppercase; letter-spacing:1px; box-shadow:0 4px 12px color-mix(in srgb, var(--primary) 40%, transparent); transition:transform 0.2s;">OK, I GOT IT</button>
+        <section id="sec-polls" class="comm-section">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2><i class="fas fa-poll"></i> Student Polls</h2>
+                <button class="btn-primary" onclick="openPollModal()"><i class="fas fa-plus"></i> Create Poll</button>
+            </div>
+            <div id="pollsGrid" class="community-grid"></div>
+        </section>
+
+        <section id="sec-forum" class="comm-section">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2><i class="fas fa-comments-dollar"></i> Discussion Forum</h2>
+                <button class="btn-primary" onclick="openForumModal()"><i class="fas fa-plus"></i> New Thread</button>
+            </div>
+            <div id="forumList" style="margin-top:20px; display:flex; flex-direction:column; gap:15px;"></div>
+        </section>
+
+        <section id="sec-lostfound" class="comm-section">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h2><i class="fas fa-search-location"></i> Lost & Found</h2>
+                <button class="btn-primary" onclick="openLostFoundModal()"><i class="fas fa-plus"></i> Report Item</button>
+            </div>
+            <div id="lostFoundGrid" class="community-grid"></div>
+        </section>
+
+        <!-- Generic Community Modal -->
+        <div id="commModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+            <div style="background:var(--bg); padding:25px; border-radius:15px; width:90%; max-width:500px; box-shadow:0 10px 30px rgba(0,0,0,0.5); border:1px solid var(--glass-border);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 id="commModalTitle" style="margin:0;">Modal Title</h3>
+                    <button onclick="closeCommModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text);">&times;</button>
+                </div>
+                <div id="commModalBody" style="display:flex; flex-direction:column; gap:15px;">
+                    <!-- Modal Form Fields Go Here -->
+                </div>
+                <div style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+                    <button onclick="closeCommModal()" style="padding:10px 20px; border-radius:8px; background:rgba(255,255,255,0.05); color:var(--text); border:1px solid var(--glass-border); cursor:pointer;">Cancel</button>
+                    <button id="commModalSubmit" class="btn-primary" style="padding:10px 20px;">Submit</button>
+                </div>
             </div>
         </div>
         
-        <!-- Submit Achievement Modal -->
-        <style>
-            #submitAchievementModal .modal {
-                border-radius: 24px;
-                padding: 28px 24px;
-                border: 1px solid var(--glass-border);
+        <script>
+            // Set current date
+            const now = new Date();
+            const dayEl = document.getElementById('currentDay');
+            if(dayEl) {
+                dayEl.textContent = now.toLocaleDateString('en-GB', {
+                    weekday: 'long', day: 'numeric', month: 'long'
+                });
             }
-            #submitAchievementModal h2 {
-                text-align: center;
-                font-weight: 700;
-                font-size: 22px;
-                margin-bottom: 24px;
-                position: relative;
-            }
-            #submitAchievementModal .close-modal-btn {
-                position: absolute;
-                right: 0;
-                top: 50%;
-                transform: translateY(-50%);
-                background: rgba(128, 128, 128, 0.1);
-                border: none;
-                color: var(--text-muted);
-                cursor: pointer;
-                font-size: 16px;
-                width: 32px;
-                height: 32px;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.2s;
-            }
-            #submitAchievementModal .close-modal-btn:hover {
-                background: rgba(128, 128, 128, 0.2);
-                color: var(--text);
-            }
-            #submitAchievementModal .form-group {
-                margin-bottom: 18px;
-            }
-            #submitAchievementModal .form-group label {
-                font-size: 13px;
-                font-weight: 600;
-                color: var(--text-muted);
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                margin-bottom: 8px;
-                display: block;
-                margin-left: 4px;
-            }
-            #submitAchievementModal .form-control {
-                border-radius: 14px;
-                padding: 14px 16px;
-                border: 1.5px solid transparent;
-                background: rgba(128, 128, 128, 0.06);
-                font-size: 15px;
-                width: 100%;
-                color: var(--text);
-                transition: all 0.2s ease;
-            }
-            #submitAchievementModal .form-control:focus {
-                background: transparent;
-                border-color: var(--primary);
-                box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 15%, transparent);
-                outline: none;
-            }
-            #submitAchievementModal .modal-btns {
-                display: flex;
-                gap: 12px;
-                margin-top: 28px;
-            }
-            #submitAchievementModal .modal-btns button {
-                flex: 1;
-                border-radius: 14px;
-                padding: 14px;
-                font-weight: 600;
-                font-size: 16px;
-                border: none;
-                cursor: pointer;
-                transition: all 0.2s;
-            }
-            #submitAchievementModal .btn-cancel {
-                background: rgba(128, 128, 128, 0.1);
-                color: var(--text);
-            }
-            #submitAchievementModal .btn-cancel:hover {
-                background: rgba(128, 128, 128, 0.2);
-            }
-            #submitAchievementModal .btn-submit {
-                background: var(--primary);
-                color: #fff;
-                box-shadow: 0 4px 15px color-mix(in srgb, var(--primary) 40%, transparent);
-            }
-            #submitAchievementModal .btn-submit:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 6px 20px color-mix(in srgb, var(--primary) 50%, transparent);
-            }
-        </style>
-        <div class="modal-overlay" id="submitAchievementModal">
-            <div class="modal" style="max-width:500px">
-                <h2>
-                    <i class="fas fa-medal" style="color:var(--success); margin-right:8px;"></i> Submit Achievement
-                    <button class="close-modal-btn" type="button" onclick="document.getElementById('submitAchievementModal').classList.remove('active')"><i class="fas fa-times"></i></button>
-                </h2>
-                <form id="achievementForm" onsubmit="submitAchievement(event)">
-                    <div class="form-group">
-                        <label>Achievement Title</label>
-                        <input type="text" id="ach_title" class="form-control" required placeholder="e.g. 1st Place in Hackathon">
-                    </div>
-                    <div style="display:flex; gap:16px;">
-                        <div class="form-group" style="flex:1">
-                            <label>Type</label>
-                            <select id="ach_type" class="form-control" required>
-                                <option value="Hackathon">Hackathon</option>
-                                <option value="Certification">Certification</option>
-                                <option value="Internship">Internship</option>
-                                <option value="Sports">Sports</option>
-                                <option value="Cultural">Cultural / Arts</option>
-                                <option value="Academic">Academic Excellence</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="flex:1">
-                            <label>Date Achieved</label>
-                            <input type="date" id="ach_date" class="form-control" required>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Description (Short)</label>
-                        <textarea id="ach_desc" class="form-control" rows="3" required placeholder="Briefly describe what you did and your role..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Proof Link</label>
-                        <input type="url" id="ach_link" class="form-control" required placeholder="https://linkedin.com/... or Drive link">
-                    </div>
-                    <div class="modal-btns">
-                        <button type="button" class="btn-cancel" onclick="document.getElementById('submitAchievementModal').classList.remove('active')">Cancel</button>
-                        <button type="submit" class="btn-submit" id="achSubmitBtn"><i class="fas fa-paper-plane" style="margin-right:6px"></i> Submit</button>
-                    </div>
-                </form>
-            </div>
-        </div>
 
+            window.switchCommTab = function(tabId, btn) {
+                document.querySelectorAll('.comm-tab').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.comm-section').forEach(s => s.classList.remove('active'));
+                
+                if (btn) btn.classList.add('active');
+                document.getElementById('sec-' + tabId).classList.add('active');
+            }
+        </script>
+        
     </main>
 
     <!-- Chatbot -->
@@ -2287,836 +1862,764 @@
 
 
 
+    
     <!-- Firebase Module -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, collection, query, where, getDocs, onSnapshot, orderBy, limit, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, arrayUnion, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
-            authDomain: "dsu-exam-system.firebaseapp.com",
-            projectId: "dsu-exam-system",
-            storageBucket: "dsu-exam-system.firebasestorage.app",
-            messagingSenderId: "155083834622",
-            appId: "1:155083834622:web:ff0a9780b88bad0b8811af",
-            measurementId: "G-1TPT1BR6GD"
-        };
+// Ensure this matches the existing dashboard.js firebase config!
+const firebaseConfig = {
+    apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
+    authDomain: "dsu-exam-system.firebaseapp.com",
+    projectId: "dsu-exam-system",
+    storageBucket: "dsu-exam-system.appspot.com",
+    messagingSenderId: "563584335869",
+    appId: "1:563584335869:web:355ce9e1dc4a68212dd061",
+    measurementId: "G-FDRL6G9Q7L"
+};
 
-        const app = initializeApp(firebaseConfig);
-        const appCheck = initializeAppCheck(app, {
-            provider: new ReCaptchaV3Provider('6Leua30tAAAAANy_qYf2oF4vC-BLxBBPPKHgKdZe'),
-            isTokenAutoRefreshEnabled: true
-        });
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const functions = getFunctions(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-        // --- Rate Limiting Helper ---
-        const checkRateLimitFn = httpsCallable(functions, 'checkRateLimit');
-        async function enforceRateLimit(action, identifier) {
-            try {
-                await checkRateLimitFn({ action, identifier });
-                return true;
-            } catch (error) {
-                if (error.code === 'resource-exhausted') {
-                    showDashToast(error.message, 'error');
-                    return false;
-                } else {
-                    console.warn("Rate limit check bypassed due to error:", error);
-                    return true;
-                }
-            }
-        }
+let currentUser = null;
+let userData = null;
+let chatUnsubscribe = null;
 
-        let currentUser = null;
-        let perfChartInstance = null;
-
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                window.location.replace('login.html');
-                return;
-            }
-
-            // ===== Section 3: Maintenance Mode Check =====
-            try {
-                const maintDoc = await getDoc(doc(db, 'settings', 'maintenanceMode'));
-                if (maintDoc.exists() && maintDoc.data().enabled === true) {
-                    // Check if user is admin — admins bypass maintenance
-                    const adminDoc = await getDoc(doc(db, 'admins', user.uid));
-                    if (!adminDoc.exists()) {
-                        window.location.replace('maintenance.html');
-                        return;
-                    }
-                }
-            } catch(maintErr) {
-                // Non-fatal — continue loading dashboard
-                console.warn('Maintenance check failed:', maintErr.message);
-            }
-
+// On load
+document.addEventListener('DOMContentLoaded', () => {
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
             currentUser = user;
-            document.body.classList.add('auth-verified');
-            setupRealtimeFeatures(user);
-            await loadDashboard(user);
-        });
-
-        async function setupRealtimeFeatures(user) {
-            let studentDept = 'ALL';
             try {
-                const sDoc = await getDoc(doc(db, 'students', user.uid));
-                if (sDoc.exists() && sDoc.data().department) studentDept = sDoc.data().department;
-            } catch(e) {}
-
-            // Notifications Listener
-            const qNotifs = query(collection(db, 'notifications'), orderBy('createdAt', 'desc'), limit(20));
-            onSnapshot(qNotifs, (snap) => {
-                const notifs = snap.docs
-                    .map(d => ({id: d.id, ...d.data()}))
-                    .filter(n => (n.departments || []).includes('ALL') || (n.departments || []).includes(studentDept) || n.targetUID === user.uid);
-                updateNotificationsUI(notifs, user.uid);
-            });
-
-            // Direct Messages Listener
-            try {
-                const qMsgs = query(collection(db, 'directMessages'), where('studentId', '==', user.uid), orderBy('timestamp', 'desc'), limit(20));
-                onSnapshot(qMsgs, (snap) => {
-                    const msgs = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                    updateMessagesUI(msgs);
-                }, err => {
-                    console.warn("Direct messages index missing. Falling back to unordered query.", err);
-                    const fallbackQ = query(collection(db, 'directMessages'), where('studentId', '==', user.uid), limit(50));
-                    onSnapshot(fallbackQ, fallbackSnap => {
-                        let msgs = fallbackSnap.docs.map(d => ({id: d.id, ...d.data()}));
-                        // Sort locally
-                        msgs.sort((a, b) => {
-                            const tA = a.timestamp?.seconds || 0;
-                            const tB = b.timestamp?.seconds || 0;
-                            return tB - tA;
-                        });
-                        updateMessagesUI(msgs.slice(0, 20));
-                    });
-                });
-            } catch (e) {
-                console.error("Direct messages setup error:", e);
-            }
-
-            // Announcements Listener (TICKER)
-            onSnapshot(collection(db, 'announcements'), (snap) => {
-                if (!snap.empty) {
-                    const latest = snap.docs[0].data();
-                    document.getElementById('announcementTicker').style.display = 'block';
-                    document.getElementById('tickerText').textContent = latest.text;
+                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                if (userDoc.exists()) {
+                    userData = userDoc.data();
+                    document.getElementById('studentName').innerText = userData.name || 'Student';
+                    document.getElementById('sidebarName').innerText = userData.name || 'Student';
+                    if(document.getElementById('chatDeptName')) {
+                        document.getElementById('chatDeptName').innerText = userData.department || 'General';
+                    }
+                    
+                    // Default tab is chat
+                    loadDepartmentChat();
                 } else {
-                    document.getElementById('announcementTicker').style.display = 'none';
+                    window.location.href = 'login.html';
                 }
-            });
-            // Notices Listener
-            onSnapshot(collection(db, 'notices'), (snap) => {
-                const notices = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                renderNoticeBoard(notices);
-            }, error => {
-                console.error("Notices listener error:", error);
-                showDashToast("Database Error: Cannot read notices! Did you forget to publish firestore.rules on the Firebase website?", 'error');
-                const container = document.getElementById('noticeBoard');
-                if(container) container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--danger);font-size:13px;">Failed to load notices. Please deploy firestore.rules</div>';
-            });
-        }
-
-        function renderNoticeBoard(list) {
-            const container = document.getElementById('noticeBoard');
-            if (!container) return;
-            if (!list || !list.length) {
-                container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">No official notices at this time.</div>';
-                return;
+            } catch (err) {
+                console.error("Error fetching user data:", err);
             }
-
-            const now = new Date();
-            
-            const sorted = list.sort((a, b) => {
-                if (a.pinned && !b.pinned) return -1;
-                if (!a.pinned && b.pinned) return 1;
-                const aSec = (a.createdAt && a.createdAt.seconds) ? a.createdAt.seconds : 0;
-                const bSec = (b.createdAt && b.createdAt.seconds) ? b.createdAt.seconds : 0;
-                return bSec - aSec;
-            });
-
-            container.innerHTML = sorted.map(n => {
-                const colors = { exam: 'var(--danger)', fee: 'var(--warning)', holiday: 'var(--success)', general: 'var(--info)' };
-                const c = colors[n.category] || 'var(--info)';
-                
-                let isExpired = false;
-                if (n.validUntil) {
-                    const expiry = new Date(n.validUntil);
-                    if (now > expiry) isExpired = true;
-                }
-
-                const dateStr = n.createdAt && n.createdAt.seconds ? new Date(n.createdAt.seconds * 1000).toLocaleDateString('en-IN', {day:'numeric', month:'short'}) : '';
-                const pinBadge = n.pinned ? '<i class="fas fa-thumbtack" style="color:var(--danger);font-size:12px;" title="Pinned Notice"></i>' : '';
-                
-                let linkHtml = '';
-                if (n.attachmentUrl) {
-                    let dlUrl = n.attachmentUrl;
-                    if (dlUrl.includes('cloudinary.com')) {
-                        dlUrl = dlUrl.replace('/fl_attachment/', '/').replace('/upload/', '/upload/fl_attachment/');
-                    }
-                    linkHtml = `<a href="${dlUrl}" target="_blank" style="display:inline-block;margin-top:8px;font-size:11px;color:var(--primary);text-decoration:none;padding:4px 10px;background:rgba(108,99,255,.1);border-radius:4px;border:1px solid rgba(108,99,255,.2);"><i class="fas fa-file-download"></i> Download Attachment</a>`;
-                }
-
-                // Check for popup logic
-                if (n.isPopup && !isExpired && !sessionStorage.getItem('seenNotice_' + n.id)) {
-                    showNoticePopup(n, c, dateStr, linkHtml);
-                }
-
-                return `
-                <div style="border:1px solid var(--glass-border);border-left:4px solid ${c};border-radius:10px;padding:14px;background:${isExpired ? 'var(--bg2)' : 'var(--glass)'};opacity:${isExpired ? '0.7' : '1'};box-shadow:0 4px 12px rgba(0,0,0,0.05);transition:transform 0.2s;display:flex;flex-direction:column;gap:8px;">
-                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                        <span style="font-size:10px;font-weight:800;color:${c};text-transform:uppercase;letter-spacing:0.5px;background:color-mix(in srgb, ${c} 15%, transparent);padding:3px 8px;border-radius:6px;">${n.category}</span>
-                        ${pinBadge}
-                        <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
-                            ${isExpired ? '<span style="font-size:9px;font-weight:800;color:var(--text-muted);text-transform:uppercase;border:1px solid var(--glass-border);padding:2px 6px;border-radius:4px;background:rgba(0,0,0,0.05);">Expired</span>' : ''}
-                            <span style="font-size:11px;font-weight:500;color:var(--text-muted);"><i class="far fa-calendar-alt" style="margin-right:4px;"></i>${dateStr}</span>
-                        </div>
-                    </div>
-                    <div>
-                        <div style="font-size:15px;font-weight:700;line-height:1.4;margin-bottom:4px;color:var(--text);word-break:break-word;overflow-wrap:anywhere;${isExpired ? 'text-decoration:line-through;color:var(--text-muted)' : ''}">${n.title}</div>
-                        <div style="font-size:13px;color:var(--text-muted);line-height:1.6;white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;">${n.body}</div>
-                    </div>
-                    ${linkHtml}
-                </div>`;
-            }).join('');
-        }
-
-        function showNoticePopup(n, color, dateStr, linkHtml) {
-            sessionStorage.setItem('seenNotice_' + n.id, 'true');
-            const content = `
-                <div style="font-size:12px; font-weight:800; color:${color}; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px;">Important Notice</div>
-                <div style="font-size:20px; font-weight:800; color:var(--text); margin-bottom:12px; line-height:1.3; word-break:break-word; overflow-wrap:anywhere;">${n.title}</div>
-                <div style="font-size:14px; color:var(--text-muted); line-height:1.6; white-space:pre-wrap; margin-bottom:20px; word-break:break-word; overflow-wrap:anywhere;">${n.body}</div>
-                ${linkHtml}
-                <div style="font-size:11px; color:var(--text-muted); margin-top:20px;"><i class="far fa-calendar-alt" style="margin-right:4px;"></i>${dateStr}</div>
-            `;
-            document.getElementById('noticePopupContent').innerHTML = content;
-            document.getElementById('noticePopupModal').classList.add('active');
-        }
-
-        function closeNoticePopup() {
-            document.getElementById('noticePopupModal').classList.remove('active');
-        }
-        window.closeNoticePopup = closeNoticePopup;
-
-        function timeAgo(timestamp) {
-            if (!timestamp) return 'Just now';
-            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp.seconds * 1000);
-            const seconds = Math.floor((new Date() - date) / 1000);
-            let interval = seconds / 31536000;
-            if (interval > 1) return Math.floor(interval) + " yrs ago";
-            interval = seconds / 2592000;
-            if (interval > 1) return Math.floor(interval) + " mos ago";
-            interval = seconds / 86400;
-            if (interval >= 2) return Math.floor(interval) + " days ago";
-            if (interval >= 1) return "Yesterday";
-            interval = seconds / 3600;
-            if (interval >= 1) return Math.floor(interval) + " hrs ago";
-            interval = seconds / 60;
-            if (interval >= 1) return Math.floor(interval) + " mins ago";
-            return "Just now";
-        }
-
-        window.currentNotifIds = [];
-        window.currentMsgIds = [];
-        
-        function updateMessagesUI(msgs) {
-            const list = document.getElementById('msgList');
-            const dDot = document.getElementById('msgDotDesktop');
-            const mDot = document.getElementById('msgDotMobile');
-            
-            window.currentMsgIds = msgs.map(m => m.id);
-            const readState = JSON.parse(localStorage.getItem(`readMsgs_${currentUser.uid}`) || '[]');
-            const unreadCount = msgs.filter(m => !readState.includes(m.id)).length;
-            
-            let hasNewMsg = false;
-            if (window.lastMsgIds) {
-                msgs.forEach(m => {
-                    if (!window.lastMsgIds.has(m.id)) hasNewMsg = true;
-                });
-            }
-            window.lastMsgIds = new Set(msgs.map(m => m.id));
-            if (hasNewMsg && msgs.length > 0) showToast("You received a new message from Admin!", "success");
-            
-            if (msgs.length > 0) {
-                list.innerHTML = msgs.map(m => {
-                    const isUnread = !readState.includes(m.id);
-                    return `
-                    <div class="notif-item" style="display:flex; gap:12px; align-items:flex-start; padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); ${isUnread ? 'background:rgba(255,255,255,0.02);' : ''}">
-                        <div style="background:rgba(16,185,129,0.1); color:var(--success); width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                            <i class="fas fa-paper-plane"></i>
-                        </div>
-                        <div class="notif-content" style="flex:1;">
-                            <div class="notif-title" style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px;">${m.senderName || 'Admin'}</div>
-                            <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px; line-height:1.4;">${m.content || ''}</div>
-                            <div class="notif-time" style="font-size:11px; color:#64748b; font-weight:500;"><i class="fas fa-clock" style="margin-right:4px;"></i>${timeAgo(m.timestamp)}</div>
-                        </div>
-                        ${isUnread ? '<div style="width:8px;height:8px;background:var(--success);border-radius:50%;margin-top:14px;"></div>' : ''}
-                    </div>
-                `}).join('');
-            } else {
-                list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-muted);font-size:13px">No messages</div>';
-            }
-            
-            if (unreadCount > 0) {
-                if(dDot) dDot.style.display = 'block';
-                if(mDot) mDot.style.display = 'block';
-            } else {
-                if(dDot) dDot.style.display = 'none';
-                if(mDot) mDot.style.display = 'none';
-            }
-        }
-
-        function updateNotificationsUI(notifs, uid) {
-            const list = document.getElementById('notifList');
-            const dot = document.getElementById('notifDot');
-            const navBadge = document.querySelector('.nav-badge');
-            
-            window.currentNotifIds = notifs.map(n => n.id);
-            const readState = JSON.parse(localStorage.getItem(`readNotifs_${uid}`) || '[]');
-            const unreadCount = notifs.filter(n => !readState.includes(n.id)).length;
-            
-            let hasNewNotif = false;
-            if (window.lastNotifIds) {
-                notifs.forEach(n => {
-                    if (!window.lastNotifIds.has(n.id)) hasNewNotif = true;
-                });
-            }
-            window.lastNotifIds = new Set(notifs.map(n => n.id));
-            if (hasNewNotif && notifs.length > 0) showToast("You have a new notification!", "info");
-
-            if (notifs.length > 0) {
-                list.innerHTML = notifs.map(n => {
-                    const icon = n.type === 'test' ? 'fa-graduation-cap' : 'fa-bullhorn';
-                    const isUnread = !readState.includes(n.id);
-                    return `
-                    <div class="notif-item" style="display:flex; gap:12px; align-items:flex-start; padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); ${isUnread ? 'background:rgba(255,255,255,0.02);' : ''}">
-                        <div style="background:rgba(108,99,255,0.1); color:var(--primary); width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                            <i class="fas ${icon}"></i>
-                        </div>
-                        <div class="notif-content" style="flex:1;">
-                            <div class="notif-title" style="font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px;">${n.title}</div>
-                            <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px; line-height:1.4;">${n.message || ''}</div>
-                            <div class="notif-time" style="font-size:11px; color:#64748b; font-weight:500;"><i class="fas fa-clock" style="margin-right:4px;"></i>${timeAgo(n.createdAt)}</div>
-                        </div>
-                        ${isUnread ? '<div style="width:8px;height:8px;background:var(--primary);border-radius:50%;margin-top:14px;"></div>' : ''}
-                    </div>
-                `}).join('');
-                
-                if (unreadCount > 0) {
-                    if(dot) dot.style.display = 'block';
-                    if(navBadge) navBadge.textContent = unreadCount;
-                } else {
-                    if(dot) dot.style.display = 'none';
-                    if(navBadge) navBadge.textContent = '0';
-                }
-            } else {
-                list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-muted);font-size:13px">No new notifications</div>';
-                if(dot) dot.style.display = 'none';
-                if(navBadge) navBadge.textContent = '0';
-            }
-        }
-
-        async function loadDashboard(user) {
-            try {
-                // Start realtime listener for the student document to handle remote sign-out
-                onSnapshot(doc(db, 'students', user.uid), async (docSnap) => {
-                    if (!docSnap.exists()) return;
-                    const data = docSnap.data();
-                    
-                    // Check if current device was revoked
-                    const localDeviceId = localStorage.getItem('dsu_deviceId');
-                    if (localDeviceId && data.revokedDevices && data.revokedDevices.includes(localDeviceId)) {
-                        // Remove it from local storage and sign out
-                        localStorage.removeItem('dsu_deviceId');
-                        await signOut(auth);
-                        window.location.href = "login.html";
-                        return;
-                    }
-
-                });
-
-                // Load student profile
-                try {
-                    const studentDoc = await getDoc(doc(db, 'students', user.uid));
-                    if (studentDoc.exists()) {
-                        
-                        // Log dashboard access activity
-                        try {
-                            if (!window._loggedDashboardAccess) {
-                                window._loggedDashboardAccess = true;
-                                await addDoc(collection(db, 'students', user.uid, 'activityLogs'), {
-                                    action: 'dashboard_accessed',
-                                    timestamp: serverTimestamp()
-                                });
-                            }
-                        } catch(e) { console.error("Error logging activity", e); }
-
-                        const data = studentDoc.data();
-                        document.getElementById('studentName').textContent = data.name || 'Student';
-                        document.getElementById('sidebarName').textContent = data.name || 'Student';
-                        if (data.photoURL) {
-                            localStorage.setItem('userPhoto', data.photoURL);
-                            document.getElementById('sidebarAvatar').innerHTML = `<img src="${data.photoURL}" alt="avatar">`;
-                            const topAvatar = document.getElementById('topbarAvatar');
-                            if (topAvatar) topAvatar.innerHTML = `<img src="${data.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
-                            // Also update hall ticket photo
-                            const htPhoto = document.getElementById('dshHtPhoto');
-                            if (htPhoto) htPhoto.innerHTML = `<img src="${data.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`;
-                        } else {
-                            localStorage.removeItem('userPhoto');
-                            document.getElementById('sidebarAvatar').innerHTML = '<i class="fas fa-user"></i>';
-                            const topAvatar = document.getElementById('topbarAvatar');
-                            if (topAvatar) topAvatar.innerHTML = '<i class="fas fa-user"></i>';
-                            const htPhoto = document.getElementById('dshHtPhoto');
-                            if (htPhoto) htPhoto.innerHTML = '<div style="background:#e2e8f0;width:100%;height:100%;border-radius:8px;display:flex;align-items:center;justify-content:center"><i class="fas fa-user" style="color:#94a3b8;font-size:32px"></i></div>';
-                            
-                            const bottomNavProfile = document.querySelector('.mobile-bottom-nav a[href="profile.html"]');
-                            if (bottomNavProfile) {
-                                bottomNavProfile.innerHTML = '<i class="fas fa-user"></i><span class="nav-text">Profile</span>';
-                            }
-                        }
-
-                        // Dynamically update STUDENT_PROFILE mock with real Firebase data
-                        if (typeof STUDENT_PROFILE !== 'undefined') {
-                            STUDENT_PROFILE.name = data.name || STUDENT_PROFILE.name;
-                            STUDENT_PROFILE.regNo = data.registerNumber || STUDENT_PROFILE.regNo;
-                            STUDENT_PROFILE.rollNo = data.rollNumber || STUDENT_PROFILE.rollNo;
-                            STUDENT_PROFILE.department = data.department || STUDENT_PROFILE.department;
-                            STUDENT_PROFILE.photoURL = data.photoURL || STUDENT_PROFILE.photoURL;
-                            STUDENT_PROFILE.branch = data.branch || STUDENT_PROFILE.branch;
-                            STUDENT_PROFILE.section = data.section || STUDENT_PROFILE.section;
-
-                            // Map Year to Semester roughly, or use year if semester isn't available
-                            if (data.year) {
-                                const yearMap = { '1': '1st/2nd Semester', '2': '3rd/4th Semester', '3': '5th/6th Semester', '4': '7th/8th Semester' };
-                                STUDENT_PROFILE.semester = yearMap[data.year] || (data.year.includes('Year') ? data.year : `${data.year} Year`);
-                            }
-                            // Re-render Hall Ticket with real data
-                            if (typeof renderHallTicket === 'function') renderHallTicket();
-                        }
-                    }
-                } catch (err) {
-                    console.warn("Error loading student profile:", err);
-                }
-
-                // Update Greeting and Date
-                const now = new Date();
-                const hours = now.getHours();
-                let greet = "Good night!";
-                if (hours >= 5 && hours < 12) greet = "Good morning!";
-                else if (hours >= 12 && hours < 17) greet = "Good afternoon!";
-                else if (hours >= 17 && hours < 21) greet = "Good evening!";
-
-                document.getElementById('greetingTime').textContent = greet;
-                document.getElementById('currentDay').textContent = now.toLocaleDateString('en-GB', {
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'long'
-                });
-
-                // Load tests
-                const testsQuery = query(collection(db, 'tests'), limit(50));
-                onSnapshot(testsQuery, (snap) => {
-                    const now = new Date();
-                    const userDept = (typeof STUDENT_PROFILE !== 'undefined') ? STUDENT_PROFILE.department : '';
-                    
-                    const filteredDocs = snap.docs.filter(d => {
-                        const t = d.data();
-                        if (!t.isActive) return false;
-                        if (t.startTime) {
-                            const start = t.startTime.toDate ? t.startTime.toDate() : new Date(t.startTime.seconds * 1000);
-                            if (now < start) return false;
-                        }
-                        if (t.endTime) {
-                            const end = t.endTime.toDate ? t.endTime.toDate() : new Date(t.endTime.seconds * 1000);
-                            if (now > end) return false;
-                        }
-                        const depts = t.departments || ['ALL'];
-                        if (!depts.includes('ALL') && !depts.includes(userDept)) return false;
-                        return true;
-                    });
-                    
-                    window._allTests = filteredDocs.map(d => ({ id: d.id, ...d.data() }));
-                    updateStatTests(filteredDocs.length);
-                    renderTests(window._allTests);
-                });
-
-                // Load EXAM EVENTS realtime from the new dedicated collection
-                const examsQuery = query(collection(db, 'exam_schedule'), limit(100));
-                onSnapshot(examsQuery, (snap) => {
-                    const allExams = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-                    if (typeof EXAM_SCHEDULE !== 'undefined') {
-                        const userDept = (typeof STUDENT_PROFILE !== 'undefined') ? STUDENT_PROFILE.department : 'ALL';
-                        const filteredExams = allExams.filter(ex => {
-                            if (!ex.departments || ex.departments.includes('ALL')) return true;
-                            if (userDept && ex.departments.includes(userDept)) return true;
-                            return false;
-                        });
-
-                        EXAM_SCHEDULE = filteredExams.map(ex => {
-                            return {
-                                id: ex.id,
-                                subject: ex.subject || 'Unknown Subject',
-                                subjectCode: ex.subjectCode || '-',
-                                date: ex.date,
-                                time: ex.time || '09:00',
-                                duration: ex.duration || 180,
-                                venue: ex.venue || 'TBD',
-                                type: 'Semester Exam',
-                                hallTicketReady: true,
-                                syllabus: ex.departments || ['ALL'],
-                                instructions: 'Bring ID card and Hall Ticket. Electronic gadgets are strictly prohibited.',
-                            };
-                        });
-
-                        // Rebuild maps
-                        if (typeof examDateMap !== 'undefined') {
-                            for (let key in examDateMap) delete examDateMap[key];
-                            window._examMap = {};
-                            EXAM_SCHEDULE.forEach(ex => {
-                                examDateMap[ex.date] = (examDateMap[ex.date] || []);
-                                examDateMap[ex.date].push(ex);
-                                window._examMap[ex.id] = ex;
-                            });
-                        }
-
-                        // Re-render UI
-                        if (typeof setSchedView === 'function') setSchedView(calViewMode || 'calendar');
-                        if (typeof renderHallTicket === 'function') renderHallTicket();
-                    }
-                });
-
-                // Load EXAM HISTORY realtime from results
-                const histQuery = query(collection(db, 'results'), where('studentId', '==', user.uid));
-                onSnapshot(histQuery, (snap) => {
-                    EXAM_HISTORY = snap.docs.map(d => {
-                        const r = d.data();
-                        let dateStr = '2025-01-01';
-                        if (r.submittedAt) {
-                            const dateObj = new Date(r.submittedAt.seconds * 1000);
-                            const y = dateObj.getFullYear();
-                            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-                            const day = String(dateObj.getDate()).padStart(2, '0');
-                            dateStr = `${y}-${m}-${day}`;
-                        }
-                        
-                        const pct = r.percentage || 0;
-                        let grade = 'F';
-                        if (pct >= 90) grade = 'O';
-                        else if (pct >= 80) grade = 'A+';
-                        else if (pct >= 70) grade = 'A';
-                        else if (pct >= 60) grade = 'B+';
-                        else if (pct >= 50) grade = 'B';
-                        
-                        return {
-                            id: d.id,
-                            subject: r.testTitle || r.testId || 'Unknown Subject',
-                            subjectCode: r.testId ? r.testId.substring(0, 5).toUpperCase() : '-',
-                            date: dateStr,
-                            semester: r.semester || (typeof STUDENT_PROFILE !== 'undefined' ? STUDENT_PROFILE.semester : '1'),
-                            marks: r.score || 0,
-                            totalMarks: r.totalMarks || 100,
-                            grade: grade,
-                            status: pct >= 60 ? 'Pass' : 'Fail'
-                        };
-                    });
-                    
-                    if (typeof renderHistStats === 'function') renderHistStats();
-                    if (typeof dshApplyFilters === 'function') dshApplyFilters();
-                });
-
-                // Load results
-                const resultsQuery = query(collection(db, 'results'), where('studentId', '==', user.uid));
-                onSnapshot(resultsQuery, (snap) => {
-                    const results = snap.docs.map(d => d.data());
-                    window._allResults = results;
-                    updateStatCompleted(results.length);
-                    const avgScore = results.length > 0 ? Math.round(results.reduce((s, r) => s + (r.percentage || 0), 0) / results.length) : 0;
-                    document.getElementById('statAvgScore').textContent = avgScore + '%';
-                    renderRecentScores(results);
-                    renderChart(results);
-                }, (err) => {
-                    console.error("Results Snapshot Error:", err);
-                });
-                
-                // Fetch Staff for Search
-                const staffQuery = collection(db, 'staff');
-                onSnapshot(staffQuery, (snap) => {
-                    window._allStaff = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                });
-
-                // Courses count - wrap in try-catch as it might fail if rules aren't deployed
-                try {
-                    const coursesCount = await getDocs(collection(db, 'courses'));
-                    document.getElementById('statCourses').textContent = coursesCount.size;
-                } catch (err) {
-                    console.warn("Error loading courses count:", err);
-                    document.getElementById('statCourses').textContent = "0";
-                }
-
-                // Announcements & Notifications Listener
-                onSnapshot(query(collection(db, 'announcements'), orderBy('createdAt', 'desc'), limit(10)), snap => {
-                    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    renderAnnouncements(list);
-                });
-
-                // Achievements Listener
-                onSnapshot(collection(db, 'achievements'), snap => {
-                    const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    renderAchievementsDashboard(list);
-                }, err => {
-                    console.error("Achievements Listener Error:", err);
-                    const grid = document.getElementById('achievementsWallGrid');
-                    if (grid) grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--danger)">Error loading achievements: ${err.message}. Please ask admin to deploy Firestore Rules.</div>`;
-                });
-} catch (err) {
-                console.error("Dashboard Load Global Error:", err);
-showToast('Error loading dashboard: ' + (err.message || 'Unknown error'), 'error');
-            }
-        }
-
-        function updateStatTests(n) { document.getElementById('statTests').textContent = n; }
-        function updateStatCompleted(n) { document.getElementById('statCompleted').textContent = n; }
-
-        // =======================================================
-        // Achievements logic
-        // =======================================================
-        window.showSubmitAchievementModal = function() {
-            document.getElementById('submitAchievementModal').classList.add('active');
-        };
-
-        window.submitAchievement = async function(e) {
-            e.preventDefault();
-            const btn = document.getElementById('achSubmitBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-
-            try {
-                await addDoc(collection(db, 'achievements'), {
-                    studentId: currentUser.uid,
-                    studentName: STUDENT_PROFILE.name || 'Student',
-                    registerNumber: STUDENT_PROFILE.regNo || '',
-                    department: STUDENT_PROFILE.department || 'ALL',
-                    title: document.getElementById('ach_title').value,
-                    type: document.getElementById('ach_type').value,
-                    dateAchieved: document.getElementById('ach_date').value,
-                    description: document.getElementById('ach_desc').value,
-                    proofURL: document.getElementById('ach_link').value,
-                    status: 'pending',
-                    submittedAt: serverTimestamp()
-                });
-                showToast('Achievement submitted successfully!', 'success');
-                document.getElementById('achievementForm').reset();
-                document.getElementById('submitAchievementModal').classList.remove('active');
-            } catch(err) {
-                showToast('Failed to submit: ' + err.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Approval';
-            }
-        };
-
-        function renderAchievementsDashboard(list) {
-            const grid = document.getElementById('achievementsWallGrid');
-            if(!grid) return;
-            const approved = list.filter(a => a.status === 'approved').sort((a,b) => (b.submittedAt?.seconds || 0) - (a.submittedAt?.seconds || 0));
-            if(!approved.length) {
-                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)"><i class="fas fa-medal" style="font-size:32px;opacity:0.3;display:block;margin-bottom:12px"></i>No achievements on the wall yet. Be the first to submit!</div>';
-                return;
-            }
-            grid.innerHTML = approved.map(a => {
-                let icon = 'fa-medal';
-                if(a.type === 'Hackathon') icon = 'fa-laptop-code';
-                else if(a.type === 'Certification') icon = 'fa-certificate';
-                else if(a.type === 'Sports') icon = 'fa-trophy';
-                return `
-                <div style="background:rgba(255,255,255,0.02);border:1px solid var(--glass-border);border-radius:12px;padding:20px;position:relative">
-                    <div style="position:absolute;top:20px;right:20px;color:var(--accent);opacity:0.5;font-size:24px"><i class="fas ${icon}"></i></div>
-                    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-                        <div class="user-avatar" style="width:40px;height:40px;font-size:16px">${a.studentName?.charAt(0) || 'S'}</div>
-                        <div>
-                            <div style="font-weight:700;font-size:14px">${escapeHtml(a.studentName || 'Student')}</div>
-                            <div style="font-size:11px;color:var(--text-muted)">${escapeHtml(a.department || '')}</div>
-                        </div>
-                    </div>
-                    <div style="font-weight:600;margin-bottom:8px;font-size:14px;color:var(--success)">${escapeHtml(a.title)}</div>
-                    <div style="font-size:13px;color:rgba(255,255,255,0.8);line-height:1.5;margin-bottom:12px">${escapeHtml(a.description)}</div>
-                    <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-muted);border-top:1px solid var(--glass-border);padding-top:12px">
-                        <span><i class="fas fa-calendar-check"></i> ${a.dateAchieved || '-'}</span>
-                        ${a.proofURL ? `<a href="${a.proofURL}" target="_blank" style="color:var(--primary);text-decoration:none"><i class="fas fa-external-link-alt"></i> Proof</a>` : ''}
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        function renderTests(tests) {
-            const grid = document.getElementById('testsGrid');
-            if (!tests.length) {
-                grid.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-muted)"><i class="fas fa-clipboard-list" style="font-size:36px;opacity:.3"></i><p style="margin-top:12px">No tests available</p></div>`;
-                return;
-            }
-            const colors = ['#6c63ff', '#10b981', '#f59e0b', '#06b6d4', '#ef4444'];
-            grid.innerHTML = tests.slice(0, 6).map((t, i) => `
-        <div class="test-card" onclick="window.location.href='test.html?id=${t.id}'">
-          <div class="test-icon" style="background:linear-gradient(135deg,${colors[i % colors.length]}30,${colors[i % colors.length]}60)">
-            <i class="fas fa-file-alt" style="color:${colors[i % colors.length]}"></i>
-          </div>
-          <div class="test-info">
-            <div class="title">${t.title || 'Untitled Test'}</div>
-            <div class="meta">
-              <span class="meta-item"><i class="fas fa-clock"></i> ${t.duration || 30} mins</span>
-              <span class="meta-item"><i class="fas fa-question-circle"></i> ${t.questions?.length || 0} Qs</span>
-              <span class="meta-item"><i class="fas fa-star"></i> ${t.totalMarks || 100} marks</span>
-            </div>
-          </div>
-          <span class="test-status status-available">Available</span>
-        </div>
-      `).join('');
-        }
-
-        function renderRecentScores(results) {
-            const el = document.getElementById('recentScores');
-            if (!results.length) {
-                el.innerHTML = `<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:12px">No results yet</p>`;
-                return;
-            }
-            el.innerHTML = results.slice(0, 5).map(r => `
-        <div class="perf-item">
-          <span class="perf-subject">${r.testTitle || 'Test'}</span>
-          <div class="perf-bar-wrap"><div class="perf-bar" style="width:${r.percentage || 0}%;background:${(r.percentage || 0) >= 60 ? 'var(--success)' : 'var(--danger)'}"></div></div>
-          <span class="perf-score" style="color:${(r.percentage || 0) >= 60 ? 'var(--success)' : 'var(--danger)'}">${r.percentage || 0}%</span>
-        </div>
-      `).join('');
-        }
-
-        function renderChart(results) {
-            const pass = results.filter(r => (r.percentage || 0) >= 60).length;
-            const fail = results.length - pass;
-            const completed = results.length;
-            const ctx = document.getElementById('perfChart').getContext('2d');
-            if (perfChartInstance) perfChartInstance.destroy();
-            perfChartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Passed', 'Failed', 'Pending'],
-                    datasets: [{
-                        data: [pass, fail, Math.max(0, 5 - completed)],
-                        backgroundColor: ['rgba(16,185,129,.8)', 'rgba(239,68,68,.8)', 'rgba(148,163,184,.3)'],
-                        borderWidth: 0, borderRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false, cutout: '70%',
-                    plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } }
-                }
-            });
-        }
-
-        function renderAnnouncements(list) {
-            const listEl = document.getElementById('notifList');
-            const ticker = document.getElementById('announcementTicker');
-            const tickerText = document.getElementById('tickerText');
-            const badge = document.getElementById('notifBadge');
-
-            if (!list.length) {
-                if (listEl) listEl.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text-muted);font-size:13px">No new notifications</div>';
-                if (ticker) ticker.style.display = 'none';
-                if (badge) badge.style.display = 'none';
-                return;
-            }
-
-            // Ticker setup (show latest)
-            if (ticker) ticker.style.display = 'block';
-            if (tickerText) tickerText.textContent = list[0].message;
-            if (badge) badge.style.display = 'block';
-
-            // List setup
-            if (listEl) {
-                listEl.innerHTML = list.map(a => {
-                    const colors = { info: 'var(--primary)', success: 'var(--success)', warn: 'var(--warn)', danger: 'var(--danger)' };
-                    const icons = { info: 'fa-info-circle', success: 'fa-check-circle', warn: 'fa-exclamation-triangle', danger: 'fa-exclamation-circle' };
-                    const time = a.createdAt ? new Date(a.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now';
-
-                    return `
-                        <div class="notif-item ${a.type === 'info' ? '' : a.type}">
-                            <div class="notif-icon"><i class="fas ${icons[a.type || 'info']}" style="color:${colors[a.type || 'info']}"></i></div>
-                            <div style="flex:1">
-                                <div class="notif-text" style="font-weight:600">${a.message}</div>
-                                ${a.attachmentURL ? `<div style="margin-top:4px"><button onclick="downloadAnnouncementFile('${a.attachmentURL}')" style="color:var(--primary);font-size:11px;text-decoration:none;display:inline-flex;align-items:center;gap:4px;background:rgba(108,99,255,.1);padding:4px 8px;border-radius:4px;border:1px solid rgba(108,99,255,.2);cursor:pointer;font-family:inherit"><i class="fas fa-file-download"></i> Download File</button></div>` : ''}
-                                <div class="notif-time">${time}</div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-        }
-
-        function showToast(msg, type = 'info', duration = 3000) {
-            const container = document.getElementById('toastContainer') || document.body;
-            const toast = document.createElement('div');
-            toast.className = `toast-msg toast-${type}`;
-            toast.style.cssText = `padding: 12px 20px; background: rgba(15, 15, 30, 0.95); border-radius: 10px; color: #fff; display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.1); margin-top: 8px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); animation: slideIn 0.3s ease-out; font-size: 13px; position: fixed; bottom: 20px; right: 20px; z-index: 9999;`;
-
-            const icon = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
-            toast.innerHTML = `<i class="fas ${icon}" style="color:${type === 'success' ? '#10b981' : (type === 'error' ? '#ef4444' : '#6c63ff')}"></i><span>${msg}</span>`;
-
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%)';
-                toast.style.transition = '0.3s';
-                setTimeout(() => toast.remove(), 300);
-            }, duration);
-        }
-
-        window.downloadAnnouncementFile = function (url) {
-            if (!url) return;
-            let dlUrl = url;
-            if (url.includes('cloudinary.com')) {
-                // Remove fl_attachment to prevent 401 Unauthorized errors
-                dlUrl = url.replace('/fl_attachment/', '/');
-            }
-            window.open(dlUrl, '_blank');
-        };
-
-        window.handleLogout = async function () {
-            await signOut(auth);
+        } else {
             window.location.href = 'login.html';
-        };
+        }
+    });
+});
 
-        window._db = db;
-        window._auth = auth;
-        window._user = () => currentUser;
-
-        window.addEventListener('submitFeedbackEvent', async (e) => {
-            const content = e.detail;
+// Chat Logic
+function loadDepartmentChat() {
+    if (!userData || !userData.department) return;
+    
+    const chatBox = document.getElementById('chatBox');
+    const dept = userData.department;
+    
+    if (chatUnsubscribe) chatUnsubscribe(); // Unsub previous if any
+    
+    chatBox.innerHTML = '<div style="text-align:center; color:var(--text-muted); margin-top: 20px;">Loading chat...</div>';
+    
+    const messagesRef = collection(db, 'chatRooms', dept, 'messages');
+    const q = query(messagesRef, orderBy('timestamp', 'asc'));
+    
+    chatUnsubscribe = onSnapshot(q, (snapshot) => {
+        chatBox.innerHTML = '';
+        if (snapshot.empty) {
+            chatBox.innerHTML = '<div style="text-align:center; color:var(--text-muted); margin-top: 20px;">No messages yet. Be the first to say hello!</div>';
+            return;
+        }
+        
+        snapshot.forEach(docSnap => {
+            const msg = docSnap.data();
+            const isMine = msg.senderUID === currentUser.uid;
             
-            if (!(await enforceRateLimit('feedback', currentUser?.email || 'anonymous'))) {
-                return;
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-msg ${isMine ? 'mine' : 'others'}`;
+            
+            // Format time
+            let timeStr = '';
+            if (msg.timestamp) {
+                const date = msg.timestamp.toDate();
+                timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             }
+            
+            msgDiv.innerHTML = `
+                ${!isMine ? `<div class="sender">${msg.senderName}</div>` : ''}
+                <div>${msg.text}</div>
+                <div class="time">${timeStr}</div>
+                <button class="btn-report" onclick="reportContent('chat', '${docSnap.id}', '${dept}')" title="Report Message"><i class="fas fa-flag"></i></button>
+            `;
+            chatBox.appendChild(msgDiv);
+        });
+        
+        // Scroll to bottom
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }, (error) => {
+        console.error("Chat error:", error);
+        chatBox.innerHTML = '<div style="text-align:center; color:var(--error); margin-top: 20px;">Could not load chat. Check permissions.</div>';
+    });
+}
 
-            try {
-                await addDoc(collection(db, 'feedback'), {
-                    content: content,
-                    timestamp: serverTimestamp()
-                });
-                showDashToast('Feedback submitted anonymously! ✓', 'success');
-                document.getElementById('feedbackModal').classList.remove('active');
-            } catch(err) {
-                console.error(err);
-                showDashToast('Error: ' + err.message, 'error');
+window.sendChatMessage = async function() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text || !userData || !userData.department) return;
+    
+    input.value = '';
+    
+    try {
+        const messagesRef = collection(db, 'chatRooms', userData.department, 'messages');
+        await addDoc(messagesRef, {
+            text: text,
+            senderUID: currentUser.uid,
+            senderName: userData.name || 'Anonymous',
+            timestamp: serverTimestamp()
+        });
+    } catch (err) {
+        console.error("Error sending message:", err);
+        alert("Failed to send message.");
+    }
+}
+
+// Global Report Logic
+window.reportContent = async function(type, contentId, extraPath = '') {
+    if(!confirm("Are you sure you want to report this content? Admins will review it.")) return;
+    
+    try {
+        await addDoc(collection(db, 'reports'), {
+            type: type, // 'chat', 'project', 'forum', etc.
+            contentId: contentId,
+            extraPath: extraPath, // useful for chat room dept
+            reportedBy: currentUser.uid,
+            timestamp: serverTimestamp(),
+            status: 'pending'
+        });
+        alert("Content reported successfully!");
+    } catch (err) {
+        console.error("Error reporting:", err);
+        alert("Failed to report content.");
+    }
+}
+
+// ===== Modal Helpers =====
+window.openCommModal = function(title, innerHTML, onSubmit) {
+    document.getElementById('commModalTitle').innerText = title;
+    document.getElementById('commModalBody').innerHTML = innerHTML;
+    const submitBtn = document.getElementById('commModalSubmit');
+    submitBtn.onclick = async () => {
+        const originalText = submitBtn.innerText;
+        submitBtn.innerText = 'Wait...';
+        submitBtn.disabled = true;
+        await onSubmit();
+        submitBtn.innerText = originalText;
+        submitBtn.disabled = false;
+    };
+    document.getElementById('commModal').style.display = 'flex';
+}
+
+window.closeCommModal = function() {
+    document.getElementById('commModal').style.display = 'none';
+    document.getElementById('commModalBody').innerHTML = '';
+}
+
+// ===== Project Team Finder =====
+let projectsUnsubscribe = null;
+
+window.loadProjects = function() {
+    if (projectsUnsubscribe) projectsUnsubscribe();
+    
+    const projectsRef = collection(db, 'projectListings');
+    const q = query(projectsRef, orderBy('timestamp', 'desc'));
+    
+    projectsUnsubscribe = onSnapshot(q, (snapshot) => {
+        const grid = document.getElementById('projectsGrid');
+        grid.innerHTML = '';
+        if (snapshot.empty) {
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);">No projects posted yet. Create one!</div>';
+            return;
+        }
+        
+        snapshot.forEach(docSnap => {
+            const proj = docSnap.data();
+            const isOwner = proj.ownerUID === currentUser.uid;
+            
+            // Check if current user has already requested
+            const requests = proj.requests || [];
+            const hasRequested = requests.includes(currentUser.uid);
+            
+            const card = document.createElement('div');
+            card.className = 'comm-card';
+            card.style.position = 'relative';
+            
+            card.innerHTML = `
+                <h3>${proj.title}</h3>
+                <p>${proj.description}</p>
+                <div class="meta">
+                    <span><i class="fas fa-tools"></i> Skills: ${proj.skills}</span>
+                    <span><i class="fas fa-user"></i> ${proj.ownerName}</span>
+                </div>
+                ${isOwner 
+                    ? `<button class="btn-primary" style="background:var(--success)" onclick="alert('You have ${requests.length} pending requests!')">View Requests (${requests.length})</button>`
+                    : hasRequested
+                        ? `<button class="btn-primary" style="background:var(--text-muted)" disabled>Request Sent</button>`
+                        : `<button class="btn-primary" onclick="requestToJoinProject('${docSnap.id}')">Request to Join</button>`
+                }
+                <button class="btn-report" onclick="reportContent('project', '${docSnap.id}')" title="Report Project"><i class="fas fa-flag"></i></button>
+            `;
+            grid.appendChild(card);
+        });
+    });
+}
+
+window.openProjectModal = function() {
+    openCommModal('Post a Project Idea', `
+        <label>Project Title</label>
+        <input type="text" id="projTitle" placeholder="e.g. AI Study Assistant" style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color);">
+        <label>Description</label>
+        <textarea id="projDesc" rows="3" placeholder="What are you building?" style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color);"></textarea>
+        <label>Skills Needed</label>
+        <input type="text" id="projSkills" placeholder="e.g. React, Firebase, Python" style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color);">
+    `, async () => {
+        const title = document.getElementById('projTitle').value.trim();
+        const desc = document.getElementById('projDesc').value.trim();
+        const skills = document.getElementById('projSkills').value.trim();
+        
+        if(!title || !desc) {
+            alert("Title and Description are required!");
+            return;
+        }
+        
+        try {
+            await addDoc(collection(db, 'projectListings'), {
+                title: title,
+                description: desc,
+                skills: skills,
+                ownerUID: currentUser.uid,
+                ownerName: userData.name || 'Student',
+                requests: [], // array of UIDs who requested to join
+                timestamp: serverTimestamp()
+            });
+            closeCommModal();
+        } catch(err) {
+            console.error("Error adding project:", err);
+            alert("Failed to create project.");
+        }
+    });
+}
+
+
+
+window.requestToJoinProject = async function(projectId) {
+    if(!confirm("Send a request to join this project?")) return;
+    
+    try {
+        const projRef = doc(db, 'projectListings', projectId);
+        await updateDoc(projRef, {
+            requests: arrayUnion(currentUser.uid)
+        });
+        alert("Request sent successfully!");
+    } catch(err) {
+        console.error("Error sending request:", err);
+        alert("Failed to send request.");
+    }
+}
+
+// ===== Study Groups =====
+let studyUnsubscribe = null;
+
+window.loadStudyGroups = function() {
+    if (studyUnsubscribe) studyUnsubscribe();
+    
+    const studyRef = collection(db, 'studyGroups');
+    const q = query(studyRef, orderBy('timestamp', 'desc'));
+    
+    studyUnsubscribe = onSnapshot(q, (snapshot) => {
+        const grid = document.getElementById('studyGrid');
+        grid.innerHTML = '';
+        if (snapshot.empty) {
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);">No study groups yet. Start one!</div>';
+            return;
+        }
+        
+        snapshot.forEach(docSnap => {
+            const grp = docSnap.data();
+            const members = grp.members || [];
+            const isMember = members.includes(currentUser.uid);
+            
+            const card = document.createElement('div');
+            card.className = 'comm-card';
+            card.style.position = 'relative';
+            
+            card.innerHTML = `
+                <h3>${grp.subject}</h3>
+                <p><i class="fas fa-clock"></i> ${grp.schedule}</p>
+                <div class="meta">
+                    <span><i class="fas fa-users"></i> ${members.length} / ${grp.maxMembers} Members</span>
+                    <span><i class="fas fa-user-graduate"></i> Host: ${grp.ownerName}</span>
+                </div>
+                ${isMember
+                    ? `<button class="btn-primary" style="background:var(--error)" onclick="leaveStudyGroup('${docSnap.id}')">Leave Group</button>`
+                    : members.length >= parseInt(grp.maxMembers)
+                        ? `<button class="btn-primary" style="background:var(--text-muted)" disabled>Group Full</button>`
+                        : `<button class="btn-primary" onclick="joinStudyGroup('${docSnap.id}')">Join Group</button>`
+                }
+                <button class="btn-report" onclick="reportContent('study', '${docSnap.id}')" title="Report Group"><i class="fas fa-flag"></i></button>
+            `;
+            grid.appendChild(card);
+        });
+    });
+}
+
+window.openStudyModal = function() {
+    openCommModal('Create Study Group', `
+        <label>Subject Topic</label>
+        <input type="text" id="grpSubject" placeholder="e.g. Data Structures Prep" style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color);">
+        <label>Schedule / Location</label>
+        <input type="text" id="grpSchedule" placeholder="e.g. Tomorrow 5 PM at Library" style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color);">
+        <label>Max Members</label>
+        <input type="number" id="grpMax" value="5" min="2" max="20" style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color);">
+    `, async () => {
+        const subject = document.getElementById('grpSubject').value.trim();
+        const schedule = document.getElementById('grpSchedule').value.trim();
+        const maxMembers = document.getElementById('grpMax').value.trim();
+        
+        if(!subject || !schedule || !maxMembers) {
+            alert("All fields are required!");
+            return;
+        }
+        
+        try {
+            await addDoc(collection(db, 'studyGroups'), {
+                subject: subject,
+                schedule: schedule,
+                maxMembers: parseInt(maxMembers),
+                ownerUID: currentUser.uid,
+                ownerName: userData.name || 'Student',
+                members: [currentUser.uid], // Owner is automatically a member
+                timestamp: serverTimestamp()
+            });
+            closeCommModal();
+        } catch(err) {
+            console.error("Error creating group:", err);
+            alert("Failed to create group.");
+        }
+    });
+}
+
+import { arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+window.joinStudyGroup = async function(groupId) {
+    try {
+        const grpRef = doc(db, 'studyGroups', groupId);
+        await updateDoc(grpRef, {
+            members: arrayUnion(currentUser.uid)
+        });
+    } catch(err) {
+        console.error("Error joining:", err);
+        alert("Failed to join group.");
+    }
+}
+
+window.leaveStudyGroup = async function(groupId) {
+    if(!confirm("Are you sure you want to leave this study group?")) return;
+    try {
+        const grpRef = doc(db, 'studyGroups', groupId);
+        await updateDoc(grpRef, {
+            members: arrayRemove(currentUser.uid)
+        });
+    } catch(err) {
+        console.error("Error leaving:", err);
+        alert("Failed to leave group.");
+    }
+}
+
+// ===== Polls =====
+let pollsUnsubscribe = null;
+
+window.loadPolls = function() {
+    if (pollsUnsubscribe) pollsUnsubscribe();
+    
+    const pollsRef = collection(db, 'polls');
+    const q = query(pollsRef, orderBy('timestamp', 'desc'));
+    
+    pollsUnsubscribe = onSnapshot(q, (snapshot) => {
+        const grid = document.getElementById('pollsGrid');
+        grid.innerHTML = '';
+        if (snapshot.empty) {
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);">No polls yet.</div>';
+            return;
+        }
+        
+        snapshot.forEach(docSnap => {
+            const poll = docSnap.data();
+            const totalVotes = poll.options.reduce((acc, opt) => acc + (opt.votes.length || 0), 0);
+            
+            // Check if voted
+            let votedOptIndex = -1;
+            poll.options.forEach((opt, idx) => {
+                if(opt.votes && opt.votes.includes(currentUser.uid)) {
+                    votedOptIndex = idx;
+                }
+            });
+            
+            const card = document.createElement('div');
+            card.className = 'comm-card';
+            card.style.position = 'relative';
+            
+            let optionsHTML = '';
+            poll.options.forEach((opt, idx) => {
+                const optVotes = opt.votes ? opt.votes.length : 0;
+                const pct = totalVotes > 0 ? Math.round((optVotes / totalVotes) * 100) : 0;
+                const isMyVote = (votedOptIndex === idx);
+                
+                optionsHTML += `
+                    <div style="margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px;">
+                            <span style="font-weight:${isMyVote?'bold':'normal'}">${opt.text} ${isMyVote?'(Your Vote)':''}</span>
+                            <span>${pct}%</span>
+                        </div>
+                        <div style="background:var(--bg3); border-radius:10px; height:8px; overflow:hidden; cursor:pointer;" onclick="votePoll('${docSnap.id}', ${idx})">
+                            <div style="background:var(--primary); width:${pct}%; height:100%; border-radius:10px; transition:0.3s;"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            card.innerHTML = `
+                <h3>${poll.question}</h3>
+                <div style="margin-top:15px; margin-bottom:15px;">
+                    ${optionsHTML}
+                </div>
+                <div class="meta" style="margin-bottom:0; border:none; padding-bottom:0;">
+                    <span><i class="fas fa-poll-h"></i> ${totalVotes} Total Votes</span>
+                    <span>By ${poll.ownerName}</span>
+                </div>
+                <button class="btn-report" onclick="reportContent('poll', '${docSnap.id}')" title="Report Poll"><i class="fas fa-flag"></i></button>
+            `;
+            grid.appendChild(card);
+        });
+    });
+}
+
+window.openPollModal = function() {
+    openCommModal('Create Student Poll', `
+        <label>Poll Question</label>
+        <input type="text" id="pollQuestion" placeholder="e.g. Which programming language should we cover next?" style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color); margin-bottom:15px;">
+        
+        <label>Options</label>
+        <input type="text" id="pollOpt1" placeholder="Option 1" style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color); margin-bottom:10px;">
+        <input type="text" id="pollOpt2" placeholder="Option 2" style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color); margin-bottom:10px;">
+        <input type="text" id="pollOpt3" placeholder="Option 3 (Optional)" style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color); margin-bottom:10px;">
+    `, async () => {
+        const question = document.getElementById('pollQuestion').value.trim();
+        const opt1 = document.getElementById('pollOpt1').value.trim();
+        const opt2 = document.getElementById('pollOpt2').value.trim();
+        const opt3 = document.getElementById('pollOpt3').value.trim();
+        
+        if(!question || !opt1 || !opt2) {
+            alert("Question and at least 2 options are required!");
+            return;
+        }
+        
+        const options = [
+            { text: opt1, votes: [] },
+            { text: opt2, votes: [] }
+        ];
+        if(opt3) options.push({ text: opt3, votes: [] });
+        
+        try {
+            await addDoc(collection(db, 'polls'), {
+                question: question,
+                options: options,
+                ownerUID: currentUser.uid,
+                ownerName: userData.name || 'Student',
+                timestamp: serverTimestamp()
+            });
+            closeCommModal();
+        } catch(err) {
+            console.error("Error creating poll:", err);
+            alert("Failed to create poll.");
+        }
+    });
+}
+
+window.votePoll = async function(pollId, optionIndex) {
+    try {
+        const pollRef = doc(db, 'polls', pollId);
+        const pollDoc = await getDoc(pollRef);
+        if(!pollDoc.exists()) return;
+        
+        const poll = pollDoc.data();
+        let alreadyVoted = false;
+        
+        // Remove vote from any existing option
+        poll.options.forEach(opt => {
+            const idx = opt.votes.indexOf(currentUser.uid);
+            if(idx > -1) {
+                opt.votes.splice(idx, 1);
+                alreadyVoted = true;
             }
         });
+        
+        // Add to new option
+        poll.options[optionIndex].votes.push(currentUser.uid);
+        
+        await updateDoc(pollRef, {
+            options: poll.options
+        });
+        
+    } catch(err) {
+        console.error("Error voting:", err);
+        alert("Failed to register vote.");
+    }
+}
+
+// ===== Discussion Forum =====
+let forumUnsubscribe = null;
+
+window.loadForum = function() {
+    if (forumUnsubscribe) forumUnsubscribe();
+    
+    const forumRef = collection(db, 'forumThreads');
+    const q = query(forumRef, orderBy('timestamp', 'desc'));
+    
+    forumUnsubscribe = onSnapshot(q, (snapshot) => {
+        const list = document.getElementById('forumList');
+        list.innerHTML = '';
+        if (snapshot.empty) {
+            list.innerHTML = '<div style="text-align:center;color:var(--text-muted);">No discussions yet. Start a thread!</div>';
+            return;
+        }
+        
+        snapshot.forEach(docSnap => {
+            const thread = docSnap.data();
+            const upvotes = thread.upvotes || [];
+            const hasUpvoted = upvotes.includes(currentUser.uid);
+            
+            const card = document.createElement('div');
+            card.className = 'comm-card';
+            card.style.position = 'relative';
+            
+            card.innerHTML = `
+                <div style="display:flex; gap:15px;">
+                    <div style="display:flex; flex-direction:column; align-items:center; gap:5px;">
+                        <button style="background:none; border:none; cursor:pointer; font-size:20px; color:${hasUpvoted ? 'var(--primary)' : 'var(--text-muted)'};" onclick="upvoteThread('${docSnap.id}')">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                        <span style="font-weight:bold; color:var(--text-color);">${upvotes.length}</span>
+                    </div>
+                    <div style="flex:1;">
+                        <h3 style="margin-bottom:5px;">${thread.title}</h3>
+                        <p style="margin-bottom:10px;">${thread.body}</p>
+                        <div class="meta" style="margin-bottom:0; border:none; padding-bottom:0;">
+                            <span><i class="fas fa-tag"></i> ${thread.category}</span>
+                            <span>By ${thread.authorName}</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-report" onclick="reportContent('forum', '${docSnap.id}')" title="Report Thread"><i class="fas fa-flag"></i></button>
+            `;
+            list.appendChild(card);
+        });
+    });
+}
+
+window.openForumModal = function() {
+    openCommModal('New Discussion Thread', `
+        <label>Category</label>
+        <select id="forumCategory" style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color); margin-bottom:15px; width:100%;">
+            <option value="General">General</option>
+            <option value="Academics">Academics</option>
+            <option value="Events">Events</option>
+            <option value="Help">Help/Questions</option>
+        </select>
+        <label>Thread Title</label>
+        <input type="text" id="forumTitle" placeholder="What do you want to discuss?" style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color); margin-bottom:15px;">
+        <label>Message</label>
+        <textarea id="forumBody" rows="4" placeholder="Write your post here..." style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color);"></textarea>
+    `, async () => {
+        const title = document.getElementById('forumTitle').value.trim();
+        const body = document.getElementById('forumBody').value.trim();
+        const category = document.getElementById('forumCategory').value;
+        
+        if(!title || !body) {
+            alert("Title and message are required!");
+            return;
+        }
+        
+        try {
+            await addDoc(collection(db, 'forumThreads'), {
+                title: title,
+                body: body,
+                category: category,
+                authorUID: currentUser.uid,
+                authorName: userData.name || 'Student',
+                upvotes: [],
+                timestamp: serverTimestamp()
+            });
+            closeCommModal();
+        } catch(err) {
+            console.error("Error creating thread:", err);
+            alert("Failed to create thread.");
+        }
+    });
+}
+
+window.upvoteThread = async function(threadId) {
+    try {
+        const threadRef = doc(db, 'forumThreads', threadId);
+        const threadDoc = await getDoc(threadRef);
+        if(!threadDoc.exists()) return;
+        
+        const upvotes = threadDoc.data().upvotes || [];
+        if(upvotes.includes(currentUser.uid)) {
+            // Remove upvote
+            await updateDoc(threadRef, { upvotes: arrayRemove(currentUser.uid) });
+        } else {
+            // Add upvote
+            await updateDoc(threadRef, { upvotes: arrayUnion(currentUser.uid) });
+        }
+    } catch(err) {
+        console.error("Error upvoting:", err);
+    }
+}
+
+// ===== Lost & Found =====
+let lfUnsubscribe = null;
+
+window.loadLostFound = function() {
+    if (lfUnsubscribe) lfUnsubscribe();
+    
+    const lfRef = collection(db, 'lostAndFound');
+    const q = query(lfRef, orderBy('timestamp', 'desc'));
+    
+    lfUnsubscribe = onSnapshot(q, (snapshot) => {
+        const grid = document.getElementById('lostFoundGrid');
+        grid.innerHTML = '';
+        if (snapshot.empty) {
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);">No items reported yet.</div>';
+            return;
+        }
+        
+        snapshot.forEach(docSnap => {
+            const item = docSnap.data();
+            
+            const card = document.createElement('div');
+            card.className = 'comm-card';
+            card.style.position = 'relative';
+            if(item.status === 'resolved') {
+                card.style.opacity = '0.6';
+            }
+            
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h3 style="margin:0;">${item.itemName}</h3>
+                    <span style="padding:4px 8px; border-radius:12px; font-size:11px; font-weight:bold; color:white; background:${item.type === 'Lost' ? 'var(--error)' : 'var(--success)'}">${item.type}</span>
+                </div>
+                <p style="margin-bottom:10px;">${item.description}</p>
+                <div style="font-size:12px; color:var(--text-color); margin-bottom:10px;">
+                    <div><strong><i class="fas fa-map-marker-alt"></i> Location:</strong> ${item.location}</div>
+                    <div><strong><i class="fas fa-phone"></i> Contact:</strong> ${item.contact}</div>
+                </div>
+                ${item.status === 'resolved' 
+                    ? `<div style="text-align:center; color:var(--success); font-weight:bold; margin-top:10px;">RESOLVED</div>`
+                    : item.reporterUID === currentUser.uid 
+                        ? `<button class="btn-primary" style="background:var(--success); margin-top:10px;" onclick="resolveLostFound('${docSnap.id}')">Mark as Resolved</button>`
+                        : ``
+                }
+                <button class="btn-report" onclick="reportContent('lostfound', '${docSnap.id}')" title="Report Item"><i class="fas fa-flag"></i></button>
+            `;
+            grid.appendChild(card);
+        });
+    });
+}
+
+window.openLostFoundModal = function() {
+    openCommModal('Report Lost/Found Item', `
+        <label>Type</label>
+        <select id="lfType" style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color); margin-bottom:15px; width:100%;">
+            <option value="Lost">I Lost Something</option>
+            <option value="Found">I Found Something</option>
+        </select>
+        <label>Item Name</label>
+        <input type="text" id="lfName" placeholder="e.g. Blue Water Bottle" style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color); margin-bottom:15px;">
+        <label>Description</label>
+        <textarea id="lfDesc" rows="3" placeholder="Provide details (color, brand, etc.)" style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color); margin-bottom:15px;"></textarea>
+        <label>Location</label>
+        <input type="text" id="lfLocation" placeholder="Where was it lost/found?" style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color); margin-bottom:15px;">
+        <label>Contact Info</label>
+        <input type="text" id="lfContact" placeholder="e.g. 9876543210 or your email" style="padding:10px; border-radius:5px; border:1px solid var(--glass-border); background:var(--bg2); color:var(--text-color); margin-bottom:15px;">
+    `, async () => {
+        const type = document.getElementById('lfType').value;
+        const itemName = document.getElementById('lfName').value.trim();
+        const desc = document.getElementById('lfDesc').value.trim();
+        const location = document.getElementById('lfLocation').value.trim();
+        const contact = document.getElementById('lfContact').value.trim();
+        
+        if(!itemName || !location || !contact) {
+            alert("Item Name, Location, and Contact are required!");
+            return;
+        }
+        
+        try {
+            await addDoc(collection(db, 'lostAndFound'), {
+                type: type,
+                itemName: itemName,
+                description: desc,
+                location: location,
+                contact: contact,
+                reporterUID: currentUser.uid,
+                reporterName: userData.name || 'Student',
+                status: 'active',
+                timestamp: serverTimestamp()
+            });
+            closeCommModal();
+        } catch(err) {
+            console.error("Error reporting item:", err);
+            alert("Failed to submit.");
+        }
+    });
+}
+
+window.resolveLostFound = async function(id) {
+    if(!confirm("Mark this item as resolved? It will stay visible but marked as done.")) return;
+    try {
+        await updateDoc(doc(db, 'lostAndFound', id), {
+            status: 'resolved'
+        });
+    } catch(err) {
+        console.error("Error resolving:", err);
+    }
+}
+
+// Hook up tab switching to load data dynamically
+document.addEventListener('DOMContentLoaded', () => {
+    // Override switchCommTab to also trigger data loading
+    const oldSwitch = window.switchCommTab;
+    window.switchCommTab = function(tabId) {
+        if(oldSwitch) oldSwitch(tabId);
+        
+        if(tabId === 'chat') loadDepartmentChat();
+        if(tabId === 'projects') loadProjects();
+        if(tabId === 'study') loadStudyGroups();
+        if(tabId === 'polls') loadPolls();
+        if(tabId === 'forum') loadForum();
+        if(tabId === 'lostfound') loadLostFound();
+    }
+});
+
+
     </script>
+            
 
     <script>
         // Security
