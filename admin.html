@@ -4727,17 +4727,17 @@ const body = document.getElementById('resultsBody');
                 const btnStyle = r.status === 'resolved' ? 'background:var(--success)' : 'background:var(--primary)';
                 const btnText = r.status === 'resolved' ? 'Resolved' : 'Resolve & Delete';
                 
-                html += \`<tr>
-                    <td>\${date}</td>
-                    <td><span class="status-badge status-active">\${type}</span></td>
-                    <td>\${escapeHtml(r.reportedBy || 'Unknown')}</td>
-                    <td><span style="color:\${r.status === 'resolved' ? 'var(--success)' : 'var(--danger)'}">\${r.status === 'resolved' ? 'Resolved' : 'Pending'}</span></td>
+                html += `<tr>
+                    <td>${date}</td>
+                    <td><span class="status-badge status-active">${type}</span></td>
+                    <td>${escapeHtml(r.reportedBy || 'Unknown')}</td>
+                    <td><span style="color:${r.status === 'resolved' ? 'var(--success)' : 'var(--danger)'}">${r.status === 'resolved' ? 'Resolved' : 'Pending'}</span></td>
                     <td>
-                        <button class="btn-action" style="\${btnStyle}" \${r.status === 'resolved' ? 'disabled' : ''} onclick="resolveReport('\${r.id}', '\${r.contentId}', '\${r.type}', '\${r.extraPath}')">
-                            \${btnText}
+                        <button class="btn-action" style="${btnStyle}" ${r.status === 'resolved' ? 'disabled' : ''} onclick="resolveReport('${r.id}', '${r.contentId}', '${r.type}', '${r.extraPath}')">
+                            ${btnText}
                         </button>
                     </td>
-                </tr>\`;
+                </tr>`;
             });
             tbody.innerHTML = html;
         };
