@@ -237,7 +237,7 @@ service cloud.firestore {
     match /chatRooms/{department}/messages/{msgId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
-      allow update: if false;
+      allow update: if request.auth != null;
       allow delete: if isAnyAdmin() || (request.auth != null && resource.data.senderUID == request.auth.uid);
     }
 

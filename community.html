@@ -74,7 +74,90 @@
         body.auth-verified {
             opacity: 1;
         }
-    </style>
+    
+        /* WhatsApp-like Chat Features CSS */
+        .chat-msg { position: relative; }
+        .msg-actions { 
+            display: none; 
+            position: absolute; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            background: rgba(0,0,0,0.8); 
+            border-radius: 20px; 
+            padding: 5px 10px; 
+            gap: 10px; 
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+        .chat-msg:hover .msg-actions { display: flex; }
+        .chat-msg.mine .msg-actions { right: 100%; margin-right: 10px; }
+        .chat-msg.others .msg-actions { left: 100%; margin-left: 10px; }
+        
+        .msg-action-btn { 
+            background: none; 
+            border: none; 
+            color: #fff; 
+            cursor: pointer; 
+            font-size: 14px; 
+            transition: 0.2s; 
+            opacity: 0.7;
+        }
+        .msg-action-btn:hover { opacity: 1; transform: scale(1.1); }
+        
+        .quoted-msg {
+            background: rgba(0,0,0,0.2);
+            border-left: 3px solid var(--accent);
+            padding: 8px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .quoted-msg .q-sender { color: var(--accent); font-weight: 700; margin-bottom: 3px; }
+        
+        .reply-preview-box {
+            display: none;
+            background: rgba(255,255,255,0.05);
+            border-left: 3px solid var(--accent);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            position: relative;
+            font-size: 13px;
+        }
+        .reply-preview-box .rp-sender { color: var(--accent); font-weight: 700; margin-bottom: 3px; }
+        .reply-preview-box .close-rp { position: absolute; top: 10px; right: 10px; cursor: pointer; color: var(--text-muted); background: none; border:none;}
+        
+        .reaction-badge {
+            display: inline-block;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 2px 6px;
+            font-size: 11px;
+            margin-top: 5px;
+            margin-right: 4px;
+            cursor: pointer;
+        }
+        .reaction-badge:hover { background: rgba(255,255,255,0.1); }
+        
+        .emoji-picker-popover {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 20px;
+            padding: 5px 10px;
+            gap: 8px;
+            z-index: 20;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .emoji-picker-popover.show { display: flex; }
+        .emoji-btn { background: none; border: none; font-size: 18px; cursor: pointer; transition: 0.2s; padding: 2px;}
+        .emoji-btn:hover { transform: scale(1.3); }
+
+        </style>
     <script>
         if (localStorage.getItem('currentUser') || sessionStorage.getItem('appLoaded')) {
             document.addEventListener('DOMContentLoaded', () => {
@@ -1746,6 +1829,12 @@
             <div id="chatBox" class="chat-box">
                 <div style="text-align:center; color:var(--text-muted); margin-top: 20px;">Loading messages...</div>
             </div>
+            
+            <div id="replyPreviewBox" class="reply-preview-box">
+                <button class="close-rp" onclick="cancelReply()"><i class="fas fa-times"></i></button>
+                <div class="rp-sender" id="rpSender">Sender</div>
+                <div id="rpText">Message text...</div>
+            </div>
             <div class="chat-input-area">
                 <input type="text" id="chatInput" placeholder="Type your message..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
                 <button onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
@@ -1867,7 +1956,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, arrayUnion, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, arrayUnion, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // Ensure this matches the existing dashboard.js firebase config!
 const firebaseConfig = {
@@ -1917,6 +2006,78 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+    
+// WhatsApp-like Chat Features
+window.currentReplyTo = null;
+
+window.replyMessage = function(msgId, senderName, text) {
+    window.currentReplyTo = { id: msgId, sender: senderName, text: text };
+    document.getElementById('rpSender').innerText = senderName;
+    document.getElementById('rpText').innerText = text.length > 50 ? text.substring(0, 50) + '...' : text;
+    document.getElementById('replyPreviewBox').style.display = 'block';
+    document.getElementById('chatInput').focus();
+};
+
+window.cancelReply = function() {
+    window.currentReplyTo = null;
+    document.getElementById('replyPreviewBox').style.display = 'none';
+};
+
+window.deleteMessage = async function(msgId, dept) {
+    if(!confirm('Delete this message?')) return;
+    try {
+        await deleteDoc(doc(db, 'chatRooms', dept, 'messages', msgId));
+    } catch(err) {
+        console.error("Error deleting:", err);
+        showToast("Cannot delete this message.", "error");
+    }
+};
+
+window.shareMessage = function(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showToast("Message copied to clipboard!", "success");
+    });
+};
+
+window.toggleEmojiPicker = function(msgId) {
+    document.querySelectorAll('.emoji-picker-popover').forEach(el => {
+        if(el.id !== 'emoji-' + msgId) el.classList.remove('show');
+    });
+    const picker = document.getElementById('emoji-' + msgId);
+    if(picker) picker.classList.toggle('show');
+};
+
+window.reactMessage = async function(msgId, dept, emoji) {
+    try {
+        const msgRef = doc(db, 'chatRooms', dept, 'messages', msgId);
+        const updatePayload = {};
+        updatePayload['reactions.' + currentUser.uid] = emoji;
+        await updateDoc(msgRef, updatePayload);
+        toggleEmojiPicker(msgId);
+    } catch(err) {
+        console.error("Error reacting:", err);
+        showToast("Error adding reaction.", "error");
+    }
+};
+
+window.scrollToMessage = function(msgId) {
+    const el = document.getElementById('msg-' + msgId);
+    if(el) {
+        el.scrollIntoView({behavior: 'smooth', block: 'center'});
+        el.style.background = 'rgba(255, 255, 255, 0.2)';
+        setTimeout(() => {
+            el.style.background = '';
+        }, 1000);
+    }
+};
+
+
 // Chat Logic
 function loadDepartmentChat() {
     if (!userData || !userData.branch) {
@@ -1945,8 +2106,10 @@ function loadDepartmentChat() {
             const msg = docSnap.data();
             const isMine = msg.senderUID === currentUser.uid;
             
+
             const msgDiv = document.createElement('div');
             msgDiv.className = `chat-msg ${isMine ? 'mine' : 'others'}`;
+            msgDiv.id = 'msg-' + docSnap.id;
             
             // Format time
             let timeStr = '';
@@ -1955,13 +2118,62 @@ function loadDepartmentChat() {
                 timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             }
             
+            // Format Quoted Reply
+            let quotedHtml = '';
+            if (msg.replyTo) {
+                quotedHtml = `
+                    <div class="quoted-msg" onclick="scrollToMessage('${msg.replyTo.id}')">
+                        <div class="q-sender">${msg.replyTo.sender}</div>
+                        <div>${msg.replyTo.text}</div>
+                    </div>
+                `;
+            }
+            
+            // Format Reactions
+            let reactionsHtml = '';
+            if (msg.reactions) {
+                const counts = {};
+                Object.values(msg.reactions).forEach(emoji => {
+                    counts[emoji] = (counts[emoji] || 0) + 1;
+                });
+                for (const [emoji, count] of Object.entries(counts)) {
+                    reactionsHtml += `<div class="reaction-badge">${emoji} ${count}</div>`;
+                }
+            }
+
+            // Escaped text for inline functions
+            const safeText = escapeHtml(msg.text).replace(/'/g, "\\'");
+            const safeSender = escapeHtml(msg.senderName).replace(/'/g, "\\'");
+
             msgDiv.innerHTML = `
-                ${!isMine ? `<div class="sender">${msg.senderName}</div>` : ''}
-                <div>${msg.text}</div>
+                ${!isMine ? `<div class="sender">${escapeHtml(msg.senderName)}</div>` : ''}
+                ${quotedHtml}
+                <div>${escapeHtml(msg.text)}</div>
+                ${reactionsHtml ? `<div style="margin-top:4px">${reactionsHtml}</div>` : ''}
                 <div class="time">${timeStr}</div>
-                <button class="btn-report" onclick="reportContent('chat', '${docSnap.id}', '${dept}')" title="Report Message"><i class="fas fa-flag"></i></button>
+                
+                <div class="msg-actions">
+                    <button class="msg-action-btn" onclick="replyMessage('${docSnap.id}', '${safeSender}', '${safeText}')" title="Reply"><i class="fas fa-reply"></i></button>
+                    
+                    <div style="position:relative;">
+                        <button class="msg-action-btn" onclick="toggleEmojiPicker('${docSnap.id}')" title="React"><i class="fas fa-smile"></i></button>
+                        <div class="emoji-picker-popover" id="emoji-${docSnap.id}">
+                            <button class="emoji-btn" onclick="reactMessage('${docSnap.id}', '${dept}', '👍')">👍</button>
+                            <button class="emoji-btn" onclick="reactMessage('${docSnap.id}', '${dept}', '❤️')">❤️</button>
+                            <button class="emoji-btn" onclick="reactMessage('${docSnap.id}', '${dept}', '😂')">😂</button>
+                            <button class="emoji-btn" onclick="reactMessage('${docSnap.id}', '${dept}', '😮')">😮</button>
+                            <button class="emoji-btn" onclick="reactMessage('${docSnap.id}', '${dept}', '😢')">😢</button>
+                        </div>
+                    </div>
+                    
+                    <button class="msg-action-btn" onclick="shareMessage('${safeText}')" title="Copy text"><i class="fas fa-copy"></i></button>
+                    
+                    ${isMine ? `<button class="msg-action-btn" style="color:var(--danger)" onclick="deleteMessage('${docSnap.id}', '${dept}')" title="Delete"><i class="fas fa-trash"></i></button>` : ''}
+                </div>
             `;
+            
             chatBox.appendChild(msgDiv);
+
         });
         
         // Scroll to bottom
@@ -1981,12 +2193,18 @@ window.sendChatMessage = async function() {
     
     try {
         const messagesRef = collection(db, 'chatRooms', userData.branch, 'messages');
-        await addDoc(messagesRef, {
+        const payload = {
             text: text,
             senderUID: currentUser.uid,
             senderName: userData.name || 'Anonymous',
             timestamp: new Date()
-        });
+        };
+        if (window.currentReplyTo) {
+            payload.replyTo = window.currentReplyTo;
+        }
+        await addDoc(messagesRef, payload);
+        cancelReply(); // Clear reply context after sending
+
     } catch (err) {
         console.error("Error sending message:", err);
         alert("Failed to send message.");
