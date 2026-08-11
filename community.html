@@ -2312,7 +2312,7 @@ function loadDepartmentChat() {
             let timeStr = '';
             if (msg.timestamp) {
                 const date = (typeof msg.timestamp.toDate === 'function') ? msg.timestamp.toDate() : new Date(msg.timestamp);
-                timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: true});
             }
             
             // Format Quoted Reply
