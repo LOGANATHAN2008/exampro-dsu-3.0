@@ -1951,7 +1951,7 @@ function loadDepartmentChat() {
             // Format time
             let timeStr = '';
             if (msg.timestamp) {
-                const date = msg.timestamp.toDate();
+                const date = (typeof msg.timestamp.toDate === 'function') ? msg.timestamp.toDate() : new Date(msg.timestamp);
                 timeStr = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             }
             
@@ -1985,7 +1985,7 @@ window.sendChatMessage = async function() {
             text: text,
             senderUID: currentUser.uid,
             senderName: userData.name || 'Anonymous',
-            timestamp: serverTimestamp()
+            timestamp: new Date()
         });
     } catch (err) {
         console.error("Error sending message:", err);
@@ -2003,7 +2003,7 @@ window.reportContent = async function(type, contentId, extraPath = '') {
             contentId: contentId,
             extraPath: extraPath, // useful for chat room dept
             reportedBy: currentUser.uid,
-            timestamp: serverTimestamp(),
+            timestamp: new Date(),
             status: 'pending'
         });
         alert("Content reported successfully!");
@@ -2109,7 +2109,7 @@ window.openProjectModal = function() {
                 ownerUID: currentUser.uid,
                 ownerName: userData.name || 'Student',
                 requests: [], // array of UIDs who requested to join
-                timestamp: serverTimestamp()
+                timestamp: new Date()
             });
             closeCommModal();
         } catch(err) {
@@ -2208,7 +2208,7 @@ window.openStudyModal = function() {
                 ownerUID: currentUser.uid,
                 ownerName: userData.name || 'Student',
                 members: [currentUser.uid], // Owner is automatically a member
-                timestamp: serverTimestamp()
+                timestamp: new Date()
             });
             closeCommModal();
         } catch(err) {
@@ -2345,7 +2345,7 @@ window.openPollModal = function() {
                 options: options,
                 ownerUID: currentUser.uid,
                 ownerName: userData.name || 'Student',
-                timestamp: serverTimestamp()
+                timestamp: new Date()
             });
             closeCommModal();
         } catch(err) {
@@ -2467,7 +2467,7 @@ window.openForumModal = function() {
                 authorUID: currentUser.uid,
                 authorName: userData.name || 'Student',
                 upvotes: [],
-                timestamp: serverTimestamp()
+                timestamp: new Date()
             });
             closeCommModal();
         } catch(err) {
@@ -2583,7 +2583,7 @@ window.openLostFoundModal = function() {
                 reporterUID: currentUser.uid,
                 reporterName: userData.name || 'Student',
                 status: 'active',
-                timestamp: serverTimestamp()
+                timestamp: new Date()
             });
             closeCommModal();
         } catch(err) {
