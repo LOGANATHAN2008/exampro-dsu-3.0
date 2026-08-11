@@ -842,3 +842,41 @@ html.no-loader #loader {
     display: none !important;
 }
 body:has(.sidebar.open) .mobile-bottom-nav { display: none !important; }
+
+/* iOS Global Alert Modal */
+.ios-alert-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 999999;
+    animation: fadeIn 0.2s ease-out;
+}
+.ios-alert-box {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-radius: 14px;
+    width: 270px;
+    text-align: center;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    animation: scaleUpFade 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    border: 1px solid rgba(255,255,255,0.2);
+    display: flex; flex-direction: column;
+}
+.light-mode .ios-alert-box, body.light-mode .ios-alert-box { 
+    background: rgba(255, 255, 255, 0.9); 
+    border: 1px solid rgba(0,0,0,0.1); 
+}
+html:not(.light-mode) .ios-alert-box, body:not(.light-mode) .ios-alert-box { 
+    background: rgba(30, 30, 30, 0.85); 
+    border: 1px solid rgba(255,255,255,0.1); 
+}
+.ios-alert-title { font-weight: 600; font-size: 17px; margin-top: 18px; color: var(--text); padding: 0 16px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+.ios-alert-message { font-size: 13px; margin-top: 4px; margin-bottom: 18px; color: var(--text-muted); padding: 0 16px; white-space: pre-wrap; line-height: 1.3; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;}
+.ios-alert-buttons { display: flex; border-top: 0.5px solid rgba(128,128,128,0.3); }
+.ios-alert-btn {
+    flex: 1; padding: 12px; background: transparent; border: none;
+    color: #007aff; font-size: 17px; font-weight: 600; cursor: pointer;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; outline: none;
+}
+.ios-alert-btn:active { background: rgba(128,128,128,0.2); border-bottom-left-radius: 14px; border-bottom-right-radius: 14px; }

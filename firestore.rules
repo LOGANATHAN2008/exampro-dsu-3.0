@@ -241,6 +241,13 @@ service cloud.firestore {
       allow delete: if isAnyAdmin() || (request.auth != null && resource.data.senderUID == request.auth.uid);
     }
 
+    // ===== Audit Log (Phase 5) =====
+    match /auditLog/{logId} {
+      allow read: if request.auth != null && isSuperAdmin();
+      allow create: if request.auth != null && (isAnyAdmin() || isAnyStaff());
+      allow update, delete: if false;
+    }
+
     // ===== Question Bank =====
     match /questionBank/{questionId} {
       allow read: if request.auth != null;

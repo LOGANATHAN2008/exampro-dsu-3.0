@@ -1211,6 +1211,15 @@
 
                         answers = {}; flagged = new Set(); currentQ = 0; tabSwitchCount = 0; testStarted = true;
                         timeLeft = (selectedTest.duration || 30) * 60;
+                        
+                        // Phase 3a: init auto-save attempt doc
+                        if (!isPreviewMode) {
+                            try {
+                                attemptDocRef = doc(db, 'results', currentUser.uid+'_'+selectedTest.id+'_attempt');
+                                setDoc(attemptDocRef, {studentId:currentUser.uid,testId:selectedTest.id,testTitle:selectedTest.title,answers:{},startedAt:serverTimestamp(),status:'in_progress'},{merge:true}).catch(e=>console.warn('[AutoSave init error]',e));
+                            } catch(e){console.warn('[AutoSave init]',e);}
+                        }
+
                         document.getElementById('testTitleHeader').textContent = selectedTest.title;
 
                         buildNavStrip();
@@ -1234,7 +1243,25 @@
                 );
             };
 
+        function _shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+        function _personalizeTest(){
+            if(!selectedTest||!selectedTest.questions)return;
+            let qs=[...selectedTest.questions];
+            if(selectedTest.poolMode&&selectedTest.poolSize>0&&qs.length>selectedTest.poolSize)qs=_shuffle(qs).slice(0,selectedTest.poolSize);
+            if(selectedTest.randomizeQuestions)qs=_shuffle(qs);
+            if(selectedTest.randomizeOptions)qs=qs.map(q=>{
+                if(!q.options||q.options.length<2)return q;
+                const idxs=_shuffle([...Array(q.options.length).keys()]);
+                const newOpts=idxs.map(i=>q.options[i]);
+                let nca=q.correctAnswer;
+                if(q.type==='mcq-single'||!q.type)nca=idxs.indexOf(typeof q.correctAnswer==='number'?q.correctAnswer:(q.correctIndex||0));
+                else if(q.type==='mcq-multi'&&Array.isArray(q.correctAnswer))nca=q.correctAnswer.map(c=>idxs.indexOf(c));
+                return Object.assign({},q,{options:newOpts,correctAnswer:nca,correctIndex:typeof nca==='number'?nca:q.correctIndex});
+            });
+            selectedTest.questions=qs;
+        }
         function buildNavStrip() {
+            _personalizeTest();
             const strip = document.getElementById('qNavStrip');
             strip.innerHTML = selectedTest.questions.map((_, i) =>
                 `<button class="q-nav-btn" id="qnav${i}" onclick="goToQuestion(${i})">${i + 1}</button>`
@@ -1248,26 +1275,35 @@
 
             document.getElementById('qNumber').textContent = `Question ${currentQ + 1} of ${total}`;
             document.getElementById('qProgress').textContent = `Q ${currentQ + 1} / ${total}`;
-            document.getElementById('qText').textContent = q.question || q.text;
+            document.getElementById('qText').textContent = q.questionText || q.question || q.text || '';
 
             const img = document.getElementById('qImage');
-            if (q.image) { img.src = q.image; img.style.display = 'block'; }
+            if (q.imageUrl || q.image) { img.src = q.imageUrl || q.image; img.style.display = 'block'; }
             else { img.style.display = 'none'; }
 
-            const labels = ['A', 'B', 'C', 'D', 'E'];
+            const labels = ['A','B','C','D','E','F'];
             const optionsGrid = document.getElementById('optionsGrid');
-            optionsGrid.innerHTML = (q.options || []).map((opt, i) => `
-        <div class="option ${answers[currentQ] === i ? 'selected' : ''}" onclick="selectAnswer(${i})">
-          <div class="option-label">${labels[i]}</div>
-          <span>${opt}</span>
-        </div>
-      `).join('');
+            const qtype = q.type || 'mcq-single';
+            if (qtype === 'mcq-single' || !q.type) {
+                optionsGrid.innerHTML = (q.options||[]).map((opt,i) => `<div class="option ${answers[currentQ]===i?'selected':''}" onclick="_selA(${i})"><div class="option-label">${labels[i]}</div><span>${opt}</span></div>`).join('');
+            } else if (qtype === 'mcq-multi') {
+                const selArr = Array.isArray(answers[currentQ]) ? answers[currentQ] : [];
+                optionsGrid.innerHTML = '<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Select all that apply</div>' +
+                    (q.options||[]).map((opt,i)=>`<div class="option ${selArr.includes(i)?'selected':''}" onclick="_multiA(${i})"><div class="option-label">${selArr.includes(i)?'✓':labels[i]}</div><span>${opt}</span></div>`).join('');
+            } else if (qtype === 'true-false') {
+                const ansT=answers[currentQ];
+                optionsGrid.innerHTML = `<div class="option ${ansT===true?'selected':''}" onclick="_tfA(true)"><div class="option-label">T</div><span>True</span></div><div class="option ${ansT===false?'selected':''}" onclick="_tfA(false)"><div class="option-label">F</div><span>False</span></div>`;
+            } else if (qtype === 'fill-blank') {
+                optionsGrid.innerHTML = `<input type="text" class="form-control" placeholder="Type your answer..." value="${answers[currentQ]||''}" oninput="_fillA(this.value)" style="font-size:16px;padding:14px;border-radius:12px;background:var(--glass);border:1px solid var(--glass-border);color:var(--text);">`;
+            } else if (qtype === 'numeric') {
+                optionsGrid.innerHTML = `<input type="number" step="any" class="form-control" placeholder="Enter a number..." value="${answers[currentQ]??''}" oninput="_numA(this.value)" style="font-size:16px;padding:14px;border-radius:12px;background:var(--glass);border:1px solid var(--glass-border);color:var(--text);">`;
+            }
 
             // Update nav strip
             document.querySelectorAll('.q-nav-btn').forEach((btn, i) => {
                 btn.className = 'q-nav-btn';
                 if (i === currentQ) btn.classList.add('current');
-                else if (answers[i] !== undefined) btn.classList.add('answered');
+                else if (answers[i] !== undefined && answers[i] !== null && answers[i] !== '') btn.classList.add('answered');
                 else if (flagged.has(i)) btn.classList.add('flagged');
             });
 
@@ -1276,10 +1312,39 @@
             document.getElementById('submitFinalBtn').style.display = currentQ === total - 1 ? '' : 'none';
         }
 
+        // Phase 3: preview mode + auto-save
+        let attemptDocRef = null, isPreviewMode = false;
+        if (new URLSearchParams(window.location.search).get('preview') === '1') {
+            isPreviewMode = true;
+            const draftJson = sessionStorage.getItem('examProPreviewDraft');
+            if (draftJson) {
+                try {
+                    selectedTest = JSON.parse(draftJson);
+                    document.getElementById('testSelectionView').style.display = 'none';
+                    document.getElementById('testTakingView').classList.add('active');
+                    answers = {}; currentQ = 0; testStarted = false;
+                    document.getElementById('testTitleHeader').textContent = '[PREVIEW] ' + selectedTest.title;
+                    buildNavStrip(); renderQuestion();
+                    document.getElementById('timerDisplay').textContent = 'PREVIEW';
+                    showToast('Preview Mode — answers will not be saved', 'info');
+                } catch(e) { console.error('Preview parse error', e); }
+            }
+        }
+
         window.selectAnswer = function (optIndex) {
             answers[currentQ] = optIndex;
             renderQuestion();
+            if (!isPreviewMode && attemptDocRef) {
+                const patch = {}; patch['answers.' + currentQ] = optIndex;
+                updateDoc(attemptDocRef, patch).catch(e => console.warn('[AutoSave]', e.message));
+            }
         };
+
+        function _selA(i){answers[currentQ]=i;renderQuestion();if(!isPreviewMode&&attemptDocRef){const p={};p['answers.'+currentQ]=i;updateDoc(attemptDocRef,p).catch(()=>{});}}
+        function _multiA(i){if(!Array.isArray(answers[currentQ]))answers[currentQ]=[];const idx=answers[currentQ].indexOf(i);if(idx===-1)answers[currentQ].push(i);else answers[currentQ].splice(idx,1);if(!answers[currentQ].length)delete answers[currentQ];renderQuestion();}
+        function _tfA(v){answers[currentQ]=v;renderQuestion();}
+        function _fillA(v){answers[currentQ]=v;}
+        function _numA(v){answers[currentQ]=v===''?undefined:parseFloat(v);}
 
         window.nextQuestion = function () {
             if (currentQ < selectedTest.questions.length - 1) { currentQ++; renderQuestion(); }
@@ -1364,10 +1429,11 @@
         };
 
         window.confirmSubmit = function () {
+            if (isPreviewMode) { showToast('Preview mode — submit disabled', 'info'); return; }
             const total = selectedTest.questions.length;
-            const answered = Object.keys(answers).length;
+            const answered = Object.keys(answers).filter(k=>answers[k]!==undefined&&answers[k]!==null&&answers[k]!=='').length;
             document.getElementById('submitSummary').textContent = `You answered ${answered} of ${total} questions.`;
-            document.getElementById('unansweredMsg').textContent = answered < total ? `⚠️ ${total - answered} questions are unanswered.` : `✅ All questions answered!`;
+            document.getElementById('unansweredMsg').textContent = answered < total ? `⚠️ ${total - answered} unanswered · ${flagged.size} flagged` : `✅ All answered · ${flagged.size} flagged for review`;
             document.getElementById('submitConfirm').classList.add('show');
         };
 
@@ -1387,15 +1453,34 @@
 
             try {
                 const qs = selectedTest.questions;
-                let correct = 0, wrong = 0;
+                let score = 0, correct = 0, wrong = 0;
+                const negMark = selectedTest.negativeMarking;
+                const negVal = parseFloat(selectedTest.negativeMarkValue) || 0.25;
                 qs.forEach((q, i) => {
-                    if (answers[i] !== undefined) {
-                        if (answers[i] === q.correctIndex) correct++;
-                        else wrong++;
+                    const ans = answers[i];
+                    const qtype = q.type || 'mcq-single';
+                    const qMarks = parseFloat(q.marks || selectedTest.marksPerQuestion) || 1;
+                    if (ans === undefined || ans === null || ans === '') return;
+                    let isCorrect = false;
+                    if (qtype === 'mcq-single' || !q.type) {
+                        isCorrect = (ans === q.correctAnswer || ans === q.correctIndex);
+                    } else if (qtype === 'mcq-multi') {
+                        const exp = (q.correctAnswer||[]).slice().sort().join(',');
+                        const giv = (Array.isArray(ans)?[...ans].sort():[]).join(',');
+                        isCorrect = exp === giv;
+                    } else if (qtype === 'true-false') {
+                        isCorrect = String(ans) === String(q.correctAnswer);
+                    } else if (qtype === 'fill-blank') {
+                        isCorrect = String(ans).trim().toLowerCase() === String(q.correctAnswer||'').trim().toLowerCase();
+                    } else if (qtype === 'numeric') {
+                        const num = parseFloat(ans), range = q.correctAnswer || {};
+                        isCorrect = !isNaN(num) && num >= (range.min ?? num) && num <= (range.max ?? num);
                     }
+                    if (isCorrect) { correct++; score += qMarks; }
+                    else { wrong++; if (negMark) score = Math.max(0, score - negVal); }
                 });
                 const unanswered = qs.length - correct - wrong;
-                const score = correct * (selectedTest.marksPerQuestion || 1);
+                score = Math.round(score * 100) / 100;
                 const totalMarks = selectedTest.totalMarks || qs.length;
                 const percentage = Math.round((score / totalMarks) * 100);
 

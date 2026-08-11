@@ -234,3 +234,22 @@ window.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('load', () => {
     sessionStorage.setItem('appLoaded', 'true');
 });
+
+// Global iOS Alert Override
+window.alert = function(msg) {
+    const overlay = document.createElement('div');
+    overlay.className = 'ios-alert-overlay';
+    
+    const textHtml = String(msg).replace(/\n/g, '<br>');
+
+    overlay.innerHTML = `
+        <div class="ios-alert-box">
+            <div class="ios-alert-title">ExamPro says</div>
+            <div class="ios-alert-message">${textHtml}</div>
+            <div class="ios-alert-buttons">
+                <button class="ios-alert-btn" onclick="this.closest('.ios-alert-overlay').remove()">OK</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+};

@@ -1,178 +1,2548 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
- 
-        function parseBulkQuestionsText(text) {
-            const parsed = [];
-            const errors = [];
-            const blocks = text.split(/\n\s*\n/);
-            
-            let lineOffset = 1;
-            for (const block of blocks) {
-                const rawLines = block.split('\n');
-                const lines = rawLines.map(l => l.trim()).filter(l => l);
-                if(lines.length === 0) {
-                    lineOffset += rawLines.length;
-                    continue;
-                }
-                
-                let qText = '';
-                let opts = [];
-                let cAns = -1;
-                
-                for (const line of lines) {
-                    if (/^(Question\s*[:.]?\s*)/i.test(line)) {
-                        qText = line.replace(/^Question\s*[:.]?\s*/i, '').trim();
-                    } else if (/^[a-f]\s*[).]]\s*/i.test(line)) {
-                        opts.push(line.replace(/^[a-f]\s*[).]]\s*/i, '').trim());
-                    } else if (/^Correct\s*(Answer|Ans)\s*[:.]?\s*/i.test(line)) {
-                        const ansStr = line.replace(/^Correct\s*(Answer|Ans)\s*[:.]?\s*/i, '').trim().toLowerCase();
-                        const ansLetter = ansStr.replace(/[).]\s]/g, '')[0];
-                        cAns = 'abcdef'.indexOf(ansLetter);
-                    } else if (!qText && opts.length === 0) {
-                        qText = line;
-                    }
-                }
-                
-                if (!qText) {
-                    errors.push(`Block near line ${lineOffset}: Missing Question Text`);
-                } else if (opts.length < 2) {
-                    errors.push(`Block near line ${lineOffset}: Not enough options (found ${opts.length}, need 2-6)`);
-                } else if (opts.length > 6) {
-                    errors.push(`Block near line ${lineOffset}: Too many options (found ${opts.length}, max 6)`);
-                } else if (cAns < 0 || cAns >= opts.length) {
-                    errors.push(`Block near line ${lineOffset}: Invalid or missing correct answer`);
-                } else {
-                    parsed.push({ type: 'mcq-single', questionText: qText, options: opts, correctAnswer: cAns });
-                }
-                
-                lineOffset += rawLines.length;
-            }
-            return { questions: parsed, errors };
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Admin Panel | ExamPro DSU</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <style>
+        /* Security Shield: Hide admin until role verified */
+        body {
+            opacity: 0;
+            transition: opacity 0.5s ease;
         }
 
-        window.handleExcelUpload = function(file) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const rows = XLSX.utils.sheet_to_json(firstSheet, {defval: ''});
-                    
-                    const questions = [];
-                    const errors = [];
-                    
-                    rows.forEach((r, i) => {
-                        const rowNum = i + 2; // +1 for 0-index, +1 for header
-                        const type = (r.Type || 'mcq-single').trim().toLowerCase();
-                        const qText = (r.Question || '').trim();
-                        
-                        if(!qText) return; // skip empty rows
-                        
-                        const q = { type, questionText: qText };
-                        if(r.Subject) q.subject = String(r.Subject).trim();
-                        if(r.Topic) q.topic = String(r.Topic).trim();
-                        if(r.Difficulty) q.difficulty = String(r.Difficulty).trim();
-                        if(r.Marks) q.marks = parseFloat(r.Marks);
-                        
-                        if(type === 'mcq-single' || type === 'mcq-multi') {
-                            const opts = [];
-                            ['A','B','C','D','E','F'].forEach(l => {
-                                const opt = String(r['Option ' + l] || r[l] || '').trim();
-                                if(opt) opts.push(opt);
-                            });
-                            if(opts.length < 2) {
-                                errors.push(`Row ${rowNum}: MCQ needs at least 2 options.`);
-                                return;
-                            }
-                            q.options = opts;
-                            
-                            const c = String(r['Correct Answer'] || '').trim().toLowerCase();
-                            if(type === 'mcq-single') {
-                                const idx = 'abcdef'.indexOf(c.charAt(0));
-                                if(idx < 0 || idx >= opts.length) {
-                                    errors.push(`Row ${rowNum}: Invalid correct answer '${c}'.`);
-                                    return;
-                                }
-                                q.correctAnswer = idx;
-                            } else {
-                                // multi correct e.g., "A,B"
-                                const indices = c.split(',').map(s => 'abcdef'.indexOf(s.trim().charAt(0))).filter(idx => idx >= 0 && idx < opts.length);
-                                if(indices.length === 0) {
-                                    errors.push(`Row ${rowNum}: Invalid multi correct answer '${c}'.`);
-                                    return;
-                                }
-                                q.correctAnswer = indices;
-                            }
-                        } else if (type === 'true-false') {
-                            const c = String(r['Correct Answer'] || '').trim().toLowerCase();
-                            q.correctAnswer = (c === 'true' || c === 't' || c === 'yes');
-                        } else if (type === 'fill-blank') {
-                            q.correctAnswer = String(r['Correct Answer'] || '').trim();
-                            if(!q.correctAnswer) {
-                                errors.push(`Row ${rowNum}: Missing fill-blank answer.`);
-                                return;
-                            }
-                        } else if (type === 'numeric') {
-                            const min = parseFloat(r['Min Acceptable'] || r['Correct Answer']);
-                            const max = parseFloat(r['Max Acceptable'] || r['Correct Answer']);
-                            if(isNaN(min) || isNaN(max)) {
-                                errors.push(`Row ${rowNum}: Invalid numeric bounds.`);
-                                return;
-                            }
-                            q.correctAnswer = {min, max};
-                        }
-                        
-                        questions.push(q);
-                    });
-                    
-                    renderParsedBulk(questions, errors);
-                } catch(err) {
-                    showToast('Failed to parse Excel file', 'error');
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        };
+        body.admin-verified {
+            opacity: 1;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        :root {
+            --primary: #6c63ff;
+            --primary-dark: #4f46e5;
+            --secondary: #06b6d4;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #0a0a1a;
+            --glass: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --radius: 14px;
+            --sidebar-w: 240px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-w);
+            height: 100vh;
+            background: rgba(15, 15, 35, 0.98);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .sidebar-logo {
+            padding: 20px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            font-size: 15px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-badge {
+            font-size: 9px;
+            font-weight: 700;
+            background: var(--danger);
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 4px;
+            -webkit-text-fill-color: #fff;
+        }
+
+        .nav-section {
+            padding: 12px 10px;
+            /* Custom Scrollbar for Sidebar */
+        }
+
+        .nav-section::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .nav-section::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .nav-section::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .nav-section::-webkit-scrollbar-thumb:hover {
+            background: rgba(108, 99, 255, 0.4);
+        }
+
+        .nav-label {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 6px 8px;
+            margin-bottom: 2px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all .2s;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 2px;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, .07);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+        }
+
+        .nav-item i {
+            width: 16px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--danger);
+            color: #fff;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 8px;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 12px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .admin-info:hover {
+            background: rgba(255, 255, 255, .05);
+        }
+
+        .admin-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .admin-name {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .admin-role {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        /* Main */
+        .main {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 800;
+            flex: 1;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 9px 14px;
+            width: 260px;
+        }
+
+        .search-bar input {
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--text);
+            font-size: 13px;
+            width: 100%;
+            font-family: 'Inter', sans-serif;
+        }
         
-        function renderParsedBulk(questions, errors) {
-            const errEl = document.getElementById('uploadErrors');
-            if(errors.length > 0) {
-                errEl.style.display = 'block';
-                errEl.innerHTML = '<strong>Validation Errors:</strong><br/>' + errors.join('<br/>');
-            } else {
-                errEl.style.display = 'none';
-                errEl.innerHTML = '';
+        .search-bar input:-webkit-autofill,
+        .search-bar input:-webkit-autofill:hover, 
+        .search-bar input:-webkit-autofill:focus, 
+        .search-bar input:-webkit-autofill:active{
+            -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+            -webkit-text-fill-color: var(--text) !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        .btn {
+            padding: 9px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            transition: all .3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 18px rgba(108, 99, 255, .4);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: #fff;
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, .15);
+            border: 1px solid rgba(239, 68, 68, .3);
+            color: var(--danger);
+        }
+
+        .btn-outline {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            color: var(--text);
+        }
+
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 12px;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .stat-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .stat-val {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .stat-lbl {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Section */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        /* Table */
+        .table-wrap {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            padding: 12px 14px;
+            text-align: left;
+            background: rgba(255, 255, 255, .03);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        td {
+            padding: 12px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(255, 255, 255, .04);
+            white-space: nowrap;
+        }
+
+        /* Wrap specific cells that need it */
+        td.wrap-text {
+            white-space: normal;
+            min-width: 150px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, .02);
+        }
+
+        .avatar-sm {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            color: #fff;
+            font-weight: 700;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .avatar-sm img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .student-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .s-name {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .s-email {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .chip {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .chip-success {
+            background: rgba(16, 185, 129, .15);
+            color: var(--success);
+        }
+
+        .chip-danger {
+            background: rgba(239, 68, 68, .15);
+            color: var(--danger);
+        }
+
+        .chip-info {
+            background: rgba(108, 99, 255, .15);
+            color: var(--primary);
+        }
+
+        .chip-warn {
+            background: rgba(245, 158, 11, .15);
+            color: var(--accent);
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .icon-action {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+            font-size: 13px;
+            transition: all .2s;
+        }
+
+        .icon-view {
+            background: rgba(108, 99, 255, .15);
+            color: var(--primary);
+        }
+
+        .icon-edit {
+            background: rgba(6, 182, 212, .15);
+            color: var(--secondary);
+        }
+
+        .icon-del {
+            background: rgba(239, 68, 68, .15);
+            color: var(--danger);
+        }
+
+        .icon-action:hover {
+            opacity: .75;
+            transform: scale(1.1);
+        }
+
+        /* Download Counter Badge Button & Downloaders Modal */
+        .btn-download-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(6, 182, 212, 0.12);
+            border: 1px solid rgba(6, 182, 212, 0.35);
+            color: var(--secondary);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 11px;
+            border-radius: 99px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            outline: none;
+            font-family: inherit;
+        }
+        .btn-download-count:hover {
+            background: rgba(6, 182, 212, 0.26);
+            border-color: var(--secondary);
+            transform: translateY(-1px) scale(1.04);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+            color: #fff;
+        }
+        .btn-download-count:active {
+            transform: scale(0.96);
+        }
+
+        .downloader-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 14px;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .downloader-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(108, 99, 255, 0.35);
+            transform: translateX(2px);
+        }
+        .downloader-avatar {
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #6c63ff, #06b6d4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            color: #fff;
+            flex-shrink: 0;
+            overflow: hidden;
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+        }
+        .downloader-info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .downloader-name {
+            font-weight: 700;
+            color: #fff;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            line-height: 1.3;
+        }
+        .downloader-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            line-height: 1.4;
+        }
+        .downloader-usn {
+            background: rgba(108, 99, 255, 0.18);
+            color: #a78bfa;
+            border: 1px solid rgba(108, 99, 255, 0.3);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+        }
+        .downloader-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: right;
+            white-space: nowrap;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Mobile Responsive Layout for Downloader Cards */
+        @media (max-width: 540px) {
+            .downloader-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 14px;
             }
-            
-            if(questions.length > 0) {
-                document.getElementById('questionBuilder').innerHTML = '';
-                questionCount = 0;
-                questions.forEach(q => addQuestionWithData(q));
-                showToast(`${questions.length} questions loaded!`, 'success');
-                const el = document.getElementById('uploadedCount');
-                if (el) el.textContent = `${questions.length} questions loaded`;
-            } else {
-                showToast('No valid questions found.', 'error');
+            .downloader-avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
+            }
+            .downloader-info {
+                width: 100%;
+            }
+            .downloader-time {
+                width: 100%;
+                text-align: left;
+                align-items: flex-start;
+                border-top: 1px dashed rgba(255, 255, 255, 0.08);
+                padding-top: 10px;
+                margin-top: 4px;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
             }
         }
 
-        window.handleTxtUpload = function (file) {
-            if (!file) return;
-            if(file.name.endsWith('.xlsx') || file.name.endsWith('.csv')) {
-                handleExcelUpload(file);
-                return;
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .85);
+            backdrop-filter: blur(8px);
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        /* iOS Style Alert & Confirm Dialog */
+        .ios-dialog-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .ios-dialog-overlay.ios-active {
+            opacity: 1;
+        }
+
+        .ios-dialog {
+            width: 290px;
+            max-width: 90vw;
+            background: rgba(30, 30, 35, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(35px) saturate(190%);
+            -webkit-backdrop-filter: blur(35px) saturate(190%);
+            border-radius: 16px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.55), 0 0 0 0.5px rgba(255, 255, 255, 0.15);
+            overflow: hidden;
+            transform: scale(1.08);
+            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Roboto, sans-serif;
+        }
+
+        .ios-dialog-overlay.ios-active .ios-dialog {
+            transform: scale(1);
+        }
+
+        .ios-dialog-content {
+            padding: 22px 18px 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .ios-dialog-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 12px;
+        }
+
+        .ios-dialog-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #ffffff;
+            line-height: 1.3;
+            margin-bottom: 6px;
+            letter-spacing: -0.4px;
+        }
+
+        .ios-dialog-text {
+            font-size: 13px;
+            font-weight: 400;
+            color: rgba(235, 235, 245, 0.7);
+            line-height: 1.45;
+            letter-spacing: -0.2px;
+        }
+
+        .ios-dialog-actions {
+            display: flex;
+            border-top: 0.5px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .ios-dialog-btn {
+            flex: 1;
+            height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 400;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #0a84ff;
+            font-family: inherit;
+            transition: background 0.15s;
+            user-select: none;
+            outline: none;
+        }
+
+        .ios-dialog-btn:active {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .ios-dialog-btn + .ios-dialog-btn {
+            border-left: 0.5px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .ios-dialog-btn.ios-cancel {
+            font-weight: 400;
+            color: #0a84ff;
+        }
+
+        .ios-dialog-btn.ios-confirm {
+            font-weight: 600;
+        }
+
+        .ios-dialog-btn.ios-destructive {
+            color: #ff453a !important;
+            font-weight: 600;
+        }
+
+        .ios-dialog-btn.ios-success {
+            color: #30d158 !important;
+            font-weight: 600;
+        }
+
+        .ios-dialog-btn.ios-warn {
+            color: #ff9f0a !important;
+            font-weight: 600;
+        }
+
+        .modal {
+            background: rgba(20, 20, 45, .99);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            max-width: 580px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 28px;
+        }
+
+        .modal h2 {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group.full {
+            grid-column: 1/-1;
+        }
+
+        label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, .07);
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 9px;
+            color: var(--text);
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: all .3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, .15);
+        }
+
+        .form-control option {
+            background: #111111;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        /* Question builder */
+        .question-builder {
+            margin-top: 8px;
+        }
+
+        .q-item {
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+
+        .q-item .q-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .q-item .q-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .options-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .option-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .option-row input[type=text] {
+            flex: 1;
+            padding: 7px 10px;
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 7px;
+            color: var(--text);
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+        }
+
+        .option-row input[type=radio] {
+            accent-color: var(--primary);
+        }
+
+        /* Student detail modal */
+        .student-detail {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 16px;
+        }
+
+        .student-profile-card {
+            background: rgba(255, 255, 255, .04);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .big-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #fff;
+            margin: 0 auto 12px;
+            overflow: hidden;
+        }
+
+        .big-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .sd-name {
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .sd-reg {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .detail-chips {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .detail-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, .04);
+            padding: 6px 9px;
+            border-radius: 7px;
+        }
+
+        .detail-chip i {
+            color: var(--primary);
+            font-size: 11px;
+            width: 12px;
+        }
+
+        .chart-mini {
+            height: 140px;
+            position: relative;
+        }
+
+        /* Toast / Spinner */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .toast {
+            padding: 11px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: toastIn .3s ease;
+            max-width: 280px;
+        }
+
+        .toast.success {
+            background: rgba(16, 185, 129, .9);
+            color: #fff;
+        }
+
+        .toast.error {
+            background: rgba(239, 68, 68, .9);
+            color: #fff;
+        }
+
+        .toast.info {
+            background: rgba(108, 99, 255, .9);
+            color: #fff;
+        }
+
+        @keyframes toastIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0
             }
-            if (!file.name.endsWith('.txt')) { showToast('Please upload a .txt, .csv, or .xlsx file', 'error'); return; }
+
+            to {
+                transform: translateX(0);
+                opacity: 1
+            }
+        }
+
+        .spinner-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 10, 26, .95);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .spinner-big {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(108, 99, 255, .3);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        /* Mobile */
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .6);
+            z-index: 99;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 12px;
+            border-top: 1px solid var(--glass-border);
+            margin-top: 24px;
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        @media(max-width:768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform .3s;
+                width: 260px;
+            }
+
+            .sidebar.open {
+                transform: none;
+            }
+
+            .main {
+                margin-left: 0;
+                padding: 12px;
+                overflow-x: hidden;
+            }
+
+            .top-bar {
+                gap: 10px;
+                justify-content: space-between;
+                margin-bottom: 16px;
+            }
+
+            .search-bar {
+                width: 100%;
+                order: 3;
+                margin-top: 5px;
+            }
+
+            .page-title {
+                font-size: 18px;
+            }
+
+            .btn {
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .stat-card {
+                padding: 12px;
+                gap: 8px;
+            }
+
+            .stat-val {
+                font-size: 18px;
+            }
+
+            .stat-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 16px;
+            }
+
+            /* Force scroll for tables on mobile */
+            table {
+                min-width: 800px;
+            }
+
+            .table-wrap {
+                margin: 0 -12px;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+            }
+
+            .modal {
+                padding: 16px;
+                width: 95%;
+            }
+
+            .mobile-toggle {
+                display: block;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .options-list {
+                grid-template-columns: 1fr;
+            }
+
+            .student-detail {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media(max-width:480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-btns {
+                flex-direction: column;
+            }
+
+            .modal-btns .btn {
+                width: 100%;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="theme.css">
+    <script src="theme.js"></script>
+<script>if(sessionStorage.getItem('appLoaded')) document.documentElement.classList.add('no-loader');</script>
+</head>
+
+<body>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <div class="logo-icon" style="background: transparent;">
+                <img src="dsu_logo.png" alt="DSU Logo" style="height: 100%; width: auto;">
+            </div>
+            <span class="logo-text">ExamPro <span class="logo-badge">ADMIN</span></span>
+        </div>
+        <div class="nav-section" style="flex:1;overflow-y:auto;">
+            <div class="nav-label">Overview</div>
+            <button class="nav-item active" onclick="showSection('overview',this)"><i class="fas fa-chart-pie"></i>
+                Dashboard</button>
+            <div class="nav-label" style="margin-top:8px">Management</div>
+            <button class="nav-item" onclick="showSection('students',this)"><i class="fas fa-users"></i> Students <span
+                    class="nav-badge" id="studentCount">0</span></button>
+            <button class="nav-item" onclick="showSection('staff',this)"><i class="fas fa-user-tie"></i> Staff
+                Management</button>
+            <button class="nav-item" onclick="showSection('materials',this)"><i class="fas fa-book-reader"></i> Study Materials <span
+                    class="nav-badge" id="materialsCount">0</span></button>
+            <button class="nav-item" onclick="showSection('tests',this)"><i class="fas fa-clipboard-list"></i>
+                Tests</button>
+            <button class="nav-item" onclick="showSection('examschedule',this)"><i class="fas fa-calendar-alt"></i> Exam
+                Schedule</button>
+            <button class="nav-item" onclick="showSection('results',this)"><i class="fas fa-chart-bar"></i>
+                Results</button>
+            <button class="nav-item" onclick="showSection('leaderboard',this)"><i class="fas fa-trophy"></i>
+                Leaderboard</button>
+            <button class="nav-item" onclick="showSection('announcements',this)"><i class="fas fa-bullhorn"></i>
+                Broadcast</button>
+            <button class="nav-item" onclick="showSection('notices',this)"><i class="fas fa-thumbtack"></i>
+                Notice Board</button>
+            <button class="nav-item" onclick="showSection('malpractice',this)"><i
+                    class="fas fa-exclamation-triangle"></i> Malpractice <span class="nav-badge"
+                    id="malCount">0</span></button>
+            <button class="nav-item" onclick="showSection('feedback',this)"><i class="fas fa-comments"></i>
+                Feedback</button>
+            <button class="nav-item" onclick="showSection('moderation',this)"><i class="fas fa-shield-alt"></i>
+                Moderation Queue <span class="nav-badge" id="modCount" style="background:var(--danger); display:none;">0</span></button>
+            <button class="nav-item" onclick="showSection('achievements',this)"><i class="fas fa-medal"></i>
+                Achievements Wall <span class="nav-badge" id="achievementsCount" style="background:var(--success)">0</span></button>
+            <button class="nav-item" id="adminManagementTab" style="display:none;" onclick="showSection('adminmgmt',this)"><i class="fas fa-user-shield"></i>
+                Admin Management</button>
+            <button class="nav-item" id="approvalsTab" onclick="showSection('approvals',this)"><i class="fas fa-user-check"></i>
+                Approvals <span class="nav-badge" id="pendingCount" style="background:var(--danger)">0</span></button>
+            <button class="nav-item" id="maintenanceTab" style="display:none;" onclick="showSection('maintenance',this)"><i class="fas fa-tools"></i>
+                Maintenance</button>
+        </div>
+        <div class="sidebar-bottom">
+            <div class="admin-info" onclick="handleLogout()">
+                <div class="admin-avatar" style="background: transparent;">
+                    <img src="dsu_logo.png" alt="DSU Logo" style="height: 100%; width: auto;">
+                </div>
+                <div>
+                    <div class="admin-name" id="adminName">Admin</div>
+                    <div class="admin-role">System Administrator</div>
+                </div>
+                <i class="fas fa-sign-out-alt" style="margin-left:auto;color:var(--text-muted);font-size:13px"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="main">
+        <div class="top-bar">
+            <button class="mobile-toggle" onclick="openSidebar()"><i class="fas fa-bars"></i></button>
+            <div class="page-title" id="pageTitle">Dashboard</div>
+            <div class="search-bar">
+                <i class="fas fa-search" style="color:var(--text-muted);font-size:13px"></i>
+                <input type="text" placeholder="Search students..." id="globalSearch"
+                    oninput="searchStudents(this.value)" autocomplete="off" spellcheck="false" />
+            </div>
+            <button class="btn btn-success" onclick="exportCSV()"><i class="fas fa-download"></i> Export CSV</button>
+        </div>
+
+        <!-- Overview Stats -->
+        <div class="stats-grid">
+            <div class="stat-card"
+                onclick="showSection('students', document.querySelector('.nav-item[onclick*=\'students\']'))"
+                style="cursor: pointer;">
+                <div class="stat-icon" style="background:linear-gradient(135deg,#6c63ff,#4f46e5)"><i
+                        class="fas fa-users" style="color:#fff"></i></div>
+                <div>
+                    <div class="stat-val" id="oStudents">0</div>
+                    <div class="stat-lbl">Total Students</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:linear-gradient(135deg,#10b981,#059669)"><i
+                        class="fas fa-clipboard-list" style="color:#fff"></i></div>
+                <div>
+                    <div class="stat-val" id="oTests">0</div>
+                    <div class="stat-lbl">Total Tests</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i class="fas fa-star"
+                        style="color:#fff"></i></div>
+                <div>
+                    <div class="stat-val" id="oAvg">0%</div>
+                    <div class="stat-lbl">Avg Score</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626)"><i
+                        class="fas fa-exclamation-triangle" style="color:#fff"></i></div>
+                <div>
+                    <div class="stat-val" id="oMal">0</div>
+                    <div class="stat-lbl">Malpractice</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- OVERVIEW SECTION -->
+        <section class="section active" id="section-overview">
+            <div style="text-align:center;padding:60px 20px;background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);">
+                <i class="fas fa-chart-pie" style="font-size:48px;color:var(--primary);margin-bottom:16px;opacity:0.8"></i>
+                <h2 style="margin-bottom:8px">Welcome to Admin Dashboard</h2>
+                <p style="color:var(--text-muted);font-size:14px">Select a management module from the sidebar to begin.</p>
+            </div>
+        </section>
+
+        <!-- LEADERBOARD SECTION -->
+        <section class="section" id="section-leaderboard">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-trophy" style="color:#f59e0b"></i> Student Leaderboard</div>
+            </div>
+            <div class="table-wrap">
+                <div class="table-responsive"><table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Student</th>
+                            <th>Tests Taken</th>
+                            <th>Avg Percentage</th>
+                            <th>Top Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <tr>
+                            <td colspan="5" style="text-align:center;padding:24px;color:var(--text-muted)">Generating
+                                rankings...</td>
+                        </tr>
+                    </tbody>
+                </table></div>
+            </div>
+        </section>
+
+        <!-- STAFF MANAGEMENT SECTION -->
+        <section class="section" id="section-staff">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-user-tie" style="color:var(--primary)"></i> Staff Directory
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="openStaffModal()"><i class="fas fa-plus"></i> Add
+                    Staff</button>
+            </div>
+            <div class="table-wrap">
+                <div class="table-responsive"><table>
+                    <thead>
+                        <tr>
+                            <th>Staff Member</th>
+                            <th>Designation</th>
+                            <th>Department</th>
+                            <th>Subjects / Cabin</th>
+                            <th>Contact</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staffBody">
+                        <tr>
+                            <td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">No staff
+                                records found.</td>
+                        </tr>
+                    </tbody>
+                </table></div>
+            </div>
+        </section>
+
+        <!-- STUDY MATERIALS SECTION -->
+        <section class="section" id="section-materials">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-book-reader" style="color:var(--primary)"></i> Study Materials</div>
+                <div style="display:flex;gap:10px">
+                    <button class="btn btn-primary btn-sm" onclick="openMaterialModal()"><i class="fas fa-upload"></i> Upload Material</button>
+                </div>
+            </div>
+
+            <!-- Material Filters -->
+            <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+                <input type="text" id="adminMaterialSearch" placeholder="Search materials..." class="form-control" style="max-width:260px" oninput="filterAdminMaterials()">
+                <select id="adminMaterialDeptFilter" class="form-control" style="max-width:180px" onchange="filterAdminMaterials()">
+                    <option value="ALL">All Departments</option>
+                    <option value="BCA">BCA</option>
+                    <option value="MCA">MCA</option>
+                    <option value="BSc CS">BSc CS</option>
+                    <option value="BSc IT">BSc IT</option>
+                    <option value="BBA">BBA</option>
+                    <option value="BCom">BCom</option>
+                    <option value="BTech">BTech</option>
+                    <option value="MTech">MTech</option>
+                    <option value="MBA">MBA</option>
+                </select>
+                <select id="adminMaterialTypeFilter" class="form-control" style="max-width:180px" onchange="filterAdminMaterials()">
+                    <option value="ALL">All Types</option>
+                    <option value="Notes">Notes</option>
+                    <option value="PYQ">PYQ (Question Paper)</option>
+                    <option value="Lab Manual">Lab Manual</option>
+                    <option value="Syllabus">Syllabus</option>
+                    <option value="Question Bank">Question Bank</option>
+                </select>
+            </div>
+
+            <div class="table-wrap">
+                <div class="table-responsive"><table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Resource Title</th>
+                            <th>Subject &amp; Code</th>
+                            <th>Dept / Sem</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Downloads</th>
+                            <th>Uploaded</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="materialsBody">
+                        <tr>
+                            <td colspan="9" style="text-align:center;padding:32px;color:var(--text-muted)">Loading materials...</td>
+                        </tr>
+                    </tbody>
+                </table></div>
+            </div>
+        </section>
+
+        <!-- STUDENTS SECTION -->
+        <section class="section" id="section-students">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-users" style="color:var(--primary)"></i> All Students</div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-outline btn-sm" onclick="downloadStudentTemplate()"><i
+                            class="fas fa-file-excel"></i> Sample XL</button>
+                    <button class="btn btn-primary btn-sm"
+                        onclick="document.getElementById('studentImportInput').click()"><i class="fas fa-upload"></i>
+                        Import Students</button>
+                    <input type="file" id="studentImportInput" accept=".csv, .xlsx, .xls" style="display: none;"
+                        onchange="handleStudentImport(this.files[0])">
+                </div>
+            </div>
+            <div class="table-wrap">
+                <div class="table-responsive"><table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Student</th>
+                            <th>Register No.</th>
+                            <th>Branch</th>
+                            <th style="width:180px">Department</th>
+                            <th>Section</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsBody">
+                        <tr>
+                            <td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table></div>
+            </div>
+        </section>
+
+        <!-- TESTS SECTION -->
+        <section class="section" id="section-tests">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-clipboard-list" style="color:var(--primary)"></i> Tests
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="openTestModal()"><i class="fas fa-plus"></i> Create
+                    Test</button>
+            </div>
+            <div class="table-wrap">
+                <div class="table-responsive"><table>
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Subject</th>
+                            <th>Questions</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                            <th>Department</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="testsBody">
+                        <tr>
+                            <td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table></div>
+            </div>
+        </section>
+
+        <!-- EXAM SCHEDULE SECTION -->
+        <section class="section" id="section-examschedule">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-calendar-alt" style="color:var(--primary)"></i> Exam
+                    Schedule</div>
+                <div>
+                    <button class="btn btn-outline btn-sm" onclick="downloadExamEventTemplate()"><i
+                            class="fas fa-file-csv"></i> Sample CSV</button>
+                    <button class="btn btn-outline btn-sm"
+                        onclick="document.getElementById('examEventImportInput').click()"><i
+                            class="fas fa-file-import"></i> Import</button>
+                    <button class="btn btn-primary btn-sm" onclick="openExamEventModal()"><i class="fas fa-plus"></i>
+                        Add Event</button>
+                    <input type="file" id="examEventImportInput" accept=".csv" style="display: none;"
+                        onchange="handleExamEventImport(this.files[0])">
+                </div>
+            </div>
+            <div class="table-wrap">
+                <div class="table-responsive"><table>
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Code</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Duration</th>
+                            <th>Venue</th>
+                            <th>Department</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="examScheduleBody">
+                        <tr>
+                            <td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table></div>
+            </div>
+        </section>
+
+        <!-- RESULTS SECTION -->
+        <section class="section" id="section-results">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-chart-bar" style="color:var(--primary)"></i> All Results
+                </div>
+                <button class="btn btn-success btn-sm" onclick="exportResultsCSV()"><i class="fas fa-file-excel"></i>
+                    Export XLS</button>
+            </div>
+            <div class="table-wrap">
+                <div class="table-responsive"><table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Test</th>
+                            <th>Score</th>
+                            <th>%</th>
+                            <th>Correct</th>
+                            <th>Wrong</th>
+                            <th>Grade</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                        <tr>
+                            <td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table></div>
+            </div>
+        </section>
+
+        <!-- MALPRACTICE SECTION -->
+        <section class="section" id="section-malpractice">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-exclamation-triangle" style="color:var(--danger)"></i>
+                    Malpractice Logs</div>
+            </div>
+            <div class="table-wrap">
+                <div class="table-responsive"><table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Test</th>
+                            <th>Tab Switches</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="malBody">
+                        <tr>
+                            <td colspan="4" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table></div>
+            </div>
+        </section>
+
+        <!-- ANNOUNCEMENTS SECTION -->
+        <section class="section" id="section-announcements">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-bullhorn" style="color:var(--primary)"></i> Announcement
+                    Center</div>
+            </div>
+            <div
+                style="background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);padding:24px;margin-bottom:24px">
+                <h3 style="font-size:15px;margin-bottom:16px">Post New Announcement</h3>
+                <div class="form-group full" style="margin-bottom:12px">
+                    <label>Message</label>
+                    <textarea class="form-control" id="announcementMsg" placeholder="Type your message here..."
+                        style="min-height:100px"></textarea>
+                </div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap">
+                    <div class="form-group" style="flex:1; min-width:200px">
+                        <label>Type</label>
+                        <select class="form-control" id="announcementType">
+                            <option value="info">Information (Blue)</option>
+                            <option value="success">Success (Green)</option>
+                            <option value="warn">Warning (Yellow)</option>
+                            <option value="danger">Critical (Red)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1; min-width:200px">
+                        <label>Attachment (Image, PDF, Doc)</label>
+                        <input type="file" id="announcementFile" class="form-control" style="padding:8px"
+                            accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx" />
+                    </div>
+                    <button class="btn btn-primary" onclick="postAnnouncement()" id="postAnnounceBtn"
+                        style="align-self:flex-end; height:42px; margin-bottom:12px">Post Now</button>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <div class="table-responsive"><table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Message</th>
+                            <th>Type</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="announcementsBody">
+                        <tr>
+                            <td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted)">Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table></div>
+            </div>
+        </section>
+
+        <!-- NOTICE BOARD SECTION -->
+        <section class="section" id="section-notices">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-thumbtack" style="color:#ef4444"></i> Notice Board
+                </div>
+            </div>
+            <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);padding:24px;margin-bottom:24px">
+                <h3 style="font-size:15px;margin-bottom:16px">Post New Notice</h3>
+                <div class="form-group full" style="margin-bottom:12px">
+                    <label>Title</label>
+                    <input type="text" class="form-control" id="noticeTitle" placeholder="e.g. End Semester Exam Timetable">
+                </div>
+                <div class="form-group full" style="margin-bottom:12px">
+                    <label>Body</label>
+                    <textarea class="form-control" id="noticeBody" placeholder="Type notice details here..." style="min-height:100px"></textarea>
+                </div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap">
+                    <div class="form-group" style="flex:1; min-width:200px">
+                        <label>Category</label>
+                        <select class="form-control" id="noticeCategory">
+                            <option value="general">General (Gray)</option>
+                            <option value="exam">Exam (Red)</option>
+                            <option value="fee">Fee (Orange)</option>
+                            <option value="holiday">Holiday (Green)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1; min-width:200px">
+                        <label>Attachment (Optional)</label>
+                        <input type="file" id="noticeFile" class="form-control" style="padding:8px"
+                            accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx" />
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap; margin-top: 12px; align-items:center;">
+                    <div class="form-group" style="flex:1; min-width:200px">
+                        <label>Valid Until (Optional)</label>
+                        <input type="date" class="form-control" id="noticeValidUntil">
+                    </div>
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;flex:1;margin-top:15px;">
+                        <input type="checkbox" id="noticePinned" style="width:16px;height:16px;">
+                        <strong>Pin to top</strong>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;flex:1;margin-top:15px;">
+                        <input type="checkbox" id="noticePopup" style="width:16px;height:16px;">
+                        <strong>Show as Popup (Ads)</strong>
+                    </label>
+                    <button class="btn btn-primary" onclick="postNotice()" id="postNoticeBtn"
+                        style="align-self:flex-end; height:42px; margin-bottom:12px">Post Notice</button>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <div class="table-responsive"><table>
+                    <thead>
+                        <tr>
+                            <th>Pinned</th>
+                            <th>Date</th>
+                            <th>Title & Body</th>
+                            <th>Category</th>
+                            <th>Valid Until</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="noticesBody">
+                        <tr>
+                            <td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted)">Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table></div>
+            </div>
+        </section>
+        </section>
+
+        <!-- ADMIN MANAGEMENT SECTION -->
+        <section class="section" id="section-adminmgmt">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-user-shield" style="color:var(--primary)"></i> Department Admins</div>
+                <button class="btn btn-primary" onclick="showAddAdminModal()"><i class="fas fa-plus"></i> Add Dept Admin</button>
+            </div>
+            <div class="table-wrap">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Email</th><th>Role</th><th>Department</th><th>Actions</th></tr></thead>
+                        <tbody id="adminTableBody">
+                            <tr><td colspan="4" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- FEEDBACK SECTION -->
+        </section>
+
+        <!-- PENDING APPROVALS SECTION (Section 2) -->
+        <section class="section" id="section-approvals">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-user-check" style="color:var(--success)"></i> Student Registration Approvals</div>
+            </div>
+            <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:12px;padding:16px 20px;margin-bottom:20px;font-size:13px;color:#6ee7b7;">
+                <i class="fas fa-info-circle"></i>&nbsp; New students who register via <strong>register.html</strong> land here with status <strong>pending</strong>.
+                Accept to grant login access, Reject to ask them to re-register, or Block for spam/fake accounts.
+            </div>
+            <div class="table-wrap">
+                <div class="table-responsive"><table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Register No.</th>
+                            <th>Dept</th>
+                            <th>Registered</th>
+                            <th style="min-width:220px">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approvalsBody">
+                        <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</td></tr>
+                    </tbody>
+                </table></div>
+            </div>
+        </section>
+
+        <!-- MAINTENANCE MODE SECTION (Section 3) -->
+        <section class="section" id="section-maintenance">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-tools" style="color:var(--accent)"></i> Maintenance Mode</div>
+            </div>
+            <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--radius);padding:28px;max-width:680px">
+                <div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--glass-border)">
+                    <div>
+                        <div style="font-size:15px;font-weight:700">Maintenance Toggle</div>
+                        <div style="font-size:12px;color:var(--text-muted);margin-top:4px">When ON, all pages redirect to maintenance.html except admins</div>
+                    </div>
+                    <label style="margin-left:auto;display:flex;align-items:center;gap:10px;cursor:pointer">
+                        <span id="maintToggleLabel" style="font-size:13px;font-weight:600;color:var(--text-muted)">OFF</span>
+                        <div id="maintToggleSwitch" onclick="toggleMaintenance()" style="width:52px;height:28px;background:rgba(255,255,255,.1);border-radius:14px;position:relative;cursor:pointer;transition:all .3s;border:1px solid var(--glass-border)">
+                            <div id="maintToggleKnob" style="width:22px;height:22px;background:#94a3b8;border-radius:50%;position:absolute;top:2px;left:3px;transition:all .3s"></div>
+                        </div>
+                    </label>
+                </div>
+                <div style="display:grid;gap:14px">
+                    <div class="form-group">
+                        <label>Maintenance Message</label>
+                        <textarea id="maintMessage" class="form-control" rows="2" placeholder="Students-ku useful-aana pudhu features ready pannitu irukkom."></textarea>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div class="form-group">
+                            <label>Launch Date &amp; Time</label>
+                            <input type="datetime-local" id="maintLaunchDate" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Progress % Complete</label>
+                            <input type="number" id="maintProgress" class="form-control" min="0" max="100" value="75" placeholder="75">
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div class="form-group">
+                            <label>Contact Email</label>
+                            <input type="email" id="maintEmail" class="form-control" placeholder="support@dsu.edu">
+                        </div>
+                        <div class="form-group">
+                            <label>Instagram URL (optional)</label>
+                            <input type="url" id="maintInstagram" class="form-control" placeholder="https://instagram.com/...">
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                        <div class="form-group">
+                            <label>Twitter/X URL (optional)</label>
+                            <input type="url" id="maintTwitter" class="form-control" placeholder="https://twitter.com/...">
+                        </div>
+                        <div class="form-group">
+                            <label>WhatsApp URL (optional)</label>
+                            <input type="url" id="maintWhatsapp" class="form-control" placeholder="https://wa.me/...">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveMaintenance()" style="width:fit-content"><i class="fas fa-save"></i> Save Settings</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="section-feedback">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-comments" style="color:var(--accent)"></i> Feedback / Complaints</div>
+            </div>
+            <div class="table-wrap">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Date</th><th>Feedback</th><th>Actions</th></tr></thead>
+                        <tbody id="feedbackTableBody">
+                            <tr><td colspan="3" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODERATION QUEUE SECTION -->
+        <section class="section" id="section-moderation">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-shield-alt" style="color:var(--danger)"></i> Moderation Queue</div>
+            </div>
+            <div class="table-wrap">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Content Type</th><th>Details</th><th>Reported By</th><th>Date</th><th>Action</th></tr></thead>
+                        <tbody id="moderationTableBody">
+                            <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ACHIEVEMENTS SECTION -->
+        <section class="section" id="section-achievements">
+            <div class="section-header">
+                <div class="section-title"><i class="fas fa-medal" style="color:var(--success)"></i> Achievements Moderation</div>
+            </div>
+            <div style="background:var(--glass);border:1px solid var(--glass-border);border-radius:12px;padding:16px 20px;margin-bottom:20px;font-size:13px;color:var(--text-muted)">
+                <i class="fas fa-info-circle" style="color:var(--success)"></i> Students submit their achievements (Certificates, Hackathons, Internships) from their dashboard. Review and approve them to display on the public Achievement Wall.
+            </div>
+            <div class="table-wrap">
+                <div class="table-responsive">
+                    <table>
+                        <thead><tr><th>Student</th><th>Achievement Details</th><th>Type</th><th>Date Submitted</th><th>Action</th></tr></thead>
+                        <tbody id="achievementsBody">
+                            <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted)">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <footer>Developed by <a href="https://loganathanm.in" target="_blank">Loganathan</a></footer>
+    </main>
+
+    <!-- Add Admin Modal -->
+    <div class="modal-overlay" id="addAdminModal">
+        <div class="modal" style="max-width:600px; padding: 30px; border-radius: 16px; background: rgba(30, 30, 40, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.4);">
+            <h2 style="font-size: 24px; margin-bottom: 25px; color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;"><i class="fas fa-user-plus"></i> Register Dept Admin</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label style="color:var(--text-muted); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; display:block;">Reg No / Staff ID</label>
+                    <input type="text" id="newAdminReg" class="input" placeholder="e.g. DSU001" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 10px; color: #fff; width: 100%; transition: all 0.3s ease;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
+                </div>
+                <div class="form-group">
+                    <label style="color:var(--text-muted); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; display:block;">Department</label>
+                    <select id="newAdminDept" class="input" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 10px; color: #fff; width: 100%; transition: all 0.3s ease;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'">
+                        <option value="BCA">BCA</option>
+                        <option value="MCA">MCA</option>
+                        <option value="BSc CS">BSc CS</option>
+                        <option value="BSc IT">BSc IT</option>
+                        <option value="BBA">BBA</option>
+                        <option value="BCom">BCom</option>
+                        <option value="BTech">BTech</option>
+                        <option value="MTech">MTech</option>
+                        <option value="MBA">MBA</option>
+                    </select>
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label style="color:var(--text-muted); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; display:block;">Email Address</label>
+                    <input type="email" id="newAdminEmail" class="input" placeholder="admin@dsu.edu" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 10px; color: #fff; width: 100%; transition: all 0.3s ease;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
+                </div>
+                <div class="form-group">
+                    <label style="color:var(--text-muted); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; display:block;">Phone Number</label>
+                    <input type="text" id="newAdminPhone" class="input" placeholder="+91 xxxxxxxxxx" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 10px; color: #fff; width: 100%; transition: all 0.3s ease;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
+                </div>
+                <div class="form-group">
+                    <label style="color:var(--text-muted); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; display:block;">Account Password</label>
+                    <input type="password" id="newAdminPass" class="input" placeholder="Min 6 chars" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 14px; border-radius: 10px; color: #fff; width: 100%; transition: all 0.3s ease;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'" />
+                </div>
+            </div>
+            <div class="modal-btns" style="margin-top: 30px; justify-content: flex-end; gap: 15px;">
+                <button class="btn btn-outline" onclick="document.getElementById('addAdminModal').classList.remove('active')" style="padding: 12px 24px; border-radius: 10px; font-weight: 600;">Cancel</button>
+                <button class="btn btn-primary" onclick="saveNewAdmin()" style="padding: 12px 24px; border-radius: 10px; background: linear-gradient(135deg, var(--primary), var(--secondary)); box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4); font-weight: 600;"><i class="fas fa-user-check"></i> Register Admin</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exam Event Modal -->
+    <div class="modal-overlay" id="examEventModal">
+        <div class="modal" style="max-width:550px">
+            <h2><i class="fas fa-calendar-plus" style="color:var(--primary)"></i> <span id="examEventModalTitle">Add
+                    Exam Event</span>
+                <button onclick="closeExamEventModal()"
+                    style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px"><i
+                        class="fas fa-times"></i></button>
+            </h2>
+            <form id="examEventForm" onsubmit="saveExamEvent(event)">
+                <div class="form-group" style="margin-bottom:15px">
+                    <label>Subject Name</label>
+                    <input type="text" id="ee_subject" class="form-control" required
+                        placeholder="e.g. Operating Systems">
+                </div>
+                <div class="grid-2" style="margin-bottom:15px">
+                    <div class="form-group">
+                        <label>Subject Code</label>
+                        <input type="text" id="ee_code" class="form-control" required placeholder="e.g. CS102">
+                    </div>
+                    <div class="form-group">
+                        <label>Duration (mins)</label>
+                        <input type="number" id="ee_duration" class="form-control" value="180" required>
+                    </div>
+                </div>
+                <div class="grid-2" style="margin-bottom:15px">
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="ee_date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Time</label>
+                        <input type="time" id="ee_time" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:15px">
+                    <label>Venue (Hall/Block)</label>
+                    <input type="text" id="ee_venue" class="form-control" required placeholder="e.g. Block A, Hall 101">
+                </div>
+                <div class="form-group" style="margin-bottom:20px">
+                    <label>Target Departments</label>
+                    <div style="display:flex;gap:12px;flex-wrap:wrap">
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none"><input
+                                type="checkbox" class="ee-dept-checkbox" value="ALL" checked> All Departments</label>
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none"><input type="checkbox" class="ee-dept-checkbox" value="BCA"> BCA</label>
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none"><input type="checkbox" class="ee-dept-checkbox" value="MCA"> MCA</label>
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none"><input type="checkbox" class="ee-dept-checkbox" value="BSc CS"> BSc CS</label>
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none"><input type="checkbox" class="ee-dept-checkbox" value="BSc IT"> BSc IT</label>
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none"><input type="checkbox" class="ee-dept-checkbox" value="BBA"> BBA</label>
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none"><input type="checkbox" class="ee-dept-checkbox" value="BCom"> BCom</label>
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none"><input type="checkbox" class="ee-dept-checkbox" value="BTech"> BTech</label>
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none"><input type="checkbox" class="ee-dept-checkbox" value="MTech"> MTech</label>
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none"><input type="checkbox" class="ee-dept-checkbox" value="MBA"> MBA</label>
+                    </div>
+                </div>
+                <div class="modal-btns">
+                    <button type="button" class="btn btn-outline" onclick="closeExamEventModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="examEventSaveBtn"><i class="fas fa-save"></i> Save
+                        Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create/Edit Test Modal -->
+    <div class="modal-overlay" id="testModal">
+        <div class="modal" style="max-width:740px">
+            <h2><i class="fas fa-clipboard-list" style="color:var(--primary)"></i> <span id="testModalTitle">Create
+                    Test</span></h2>
+            <div class="form-grid">
+                <div class="form-group full"><label>Test Title</label><input class="form-control" id="t_title"
+                        placeholder="e.g. Data Structures Mid-Term" /></div>
+                <div class="form-group"><label>Subject</label><input class="form-control" id="t_subject"
+                        placeholder="Subject" /></div>
+                <div class="form-group"><label>Duration (minutes)</label><input class="form-control" id="t_duration"
+                        type="number" value="30" min="5" /></div>
+                <div class="form-group"><label>Total Marks</label><input class="form-control" id="t_marks" type="number"
+                        value="100" min="1" /></div>
+                <div class="form-group"><label>Marks Per Question</label><input class="form-control" id="t_mpq"
+                        type="number" value="5" min="1" /></div>
+                <div class="form-group full"><label>Description</label><textarea class="form-control" id="t_desc"
+                        placeholder="Test description..."></textarea></div>
+            </div>
+
+            <!-- Department Selection -->
+            <div style="margin-top:16px">
+                <div style="font-size:13px;font-weight:700;margin-bottom:8px"><i class="fas fa-building"
+                        style="color:var(--secondary)"></i> Target Departments</div>
+                <div style="display:flex;flex-wrap:wrap;gap:8px;padding:12px;background:rgba(255,255,255,.03);border-radius:10px;border:1px solid var(--glass-border)"
+                    id="deptContainer">
+                    <label
+                        style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:5px 10px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);transition:all .2s">
+                        <input type="checkbox" class="dept-checkbox" value="BCA"> BCA
+                    </label>
+                    <label
+                        style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:5px 10px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);transition:all .2s">
+                        <input type="checkbox" class="dept-checkbox" value="MCA"> MCA
+                    </label>
+                    <label
+                        style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:5px 10px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);transition:all .2s">
+                        <input type="checkbox" class="dept-checkbox" value="BSc CS"> BSc CS
+                    </label>
+                    <label
+                        style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:5px 10px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);transition:all .2s">
+                        <input type="checkbox" class="dept-checkbox" value="BSc IT"> BSc IT
+                    </label>
+                    <label
+                        style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:5px 10px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);transition:all .2s">
+                        <input type="checkbox" class="dept-checkbox" value="BBA"> BBA
+                    </label>
+                    <label
+                        style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:5px 10px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);transition:all .2s">
+                        <input type="checkbox" class="dept-checkbox" value="BCom"> BCom
+                    </label>
+                    <label
+                        style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:5px 10px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);transition:all .2s">
+                        <input type="checkbox" class="dept-checkbox" value="BTech"> BTech
+                    </label>
+                    <label
+                        style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:5px 10px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);transition:all .2s">
+                        <input type="checkbox" class="dept-checkbox" value="MTech"> MTech
+                    </label>
+                    <label
+                        style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;padding:5px 10px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);transition:all .2s">
+                        <input type="checkbox" class="dept-checkbox" value="MBA"> MBA
+                    </label>
+                </div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Leave unchecked = open for ALL
+                    departments</div>
+            </div>
+
+            <!-- Schedule & Status -->
+            <div style="margin-top:16px">
+                <div style="font-size:13px;font-weight:700;margin-bottom:8px"><i class="fas fa-calendar-alt"
+                        style="color:var(--accent)"></i> Schedule & Status</div>
+                <div class="form-grid">
+                    <div class="form-group"><label>Start Time</label><input class="form-control" id="t_startTime"
+                            type="datetime-local" /></div>
+                    <div class="form-group"><label>End Time</label><input class="form-control" id="t_endTime"
+                            type="datetime-local" /></div>
+                </div>
+                <div
+                    style="display:flex;align-items:center;gap:10px;margin-top:8px;padding:12px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:10px">
+                    <label
+                        style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600">
+                        <input type="checkbox" id="t_isActive"
+                            style="width:18px;height:18px;accent-color:var(--success)">
+                        <i class="fas fa-broadcast-tower" style="color:var(--success)"></i> Test is LIVE (Active)
+                    </label>
+                    <span style="font-size:11px;color:var(--text-muted);margin-left:auto">Students can only access
+                        active tests</span>
+                </div>
+            </div>
+
+            <!-- Upload Questions -->
+            <div style="margin-top:16px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                    <div style="font-size:13px;font-weight:700"><i class="fas fa-file-upload"
+                            style="color:var(--accent)"></i> Upload Questions (.txt)</div>
+                    <button class="btn btn-outline btn-sm" onclick="downloadTemplate()" style="font-size:11px"><i
+                            class="fas fa-download"></i> Download Template</button>
+                </div>
+                <div style="padding:20px;border:2px dashed var(--glass-border);border-radius:12px;text-align:center;cursor:pointer;transition:all .3s;background:rgba(255,255,255,.02)"
+                    id="dropZone" onclick="document.getElementById('txtFileInput').click()">
+                    <i class="fas fa-cloud-upload-alt"
+                        style="font-size:28px;color:var(--primary);margin-bottom:8px;display:block"></i>
+                    <div style="font-size:13px;font-weight:600;margin-bottom:4px">Click or drag .txt, .csv, .xlsx file here</div>
+                    <div style="font-size:11px;color:var(--text-muted)" id="uploadedCount"></div>
+                    <input type="file" id="txtFileInput" accept=".txt" style="display:none"
+                        onchange="handleTxtUpload(this.files[0])">
+                </div>
+            </div>
+
+            <!-- Question Builder -->
+            <div style="margin-top:16px">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                    <div style="font-size:13px;font-weight:700"><i class="fas fa-question-circle"
+                            style="color:var(--primary)"></i> Questions</div>
+                    <button class="btn btn-outline btn-sm" onclick="addQuestionWithData()"><i class="fas fa-plus"></i> Add</button></div>
+                </div>
+                <div class="question-builder" id="questionBuilder"></div>
+            </div>
+            <div class="modal-btns">
+                <button class="btn btn-outline" onclick="closeTestModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveTest()" id="saveTestBtn"><i class="fas fa-save"></i> Save
+                    Test</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Detail Modal -->
+    <div class="modal-overlay" id="studentModal">
+        <div class="modal" style="max-width:700px">
+            <h2><i class="fas fa-user" style="color:var(--primary)"></i> Student Details
+                <button onclick="closeStudentModal()"
+                    style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;padding:4px"><i
+                        class="fas fa-times"></i></button>
+            </h2>
+            <div class="student-detail" id="studentDetailContent"></div>
+        </div>
+    </div>
+
+    <!-- Confirm delete -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal" style="max-width:380px;text-align:center">
+            <div style="font-size:52px;margin-bottom:12px">ΓÜá∩╕Å</div>
+            <h2 style="justify-content:center;font-size:18px;margin-bottom:8px">Delete Student?</h2>
+            <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px">This action cannot be undone. All
+                student data will be permanently deleted.</p>
+            <div style="display:flex;gap:10px">
+                <button class="btn btn-outline" style="flex:1"
+                    onclick="document.getElementById('deleteModal').classList.remove('active')">Cancel</button>
+                <button class="btn btn-danger" style="flex:1" onclick="confirmDelete()"
+                    id="deleteConfirmBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Staff Modal (Extended Schema) -->
+    <div class="modal-overlay" id="staffModal">
+        <div class="modal" style="max-width:600px">
+            <h2><i class="fas fa-user-tie" style="color:var(--primary)"></i> <span id="staffModalTitle">Add Staff Member</span>
+                <button onclick="closeStaffModal()"
+                    style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px"><i
+                        class="fas fa-times"></i></button>
+            </h2>
+            <form id="staffForm" onsubmit="saveStaff(event)">
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="s_name" class="form-control" required placeholder="Dr. R. Loganathan">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address *</label>
+                        <input type="email" id="s_email" class="form-control" required placeholder="faculty@dsu.edu">
+                    </div>
+                </div>
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="form-group">
+                        <label>Designation *</label>
+                        <input type="text" id="s_role" class="form-control" required placeholder="Associate Professor &amp; HOD">
+                    </div>
+                    <div class="form-group">
+                        <label>Department *</label>
+                        <select id="s_dept" class="form-control">
+                            <option value="Computer Science">Computer Science / BCA / MCA</option>
+                            <option value="Information Technology">Information Technology</option>
+                            <option value="Management">Management (BBA / MBA)</option>
+                            <option value="Commerce">Commerce (BCom)</option>
+                            <option value="Engineering">Engineering (BTech / MTech)</option>
+                            <option value="Basic Sciences">Basic Sciences</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="form-group">
+                        <label>Date of Birth * (For Login Password)</label>
+                        <input type="date" id="s_dob" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Phone</label>
+                        <input type="tel" id="s_phone" class="form-control" placeholder="+91 98765 43210">
+                    </div>
+                </div>
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="form-group">
+                        <label>Cabin / Office Location</label>
+                        <input type="text" id="s_cabin" class="form-control" placeholder="Block A, Room 304">
+                    </div>
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="form-group">
+                        <label>Office Hours / Availability</label>
+                        <input type="text" id="s_hours" class="form-control" placeholder="Mon-Fri 2:00 PM - 4:00 PM">
+                    </div>
+                    <div class="form-group">
+                        <label>Qualification</label>
+                        <input type="text" id="s_qual" class="form-control" placeholder="Ph.D., M.Tech (CSE)">
+                    </div>
+                </div>
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="form-group">
+                        <label>Assigned Subject *</label>
+                        <input type="text" id="s_subject" class="form-control" required placeholder="Data Structures">
+                    </div>
+                    <div class="form-group">
+                        <label>Batch *</label>
+                        <input type="text" id="s_batch" class="form-control" required placeholder="2023-2027">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>Photo URL (or upload below)</label>
+                    <div style="display:flex;gap:8px">
+                        <input type="url" id="s_photo" class="form-control" placeholder="https://res.cloudinary.com/...">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('staffPhotoUpload').click()"><i class="fas fa-upload"></i> Upload</button>
+                        <input type="file" id="staffPhotoUpload" accept="image/*" style="display:none" onchange="uploadStaffPhoto(this.files[0])">
+                    </div>
+                    <div id="staffPhotoUploadStatus" style="font-size:11px;color:var(--text-muted);margin-top:4px"></div>
+                </div>
+                <div class="form-group" style="margin-bottom:16px">
+                    <label>Bio / Research Interests</label>
+                    <textarea id="s_bio" class="form-control" rows="2" placeholder="Specializes in Distributed Systems, Machine Learning in Education..."></textarea>
+                </div>
+                <div class="modal-btns">
+                    <button type="button" class="btn btn-outline" onclick="closeStaffModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="staffSaveBtn"><i class="fas fa-save"></i> Save Staff</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Study Material Modal -->
+    <div class="modal-overlay" id="materialModal">
+        <div class="modal" style="max-width:600px">
+            <h2><i class="fas fa-book-reader" style="color:var(--primary)"></i> <span id="materialModalTitle">Upload Study Material</span>
+                <button onclick="closeMaterialModal()"
+                    style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px"><i
+                        class="fas fa-times"></i></button>
+            </h2>
+            <form id="materialForm" onsubmit="saveMaterial(event)">
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>Resource Title *</label>
+                    <input type="text" id="m_title" class="form-control" required placeholder="e.g., Operating Systems Unit 1 - Process Management">
+                </div>
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="form-group">
+                        <label>Subject Name *</label>
+                        <input type="text" id="m_subject" class="form-control" required placeholder="e.g., Operating Systems">
+                    </div>
+                    <div class="form-group">
+                        <label>Subject Code</label>
+                        <input type="text" id="m_code" class="form-control" placeholder="e.g., CS204">
+                    </div>
+                </div>
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="form-group">
+                        <label>Department *</label>
+                        <select id="m_dept" class="form-control">
+                            <option value="ALL">ALL Departments</option>
+                            <option value="BCA">BCA</option>
+                            <option value="MCA">MCA</option>
+                            <option value="BSc CS">BSc CS</option>
+                            <option value="BSc IT">BSc IT</option>
+                            <option value="BBA">BBA</option>
+                            <option value="BCom">BCom</option>
+                            <option value="BTech">BTech</option>
+                            <option value="MTech">MTech</option>
+                            <option value="MBA">MBA</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Semester</label>
+                        <select id="m_sem" class="form-control">
+                            <option value="ALL">All Semesters</option>
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                            <option value="3">Semester 3</option>
+                            <option value="4">Semester 4</option>
+                            <option value="5">Semester 5</option>
+                            <option value="6">Semester 6</option>
+                            <option value="7">Semester 7</option>
+                            <option value="8">Semester 8</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-grid" style="margin-bottom:12px">
+                    <div class="form-group">
+                        <label>Material Type *</label>
+                        <select id="m_type" class="form-control" required>
+                            <option value="Notes">≡ƒô¥ Lecture Notes</option>
+                            <option value="PYQ">≡ƒôä PYQ (Previous Year Question Paper)</option>
+                            <option value="Lab Manual">≡ƒº¬ Lab Manual</option>
+                            <option value="Syllabus">≡ƒôæ Syllabus</option>
+                            <option value="Question Bank">≡ƒôÜ Question Bank</option>
+                            <option value="Reference Book">≡ƒôû Reference Material</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>File Type / Format</label>
+                        <select id="m_fileType" class="form-control">
+                            <option value="pdf">PDF Document</option>
+                            <option value="docx">Word Document (.docx)</option>
+                            <option value="pptx">PowerPoint (.pptx)</option>
+                            <option value="zip">ZIP / Archive</option>
+                            <option value="link">Web Link</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>Description / Units / Topics Covered</label>
+                    <textarea id="m_desc" class="form-control" rows="2" placeholder="Unit 1: Process Concept, Process Scheduling, Inter-Process Communication..."></textarea>
+                </div>
+                <div class="form-group" style="margin-bottom:12px">
+                    <label>File Upload (Cloudinary) or Direct URL *</label>
+                    <div style="display:flex;gap:8px;margin-bottom:6px">
+                        <input type="url" id="m_fileUrl" class="form-control" required placeholder="https://res.cloudinary.com/... or https://drive.google.com/...">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('materialFileInput').click()"><i class="fas fa-cloud-upload-alt"></i> Upload</button>
+                        <input type="file" id="materialFileInput" accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.rar" style="display:none" onchange="uploadMaterialFile(this.files[0])">
+                    </div>
+                    <div id="materialUploadStatus" style="font-size:11px;color:var(--text-muted)"></div>
+                </div>
+                <div class="form-grid" style="margin-bottom:16px">
+                    <div class="form-group">
+                        <label>File Size Display</label>
+                        <input type="text" id="m_fileSize" class="form-control" placeholder="e.g., 2.4 MB">
+                    </div>
+                    <div class="form-group">
+                        <label>Academic Year / Batch</label>
+                        <input type="text" id="m_year" class="form-control" placeholder="2025 - 2026">
+                    </div>
+                </div>
+                <div class="modal-btns">
+                    <button type="button" class="btn btn-outline" onclick="closeMaterialModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="materialSaveBtn"><i class="fas fa-save"></i> Save Material</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Downloaders Modal (Students who downloaded study material) -->
+    <div class="modal-overlay" id="downloadersModal">
+        <div class="modal" style="max-width:680px">
+            <h2 style="align-items:flex-start">
+                <div style="display:flex;align-items:center;gap:12px">
+                    <div style="width:42px;height:42px;border-radius:12px;background:rgba(6,182,212,0.15);color:var(--secondary);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">
+                        <i class="fas fa-file-arrow-down"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:17px;font-weight:800;color:#fff">Material Downloaders</div>
+                        <div id="dlModalTitle" style="font-size:12px;color:var(--text-muted);font-weight:400;margin-top:2px;max-width:440px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Loading material details...</div>
+                    </div>
+                </div>
+                <button onclick="closeDownloadersModal()" style="margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;padding:4px"><i class="fas fa-times"></i></button>
+            </h2>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin:16px 0 12px;flex-wrap:wrap">
+                <div style="font-size:13px;color:var(--text-muted)">
+                    <span id="dlModalCountBadge" style="background:rgba(6,182,212,0.15);color:var(--secondary);padding:4px 12px;border-radius:99px;font-weight:700;font-size:12px"><i class="fas fa-users"></i> 0 Students</span>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center">
+                    <input type="text" id="dlSearchInput" class="form-control" placeholder="Search by name, USN, dept..." style="width:230px;padding:6px 12px;font-size:12px" oninput="filterDownloaders()">
+                    <button class="btn btn-outline btn-sm" onclick="exportDownloadersCSV()" title="Export CSV" style="padding:6px 10px"><i class="fas fa-download"></i></button>
+                </div>
+            </div>
+
+            <div id="downloadersListContent" style="max-height:420px;overflow-y:auto;padding-right:4px">
+                <!-- Dynamically loaded list of student downloaders -->
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;margin-top:16px">
+                <button type="button" class="btn btn-outline" onclick="closeDownloadersModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
+        import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, getDocs, doc, getDoc, deleteDoc, addDoc, updateDoc, setDoc, serverTimestamp, query, orderBy, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
+            authDomain: "dsu-exam-system.firebaseapp.com",
+            projectId: "dsu-exam-system",
+            storageBucket: "dsu-exam-system.firebasestorage.app",
+            messagingSenderId: "155083834622",
+            appId: "1:155083834622:web:ff0a9780b88bad0b8811af",
+            measurementId: "G-1TPT1BR6GD"
+        };
+        const app = initializeApp(firebaseConfig);
+        const appCheck = initializeAppCheck(app, {
+            provider: new ReCaptchaV3Provider('6Leua30tAAAAANy_qYf2oF4vC-BLxBBPPKHgKdZe'),
+            isTokenAutoRefreshEnabled: true
+        });
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const functions = getFunctions(app);
+        
+        // Initialize secondary app for creating accounts without logging out admin
+        const secondaryApp = initializeApp(firebaseConfig, "SecondaryAdminApp");
+        const secondaryAuth = getAuth(secondaryApp);
+
+        window.triggerSMS = async function(message) {
+            const smsStudents = allStudents.filter(s => s.smsEnabled && s.email);
+            if(smsStudents.length === 0) return;
             
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const { questions, errors } = parseBulkQuestionsText(e.target.result);
-                renderParsedBulk(questions, errors);
-            };
-            reader.readAsText(file);
-        };        function parseTxtQuestions(text) {
+            // Send email via EmailJS for each student (Note: in production you would use a backend or BCC)
+            for (const student of smsStudents) {
+                window.sendEmailAlert(student.email, student.name, message);
+            }
+        };
+
+        window.sendEmailAlert = async function(email, name, messageText) {
+            const serviceID = 'service_loga'; 
+            const templateID = 'template_0r49b3f'; 
+            const publicKey = 'dNb9eBTjrfv99xMqm'; 
+            
+            if (templateID === 'YOUR_ALERT_TEMPLATE_ID') return; // Stop if not setup yet
+
+            try {
+                await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        service_id: serviceID,
+                        template_id: templateID,
+                        user_id: publicKey,
+                        template_params: { to_email: email, name: name || 'Student', alert_message: messageText }
+                    })
+                });
+            } catch(e) { console.error('EmailJS Error', e); }
+        };
+
+        // Obfuscated Admin Emails
+        const ADMIN_EMAILS = [
+            atob("YWRtaW5AZHN1LmVkdQ=="), // admin@dsu.edu
+            atob("bG9nYW5hdGhhbkBkc3UuZWR1"), // loganathan@dsu.edu
+            atob("bWxvZ2FuYXRoYW4wODIwMDhAZ21haWwuY29t"), // mloganathan082008@gmail.com
+            atob("ZXhhbXByby5sb2dhbmF0aGFubS5pbkBnbWFpbC5jb20=") // exampro.loganathanm.in@gmail.com
+        ];
+
+        // Cloudinary Config (Updated)
+        const CLOUDINARY_CLOUD_NAME = "dxsa93rr2";
+        const CLOUDINARY_UPLOAD_PRESET = "DSU EXAM";
+        const CLOUDINARY_API_KEY = "935571736536156";
+        const CLOUDINARY_API_SECRET = "qf9xX3oAjacl8tWWyhbrWNwKThs";
+
+        let allStudents = [], allTests = [], allResults = [], allMal = [], allExamEvents = [];
+        let deleteTargetId = null, editingTestId = null, editingExamEventId = null;
+        let questionCount = 0;
+
+        // ===== .TXT PARSER =====
+        function parseTxtQuestions(text) {
             const questions = [];
             const blocks = text.split(/\n\s*\n/);
             for (const block of blocks) {
@@ -299,7 +2669,7 @@
                     if (isAdminData && (isAdminData.role === 'super' || isAdminData.role === 'staff')) isSuperAdmin = true;
                 } catch (adminDocErr) {
                     console.warn('Could not fetch admins doc (rules may not be deployed):', adminDocErr.message);
-                    // Fall through — if email is in ADMIN_EMAILS, isSuperAdmin is already true
+                    // Fall through ΓÇö if email is in ADMIN_EMAILS, isSuperAdmin is already true
                 }
                 
                 const validRoles = ['super', 'staff', 'department', 'exam_coordinator', 'admin'];
@@ -311,6 +2681,15 @@
                 }
                 
                 currentAdmin = { uid: user.uid, email: user.email, isSuper: isSuperAdmin, dept: isAdminData ? isAdminData.department : null };
+                // Phase 1-5: expose helpers to non-module scripts
+                window._db = db; window._curUid = user.uid;
+                window._db_collection = collection; window._db_getDocs = getDocs;
+                window._db_addDoc = addDoc; window._db_query = query;
+                window._db_orderBy = orderBy; window._serverTimestamp = serverTimestamp;
+                // Expose Firebase helpers to window for cross-script access (Phase 1-5)
+                window._db = db; window._curUid = user.uid;
+                window._db_collection = collection; window._db_getDocs = getDocs; window._db_addDoc = addDoc;
+                window._db_query = query; window._db_orderBy = orderBy; window._serverTimestamp = serverTimestamp;
 
                 document.body.classList.add('admin-verified');
                 document.getElementById('adminName').textContent = user.displayName || user.email.split('@')[0];
@@ -319,6 +2698,8 @@
                     const adminMgmtTab = document.getElementById('adminManagementTab');
                     if (adminMgmtTab) adminMgmtTab.style.display = 'block';
                     const maintTab = document.getElementById('maintenanceTab');
+                    const auditTab2 = document.getElementById('auditlogTab'); if(auditTab2) auditTab2.style.display='block';
+                    const auditTab = document.getElementById('auditlogTab'); if(auditTab) auditTab.style.display='block';
                     if (maintTab) maintTab.style.display = 'block';
                 }
 
@@ -557,7 +2938,7 @@ const body = document.getElementById('resultsBody');
             const tbody = document.getElementById('approvalsBody');
             if (!tbody) return;
             if (!list.length) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)"><i class="fas fa-check-circle" style="color:var(--success);font-size:24px;display:block;margin-bottom:8px"></i>No pending registrations! 🎉</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted)"><i class="fas fa-check-circle" style="color:var(--success);font-size:24px;display:block;margin-bottom:8px"></i>No pending registrations! ≡ƒÄë</td></tr>';
                 return;
             }
             tbody.innerHTML = list.map(s => `<tr>
@@ -702,9 +3083,9 @@ const body = document.getElementById('resultsBody');
                 });
                 // Send email notification to student
                 const statusMessages = {
-                    approved: '✅ Your ExamPro DSU account has been approved! You can now login at https://dsu.loganathanm.in/login.html',
-                    rejected: '❌ Your ExamPro DSU registration was rejected. Please verify your Name, Email, Phone, and Register Number then re-register.',
-                    blocked: '🚫 Your ExamPro DSU account has been blocked due to suspicious activity. Contact: support.loga@gmail.com'
+                    approved: 'Γ£à Your ExamPro DSU account has been approved! You can now login at https://dsu.loganathanm.in/login.html',
+                    rejected: 'Γ¥î Your ExamPro DSU registration was rejected. Please verify your Name, Email, Phone, and Register Number then re-register.',
+                    blocked: '≡ƒÜ½ Your ExamPro DSU account has been blocked due to suspicious activity. Contact: support.loga@gmail.com'
                 };
                 try {
                     await fetch('https://api.emailjs.com/api/v1.0/email/send', {
@@ -787,7 +3168,7 @@ const body = document.getElementById('resultsBody');
                     enabled: _maintEnabled,
                     updatedAt: serverTimestamp()
                 }, { merge: true });
-                showToast(_maintEnabled ? '🚧 Maintenance mode ON' : '✅ Maintenance mode OFF', 'success');
+                showToast(_maintEnabled ? '≡ƒÜº Maintenance mode ON' : 'Γ£à Maintenance mode OFF', 'success');
             } catch(err) { showToast('Failed: ' + err.message, 'error'); }
         };
 
@@ -1070,6 +3451,8 @@ const body = document.getElementById('resultsBody');
       <td><span class="chip ${status.class}"><i class="fas ${status.icon}"></i> ${status.label}</span></td>
       <td style="font-size:11px;color:var(--text-muted)">${depts}</td>
       <td><div class="actions-cell">
+        <button class="icon-action icon-edit" onclick="cloneTest('${t.id}')" title="Clone Test"><i class="fas fa-copy"></i></button>
+        <button class="icon-action icon-edit" onclick="window.cloneTest&&window.cloneTest('${t.id}')" title="Clone"><i class="fas fa-copy"></i></button>
         <button class="icon-action" onclick="toggleTestStatus('${t.id}')" title="${t.isActive ? 'Close Test' : 'Open Test'}"><i class="fas ${t.isActive ? 'fa-toggle-on' : 'fa-toggle-off'}" style="color:${t.isActive ? 'var(--success)' : 'var(--text-muted)'};font-size:18px"></i></button>
         <button class="icon-action icon-edit" onclick="editTest('${t.id}')" title="Edit"><i class="fas fa-edit"></i></button>
         <button class="icon-action icon-del" onclick="deleteTestById('${t.id}')" title="Delete"><i class="fas fa-trash"></i></button>
@@ -1183,7 +3566,7 @@ const body = document.getElementById('resultsBody');
       <div class="detail-chips" style="margin-top:12px">
         <div class="detail-chip"><i class="fas fa-envelope"></i>${s.email || '-'}</div>
         <div class="detail-chip"><i class="fas fa-university"></i>${s.college || '-'}</div>
-        <div class="detail-chip"><i class="fas fa-code-branch"></i>${s.branch || '-'} • ${s.section || '-'}</div>
+        <div class="detail-chip"><i class="fas fa-code-branch"></i>${s.branch || '-'} ΓÇó ${s.section || '-'}</div>
         <div class="detail-chip"><i class="fas fa-calendar"></i>${s.year || '-'}</div>
         <div class="detail-chip" style="display:flex; align-items:center; gap:8px;">
             <i class="fas fa-birthday-cake"></i> DOB:
@@ -2119,7 +4502,7 @@ const body = document.getElementById('resultsBody');
                         <div style="font-weight:600;color:var(--secondary)">${escapeHtml(m.subject || '-')}</div>
                         ${m.subjectCode ? `<div style="font-size:11px;color:var(--text-muted)">${escapeHtml(m.subjectCode)}</div>` : ''}
                     </td>
-                    <td><span class="nav-badge" style="background:rgba(255,255,255,0.08);color:#fff">${m.department || 'ALL'} ${m.semester ? '• Sem ' + m.semester : ''}</span></td>
+                    <td><span class="nav-badge" style="background:rgba(255,255,255,0.08);color:#fff">${m.department || 'ALL'} ${m.semester ? 'ΓÇó Sem ' + m.semester : ''}</span></td>
                     <td><span class="nav-badge" style="${typeClass}">${escapeHtml(m.type || 'Resource')}</span></td>
                     <td style="font-size:11px;color:var(--text-muted)">${escapeHtml(m.fileSize || '-')}</td>
                     <td>
@@ -2225,7 +4608,7 @@ const body = document.getElementById('resultsBody');
 
                 const regNo = s.registerNumber && s.registerNumber !== '-' ? s.registerNumber : (s.usn || '-');
                 const dept = s.department || 'General';
-                const semStr = s.semester && s.semester !== '-' ? ` • Sem ${s.semester}` : '';
+                const semStr = s.semester && s.semester !== '-' ? ` ΓÇó Sem ${s.semester}` : '';
                 const dlCountBadge = (s.downloadCount && s.downloadCount > 1) ? `<span style="background:rgba(6,182,212,0.15);color:var(--secondary);font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;margin-left:6px">${s.downloadCount}x downloaded</span>` : '';
 
                 return `
@@ -2460,38 +4843,315 @@ const body = document.getElementById('resultsBody');
         window.showToast = showToast;
     </script>
 
-    <!-- Import Question Modal -->
+    <!-- ExamPro Phase 1-5: Dynamic Question Builder, Bank, Parsers, Preview, Audit Log -->
+    <script>
+    // =========================================================
+    // Phase 1: Dynamic Question Builder
+    // =========================================================
+    var questionCount = 0;
+
+    window._validateForPublish = function(questions, isActive) {
+        if(!isActive) return [];
+        var errs=[];
+        questions.forEach(function(q,i){
+            var num='Q'+(i+1), t=q.type||'mcq-single', txt=(q.questionText||q.question||'').trim();
+            if(!txt){errs.push(num+': Question text empty');return;}
+            if(t==='mcq-single'||t==='mcq-multi'){
+                var opts=(q.options||[]).filter(function(o){return o&&o.trim();});
+                if(opts.length<2){errs.push(num+': Need at least 2 options');return;}
+                var seen={};opts.forEach(function(o){if(seen[o])errs.push(num+': Duplicate option "'+o+'"');seen[o]=true;});
+                if(t==='mcq-single'&&q.correctAnswer===undefined&&q.correctIndex===undefined)errs.push(num+': No correct answer');
+                if(t==='mcq-multi'&&(!q.correctAnswer||!q.correctAnswer.length))errs.push(num+': No correct answers');
+            } else if(t==='fill-blank'&&!q.correctAnswer){errs.push(num+': Fill-blank answer empty');}
+            else if(t==='numeric'&&(!q.correctAnswer||q.correctAnswer.min===undefined)){errs.push(num+': Numeric range not set');}
+        });
+        return errs;
+    };
+
+    window.changeQuestionType = function(id) {
+        var type = document.getElementById('q'+id+'_type').value;
+        var c = document.getElementById('q'+id+'_options_container');
+        var h = '';
+        if(type==='mcq-single'||type==='mcq-multi') {
+            var it = type==='mcq-single'?'radio':'checkbox';
+            h = '<div id="q'+id+'_opts_list">'+['A','B','C','D'].map(function(l,i){ return '<div class="option-row" style="display:flex;gap:10px;align-items:center;margin-bottom:8px"><input type="'+it+'" name="correct_'+id+'" value="'+i+'" id="r'+id+'_'+i+'"><input type="text" class="form-control" id="q'+id+'_opt'+i+'" placeholder="Option '+l+'"></div>'; }).join('')+'</div><div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">Select correct answer(s).</div>';
+        } else if(type==='true-false') {
+            h = '<div style="display:flex;gap:20px;margin-bottom:10px;align-items:center"><label><input type="radio" name="correct_'+id+'" value="true" checked> True</label><label><input type="radio" name="correct_'+id+'" value="false"> False</label></div>';
+        } else if(type==='fill-blank') {
+            h = '<input type="text" class="form-control" id="q'+id+'_exact" placeholder="Exact Correct Answer" style="margin-bottom:10px"/><div style="font-size:11px;color:var(--text-muted)">Case-insensitive match.</div>';
+        } else if(type==='numeric') {
+            h = '<div style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><input type="number" step="any" class="form-control" id="q'+id+'_num_min" placeholder="Min"/><span> – </span><input type="number" step="any" class="form-control" id="q'+id+'_num_max" placeholder="Max"/></div>';
+        }
+        c.innerHTML = h;
+    };
+
+    window.extractQuestionData = function(id) {
+        var text = document.getElementById('q'+id+'_text')&&document.getElementById('q'+id+'_text').value.trim();
+        if(!text) return null;
+        var type = (document.getElementById('q'+id+'_type')&&document.getElementById('q'+id+'_type').value)||'mcq-single';
+        var subj = document.getElementById('q'+id+'_subject')?document.getElementById('q'+id+'_subject').value.trim():'';
+        var topic = document.getElementById('q'+id+'_topic')?document.getElementById('q'+id+'_topic').value.trim():'';
+        var diff = document.getElementById('q'+id+'_diff')?document.getElementById('q'+id+'_diff').value:'Medium';
+        var mVal = document.getElementById('q'+id+'_marks')?document.getElementById('q'+id+'_marks').value:'';
+        var marks = mVal?parseFloat(mVal):null;
+        var imgUrl = document.getElementById('q'+id+'_img')?document.getElementById('q'+id+'_img').value.trim():'';
+        var options=[],correctAnswer=null;
+
+        if(type==='mcq-single'||type==='mcq-multi'){
+            document.querySelectorAll('[id^="q'+id+'_opt"]').forEach(function(el){options.push(el.value.trim());});
+            if(type==='mcq-single'){var cEl=document.querySelector('input[name="correct_'+id+'"]:checked');if(!cEl)return null;correctAnswer=parseInt(cEl.value);}
+            else{var cEls=document.querySelectorAll('input[name="correct_'+id+'"]:checked');if(!cEls.length)return null;correctAnswer=Array.from(cEls).map(function(e){return parseInt(e.value);});}
+        } else if(type==='true-false'){var tfEl=document.querySelector('input[name="correct_'+id+'"]:checked');if(!tfEl)return null;correctAnswer=tfEl.value==='true';}
+        else if(type==='fill-blank'){var fv=document.getElementById('q'+id+'_exact').value.trim();if(!fv)return null;correctAnswer=fv;}
+        else if(type==='numeric'){var mn=document.getElementById('q'+id+'_num_min').value,mx=document.getElementById('q'+id+'_num_max').value;if(!mn||!mx)return null;correctAnswer={min:parseFloat(mn),max:parseFloat(mx)};}
+
+        var ret={type:type,questionText:text,question:text,correctAnswer:correctAnswer,correctIndex:typeof correctAnswer==='number'?correctAnswer:0};
+        if(options.length)ret.options=options;
+        if(subj)ret.subject=subj; if(topic)ret.topic=topic; if(diff)ret.difficulty=diff;
+        if(marks!==null)ret.marks=marks; if(imgUrl)ret.imageUrl=imgUrl;
+        return ret;
+    };
+
+    window.addQuestionWithData = function(qData) {
+        questionCount++;
+        var id=questionCount,qb=document.getElementById('questionBuilder'),div=document.createElement('div');
+        div.className='q-item'; div.id='q-'+id;
+        var qText=((qData&&(qData.questionText||qData.question))||'').replace(/"/g,'&quot;');
+        var qType=(qData&&qData.type)||'mcq-single',subj=(qData&&qData.subject)||'',topic=(qData&&qData.topic)||'',diff=(qData&&qData.difficulty)||'Medium',marks=(qData&&qData.marks)||'',imgUrl=(qData&&qData.imageUrl)||'';
+        div.innerHTML='<div class="q-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span class="q-label">Q'+id+'</span><div>'+
+            '<button class="btn btn-outline btn-sm" id="q'+id+'_saveBankBtn" onclick="saveToQuestionBank('+id+')" style="margin-right:6px"><i class="fas fa-cloud-upload-alt"></i> Save to Bank</button>'+
+            '<button class="btn btn-danger btn-sm" onclick="this.closest('.q-item').remove()" style="padding:4px 10px"><i class="fas fa-times"></i></button></div></div>'+
+            '<div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap">'+
+                '<input type="text" class="form-control" id="q'+id+'_subject" placeholder="Subject" style="flex:1;min-width:120px" value="'+subj+'">'+
+                '<input type="text" class="form-control" id="q'+id+'_topic" placeholder="Topic" style="flex:1;min-width:120px" value="'+topic+'">'+
+                '<select class="form-control" id="q'+id+'_diff" style="width:100px"><option value="Easy"'+(diff==='Easy'?' selected':'')+'>Easy</option><option value="Medium"'+(diff==='Medium'?' selected':'')+'>Medium</option><option value="Hard"'+(diff==='Hard'?' selected':'')+'>Hard</option></select>'+
+                '<input type="number" class="form-control" id="q'+id+'_marks" placeholder="Marks" style="width:80px" value="'+marks+'">'+
+            '</div>'+
+            '<textarea class="form-control" style="margin-bottom:8px;min-height:70px;resize:vertical" placeholder="Question text..." id="q'+id+'_text">'+qText+'</textarea>'+
+            '<div style="display:flex;gap:10px;margin-bottom:10px;align-items:center;">'+
+                '<select class="form-control" id="q'+id+'_type" onchange="changeQuestionType('+id+')" style="width:190px">'+
+                    '<option value="mcq-single"'+(qType==='mcq-single'?' selected':'')+'>Single Correct MCQ</option>'+
+                    '<option value="mcq-multi"'+(qType==='mcq-multi'?' selected':'')+'>Multi Correct MCQ</option>'+
+                    '<option value="true-false"'+(qType==='true-false'?' selected':'')+'>True / False</option>'+
+                    '<option value="fill-blank"'+(qType==='fill-blank'?' selected':'')+'>Fill in the Blank</option>'+
+                    '<option value="numeric"'+(qType==='numeric'?' selected':'')+'>Numeric Range</option>'+
+                '</select>'+
+                '<input type="text" class="form-control" id="q'+id+'_img" placeholder="Image URL (optional)" style="flex:1" value="'+imgUrl+'">'+
+            '</div>'+
+            '<div id="q'+id+'_options_container"></div>';
+        qb.appendChild(div);
+        window.changeQuestionType(id);
+        setTimeout(function(){
+            if(!qData) return;
+            if(qType==='mcq-single'||qType==='mcq-multi'){
+                (qData.options||[]).forEach(function(o,i){var el=document.getElementById('q'+id+'_opt'+i);if(el)el.value=o;});
+                if(qType==='mcq-single'){var ca=qData.correctAnswer!==undefined?qData.correctAnswer:(qData.correctIndex||0);var rel=document.getElementById('r'+id+'_'+ca);if(rel)rel.checked=true;}
+                else if(Array.isArray(qData.correctAnswer)){qData.correctAnswer.forEach(function(idx){var rel=document.getElementById('r'+id+'_'+idx);if(rel)rel.checked=true;});}
+            }else if(qType==='true-false'){var rel2=document.querySelector('input[name="correct_'+id+'"][value="'+qData.correctAnswer+'"]');if(rel2)rel2.checked=true;}
+            else if(qType==='fill-blank'&&document.getElementById('q'+id+'_exact')){document.getElementById('q'+id+'_exact').value=qData.correctAnswer||'';}
+            else if(qType==='numeric'){if(document.getElementById('q'+id+'_num_min'))document.getElementById('q'+id+'_num_min').value=(qData.correctAnswer&&qData.correctAnswer.min)||'';if(document.getElementById('q'+id+'_num_max'))document.getElementById('q'+id+'_num_max').value=(qData.correctAnswer&&qData.correctAnswer.max)||'';}
+        },30);
+    };
+
+    // txt parser (Phase 1 robust)
+    window.parseBulkQuestionsText = function(text) {
+        var parsed=[],errs=[],blocks=text.split(/
+s*
+/),lineOffset=1;
+        blocks.forEach(function(block){
+            var rawLines=block.split('
+'),lines=rawLines.map(function(l){return l.trim();}).filter(Boolean);
+            if(!lines.length){lineOffset+=rawLines.length;return;}
+            var qText='',opts=[],cAns=-1;
+            lines.forEach(function(line){
+                if(/^(Questions*[:.]?s*)/i.test(line)){qText=line.replace(/^Questions*[:.]?s*/i,'').trim();}
+                else if(/^[a-f]s*[).]s*/i.test(line)){opts.push(line.replace(/^[a-f]s*[).]s*/i,'').trim());}
+                else if(/^Corrects*(Answer|Ans)s*[:.]?s*/i.test(line)){var ans=line.replace(/^Corrects*(Answer|Ans)s*[:.]?s*/i,'').trim().toLowerCase();cAns='abcdef'.indexOf(ans.replace(/[).s]/g,'')[0]);}
+                else if(!qText&&!opts.length){qText=line;}
+            });
+            if(!qText)errs.push('Block near line '+lineOffset+': Missing Question Text');
+            else if(opts.length<2)errs.push('Block near line '+lineOffset+': Need 2-6 options, found '+opts.length);
+            else if(cAns<0||cAns>=opts.length)errs.push('Block near line '+lineOffset+': Invalid/missing correct answer');
+            else parsed.push({type:'mcq-single',questionText:qText,question:qText,options:opts,correctAnswer:cAns,correctIndex:cAns});
+            lineOffset+=rawLines.length;
+        });
+        return {questions:parsed,errors:errs};
+    };
+
+    window.renderParsedBulk = function(questions,errs) {
+        var errEl=document.getElementById('uploadErrors');
+        if(errEl){errEl.style.display=errs.length?'block':'none';errEl.innerHTML=errs.length?'<strong>Parse Errors:</strong><br/>'+errs.join('<br/>'):''; }
+        if(questions.length>0){
+            document.getElementById('questionBuilder').innerHTML='';questionCount=0;
+            questions.forEach(function(q){window.addQuestionWithData(q);});
+            window.showToast(questions.length+' questions loaded!','success');
+            var el=document.getElementById('uploadedCount');if(el)el.textContent=questions.length+' questions loaded';
+        } else window.showToast('No valid questions found.','error');
+    };
+
+    window.handleTxtUpload = function(file) {
+        if(!file)return;
+        if(file.name.endsWith('.xlsx')||file.name.endsWith('.csv')){window.handleExcelUpload&&window.handleExcelUpload(file);return;}
+        if(!file.name.endsWith('.txt')){window.showToast('Upload .txt, .csv, or .xlsx','error');return;}
+        var r=new FileReader();r.onload=function(e){var res=window.parseBulkQuestionsText(e.target.result);window.renderParsedBulk(res.questions,res.errors);};r.readAsText(file);
+    };
+
+    window.handleExcelUpload = function(file) {
+        if(!window.XLSX){window.showToast('SheetJS not loaded yet, retry','error');return;}
+        var r=new FileReader();r.onload=function(e){
+            try{
+                var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'}),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''}),questions=[],errs=[];
+                rows.forEach(function(row,i){
+                    var rowN=i+2,type=((row.Type||'mcq-single')+'').trim().toLowerCase(),qText=((row.Question||'')+'').trim();
+                    if(!qText)return;
+                    var q={type:type,questionText:qText,question:qText};
+                    if(row.Subject)q.subject=''+row.Subject;if(row.Topic)q.topic=''+row.Topic;if(row.Difficulty)q.difficulty=''+row.Difficulty;if(row.Marks)q.marks=parseFloat(row.Marks);
+                    if(type==='mcq-single'||type==='mcq-multi'){
+                        var opts=[];['A','B','C','D','E','F'].forEach(function(l){var o=(row['Option '+l]||row[l]||'')+'';if(o.trim())opts.push(o.trim());});
+                        if(opts.length<2){errs.push('Row '+rowN+': Need 2+ options');return;}
+                        q.options=opts;
+                        var c=((row['Correct Answer']||'')+'').trim().toLowerCase();
+                        if(type==='mcq-single'){var idx='abcdef'.indexOf(c.charAt(0));if(idx<0||idx>=opts.length){errs.push('Row '+rowN+': Invalid answer "'+c+'"');return;}q.correctAnswer=idx;q.correctIndex=idx;}
+                        else{var idxs=c.split(',').map(function(s){return 'abcdef'.indexOf(s.trim().charAt(0));}).filter(function(x){return x>=0&&x<opts.length;});if(!idxs.length){errs.push('Row '+rowN+': Invalid multi-answer');return;}q.correctAnswer=idxs;}
+                    }else if(type==='true-false'){q.correctAnswer=((row['Correct Answer']||'')+'').trim().toLowerCase()==='true';}
+                    else if(type==='fill-blank'){q.correctAnswer=((row['Correct Answer']||'')+'').trim();if(!q.correctAnswer){errs.push('Row '+rowN+': Missing answer');return;}}
+                    else if(type==='numeric'){var mn2=parseFloat(row['Min Acceptable']||row['Correct Answer']),mx2=parseFloat(row['Max Acceptable']||row['Correct Answer']);if(isNaN(mn2)||isNaN(mx2)){errs.push('Row '+rowN+': Invalid numeric');return;}q.correctAnswer={min:mn2,max:mx2};}
+                    questions.push(q);
+                });
+                window.renderParsedBulk(questions,errs);
+            }catch(err){window.showToast('Excel parse error: '+err.message,'error');}
+        };r.readAsArrayBuffer(file);
+    };
+
+    // ── Question Bank Import (Phase 1) ──
+    window.openImportModal = function(){document.getElementById('importQModal').classList.add('active');window.searchQuestionBank();};
+    window.closeImportModal = function(){document.getElementById('importQModal').classList.remove('active');};
+    var _bankQ=[],_selQ=new Set();
+    window.searchQuestionBank = async function(){
+        var listEl=document.getElementById('importQList');
+        listEl.innerHTML='<div style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:var(--primary)"></i></div>';
+        try{
+            if(!window._db_getDocs)throw new Error('Firebase not ready yet, try again');
+            var snap=await window._db_getDocs(window._db_collection(window._db,'questionBank'));
+            var subj=document.getElementById('impSubject').value.trim().toLowerCase();
+            var topic=document.getElementById('impTopic').value.trim().toLowerCase();
+            var diff=document.getElementById('impDifficulty').value;
+            _bankQ=[];
+            snap.forEach(function(d){var data=d.data();var m=true;if(subj&&(data.subject||'').toLowerCase()!==subj)m=false;if(topic&&(data.topic||'').toLowerCase()!==topic)m=false;if(diff&&data.difficulty!==diff)m=false;if(m)_bankQ.push(Object.assign({id:d.id},data));});
+            if(!_bankQ.length){listEl.innerHTML='<div style="text-align:center;color:var(--text-muted);padding:20px">No questions found.</div>';return;}
+            listEl.innerHTML=_bankQ.map(function(q){
+                return '<div style="padding:10px;border-bottom:1px solid var(--glass-border);display:flex;gap:10px;align-items:flex-start"><input type="checkbox"'+(_selQ.has(q.id)?' checked':'')+' onchange="window._togBankQ(''+q.id+'',this.checked)" style="margin-top:3px"><div><div style="font-weight:600;font-size:13px">'+(q.questionText||q.question||'')+'</div><div style="font-size:11px;color:var(--text-muted);margin-top:3px"><span style="background:var(--primary);color:#fff;padding:2px 6px;border-radius:4px;margin-right:4px">'+q.type+'</span>'+(q.subject||'')+(q.topic?' · '+q.topic:'')+'</div></div></div>';
+            }).join('');
+            document.getElementById('impSelectedCount').textContent=_selQ.size;
+        }catch(e){listEl.innerHTML='<div style="color:var(--danger);padding:10px">'+e.message+'</div>';}
+    };
+    window._togBankQ=function(id,checked){if(checked)_selQ.add(id);else _selQ.delete(id);document.getElementById('impSelectedCount').textContent=_selQ.size;};
+    window.importSelectedQuestions=function(){if(!_selQ.size)return;_bankQ.filter(function(q){return _selQ.has(q.id);}).forEach(function(q){window.addQuestionWithData(q);});window.showToast('Imported '+_selQ.size+' questions!','success');_selQ.clear();window.closeImportModal();};
+
+    window.saveToQuestionBank = async function(id){
+        var btn=document.getElementById('q'+id+'_saveBankBtn');
+        if(btn){btn.innerHTML='<i class="fas fa-spinner fa-spin"></i>';btn.disabled=true;}
+        try{
+            var q=window.extractQuestionData(id);if(!q)throw new Error('Complete the question first');
+            if(!window._db_addDoc)throw new Error('Firebase not ready yet');
+            q.createdBy=window._curUid||'admin';
+            await window._db_addDoc(window._db_collection(window._db,'questionBank'),q);
+            window.showToast('Saved to Question Bank!','success');
+            if(btn)btn.innerHTML='<i class="fas fa-check"></i> Saved';
+        }catch(e){window.showToast(e.message,'error');if(btn){btn.innerHTML='<i class="fas fa-cloud-upload-alt"></i> Save to Bank';btn.disabled=false;}}
+    };
+
+    // ── Phase 2 helpers ──
+    window.togglePoolMode=function(){var w=document.getElementById('poolSizeWrap');if(w)w.style.display=document.getElementById('t_poolMode').checked?'flex':'none';};
+    window.previewTestDraft=function(){
+        var questions=[]; document.querySelectorAll('.q-item').forEach(function(item){var id=item.id.replace('q-','');var q=window.extractQuestionData(id);if(q)questions.push(q);});
+        var draft={id:'PREVIEW',title:document.getElementById('t_title').value||'Preview',subject:document.getElementById('t_subject').value,duration:parseInt(document.getElementById('t_duration').value)||30,totalMarks:parseInt(document.getElementById('t_marks').value)||100,marksPerQuestion:parseInt(document.getElementById('t_mpq').value)||1,questions:questions,isPreview:true};
+        sessionStorage.setItem('examProPreviewDraft',JSON.stringify(draft));window.open('test.html?preview=1','_blank');
+    };
+    window.cloneTest = async function(id){
+        var src=allTests&&allTests.find(function(t){return t.id===id;});if(!src)return;
+        var ok=await window.showIOSConfirm({title:'Clone Test?',message:'Duplicate "'+src.title+'" as new draft?',confirmText:'Clone',cancelText:'Cancel',icon:'fa-copy'});
+        if(!ok)return;
+        try{var c=Object.assign({},src);delete c.id;c.title='[Clone] '+(src.title||'Untitled');c.isActive=false;if(window._db_addDoc)await window._db_addDoc(window._db_collection(window._db,'tests'),c);window.showToast('Cloned!','success');if(window.logAudit)await window.logAudit('CLONE_TEST','tests',id,'Cloned: '+src.title);}
+        catch(e){window.showToast('Clone failed: '+e.message,'error');}
+    };
+
+    // ── Phase 5: Audit Log ──
+    window.logAudit = async function(action,col,targetId,details){
+        try{if(!window._db_addDoc)return;await window._db_addDoc(window._db_collection(window._db,'auditLog'),{adminId:window._curUid||'?',adminName:(document.getElementById('adminName')&&document.getElementById('adminName').textContent)||'Admin',action:action,targetCollection:col,targetId:targetId||'',details:details||'',timestamp:window._serverTimestamp?window._serverTimestamp():new Date()});}
+        catch(e){console.warn('[AuditLog]',e.message);}
+    };
+    var _auditLogs=[];
+    window.loadAuditLog=async function(){
+        var body=document.getElementById('auditBody');if(!body)return;
+        body.innerHTML='<tr><td colspan="5" style="text-align:center;padding:30px"><i class="fas fa-spinner fa-spin" style="color:var(--primary)"></i></td></tr>';
+        try{
+            if(!window._db_getDocs)throw new Error('Firebase not ready');
+            var q=window._db_query(window._db_collection(window._db,'auditLog'),window._db_orderBy('timestamp','desc'));
+            var snap=await window._db_getDocs(q);
+            _auditLogs=snap.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+            window.renderAuditLog(_auditLogs);
+        }catch(e){body.innerHTML='<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--danger)">'+e.message+'</td></tr>';}
+    };
+    window.filterAuditLog=function(){var q=document.getElementById('auditSearch').value.toLowerCase();window.renderAuditLog(_auditLogs.filter(function(l){return(l.action||'').toLowerCase().includes(q)||(l.adminName||'').toLowerCase().includes(q)||(l.details||'').toLowerCase().includes(q);}));};
+    window.renderAuditLog=function(logs){
+        var body=document.getElementById('auditBody');if(!body)return;
+        if(!logs.length){body.innerHTML='<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-muted)">No entries.</td></tr>';return;}
+        body.innerHTML=logs.slice(0,200).map(function(l){
+            var ts=l.timestamp?new Date(l.timestamp.seconds*1000).toLocaleString('en-IN'):'-';
+            var c=l.action&&l.action.includes('DELETE')?'var(--danger)':l.action&&l.action.includes('CREATE')?'var(--success)':'var(--secondary)';
+            return '<tr style="border-bottom:1px solid rgba(255,255,255,0.04)"><td style="padding:10px;font-size:11px;color:var(--text-muted)">'+ts+'</td><td style="padding:10px;font-weight:600">'+(l.adminName||'?')+'</td><td style="padding:10px"><span style="padding:3px 8px;border-radius:6px;background:'+c+'22;color:'+c+';font-size:11px;font-weight:700">'+(l.action||'-')+'</span></td><td style="padding:10px;color:var(--text-muted);font-size:12px">'+(l.targetCollection||'-')+'</td><td style="padding:10px;font-size:12px;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+(l.details||'')+'">'+(l.details||'-')+'</td></tr>';
+        }).join('');
+    };
+    </script>
+
+    <!-- Phase 1: Import from Question Bank Modal -->
     <div class="modal" id="importQModal">
-        <div class="modal-content" style="max-width:700px; display:flex; flex-direction:column; height:80vh;">
+        <div class="modal-content" style="max-width:700px;display:flex;flex-direction:column;height:80vh">
             <div class="modal-header">
-                <h3 style="font-size:16px; font-weight:700; color:var(--text)"><i class="fas fa-cloud-download-alt" style="color:var(--primary)"></i> Import Questions from Bank</h3>
+                <h3 style="font-size:16px;font-weight:700;color:var(--text)"><i class="fas fa-cloud-download-alt" style="color:var(--primary)"></i> Import from Question Bank</h3>
                 <span class="close-modal" onclick="closeImportModal()"><i class="fas fa-times"></i></span>
             </div>
-            <div style="display:flex; gap:10px; margin-bottom:15px; flex-wrap:wrap">
-                <input type="text" id="impSubject" class="form-control" style="flex:1; min-width:150px" placeholder="Subject">
-                <input type="text" id="impTopic" class="form-control" style="flex:1; min-width:150px" placeholder="Topic">
-                <select id="impDifficulty" class="form-control" style="width:120px">
-                    <option value="">Any Diff</option>
-                    <option value="Easy">Easy</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Hard">Hard</option>
-                </select>
+            <div style="display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap">
+                <input type="text" id="impSubject" class="form-control" style="flex:1;min-width:140px" placeholder="Subject">
+                <input type="text" id="impTopic" class="form-control" style="flex:1;min-width:140px" placeholder="Topic">
+                <select id="impDifficulty" class="form-control" style="width:110px"><option value="">Any Diff</option><option value="Easy">Easy</option><option value="Medium">Medium</option><option value="Hard">Hard</option></select>
                 <button class="btn btn-primary" onclick="searchQuestionBank()"><i class="fas fa-search"></i></button>
             </div>
-            
-            <div style="flex:1; overflow-y:auto; border:1px solid var(--glass-border); border-radius:8px; padding:10px; background:rgba(0,0,0,0.1); margin-bottom:15px;" id="importQList">
-                <div style="text-align:center; color:var(--text-muted); padding:20px; font-size:13px">Search to load questions</div>
+            <div style="flex:1;overflow-y:auto;border:1px solid var(--glass-border);border-radius:8px;padding:10px;background:rgba(0,0,0,0.1);margin-bottom:15px" id="importQList">
+                <div style="text-align:center;color:var(--text-muted);padding:20px">Search to load questions</div>
             </div>
-            
             <div class="modal-btns" style="justify-content:space-between">
-                <span style="font-size:12px; color:var(--text-muted)">Selected: <b id="impSelectedCount" style="color:var(--primary)">0</b></span>
-                <div>
-                    <button class="btn btn-outline" onclick="closeImportModal()">Cancel</button>
-                    <button class="btn btn-primary" onclick="importSelectedQuestions()">Import</button>
-                </div>
+                <span style="font-size:12px;color:var(--text-muted)">Selected: <b id="impSelectedCount" style="color:var(--primary)">0</b></span>
+                <div><button class="btn btn-outline" onclick="closeImportModal()">Cancel</button><button class="btn btn-primary" onclick="importSelectedQuestions()">Import Selected</button></div>
             </div>
         </div>
     </div>
+
+    <!-- Phase 5: Audit Log Section -->
+    <div class="section" id="section-auditlog" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+            <div>
+                <h2 style="margin:0;font-size:22px;font-weight:800"><i class="fas fa-clipboard-list" style="color:var(--primary);margin-right:10px"></i>Audit Log</h2>
+                <p style="color:var(--text-muted);font-size:13px;margin-top:4px">All admin create/update/delete actions</p>
+            </div>
+            <button class="btn btn-outline" onclick="loadAuditLog()"><i class="fas fa-sync"></i> Refresh</button>
+        </div>
+        <input type="text" id="auditSearch" class="form-control" placeholder="Search action, admin, details..." style="margin-bottom:16px" oninput="filterAuditLog()">
+        <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+                <thead><tr style="border-bottom:1px solid var(--glass-border)">
+                    <th style="text-align:left;padding:10px;color:var(--text-muted)">Timestamp</th>
+                    <th style="text-align:left;padding:10px;color:var(--text-muted)">Admin</th>
+                    <th style="text-align:left;padding:10px;color:var(--text-muted)">Action</th>
+                    <th style="text-align:left;padding:10px;color:var(--text-muted)">Collection</th>
+                    <th style="text-align:left;padding:10px;color:var(--text-muted)">Details</th>
+                </tr></thead>
+                <tbody id="auditBody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-muted)">Click Refresh to load.</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
 </body>
 
 </html>
