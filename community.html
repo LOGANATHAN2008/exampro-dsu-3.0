@@ -1897,8 +1897,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const userDoc = await getDoc(doc(db, 'students', user.uid));
                 if (userDoc.exists()) {
                     userData = userDoc.data();
-                    document.getElementById('studentName').innerText = userData.name || 'Student';
-                    document.getElementById('sidebarName').innerText = userData.name || 'Student';
+                    if (document.getElementById('studentName')) document.getElementById('studentName').innerText = userData.name || 'Student';
+                    if (document.getElementById('sidebarName')) document.getElementById('sidebarName').innerText = userData.name || 'Student';
                     if(document.getElementById('chatDeptName')) {
                         document.getElementById('chatDeptName').innerText = userData.branch || 'General';
                     }
