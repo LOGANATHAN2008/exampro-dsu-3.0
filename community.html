@@ -1894,7 +1894,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             currentUser = user;
             try {
-                const userDoc = await getDoc(doc(db, 'users', user.uid));
+                const userDoc = await getDoc(doc(db, 'students', user.uid));
                 if (userDoc.exists()) {
                     userData = userDoc.data();
                     document.getElementById('studentName').innerText = userData.name || 'Student';
