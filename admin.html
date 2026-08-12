@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -4820,6 +4820,7 @@ const body = document.getElementById('resultsBody');
     <script>
         // F12 / Inspect restrictions removed for admin panel debugging
         window.showSection = function (id, btn) {
+            document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById('section-' + id).classList.add('active');
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -5106,8 +5107,8 @@ s*
     </script>
 
     <!-- Phase 1: Import from Question Bank Modal -->
-    <div class="modal" id="importQModal">
-        <div class="modal-content" style="max-width:700px;display:flex;flex-direction:column;height:80vh">
+    <div class="modal-overlay" id="importQModal">
+        <div class="modal" style="max-width:700px;display:flex;flex-direction:column;height:80vh;padding:20px;">
             <div class="modal-header">
                 <h3 style="font-size:16px;font-weight:700;color:var(--text)"><i class="fas fa-cloud-download-alt" style="color:var(--primary)"></i> Import from Question Bank</h3>
                 <span class="close-modal" onclick="closeImportModal()"><i class="fas fa-times"></i></span>
