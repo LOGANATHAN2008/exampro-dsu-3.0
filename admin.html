@@ -4921,7 +4921,7 @@ const body = document.getElementById('resultsBody');
         var qType=(qData&&qData.type)||'mcq-single',subj=(qData&&qData.subject)||'',topic=(qData&&qData.topic)||'',diff=(qData&&qData.difficulty)||'Medium',marks=(qData&&qData.marks)||'',imgUrl=(qData&&qData.imageUrl)||'';
         div.innerHTML='<div class="q-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span class="q-label">Q'+id+'</span><div>'+
             '<button class="btn btn-outline btn-sm" id="q'+id+'_saveBankBtn" onclick="saveToQuestionBank('+id+')" style="margin-right:6px"><i class="fas fa-cloud-upload-alt"></i> Save to Bank</button>'+
-            '<button class="btn btn-danger btn-sm" onclick="this.closest('.q-item').remove()" style="padding:4px 10px"><i class="fas fa-times"></i></button></div></div>'+
+            '<button class="btn btn-danger btn-sm" onclick="this.closest(\\\'.q-item\\\').remove()" style="padding:4px 10px"><i class="fas fa-times"></i></button></div></div>'+
             '<div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap">'+
                 '<input type="text" class="form-control" id="q'+id+'_subject" placeholder="Subject" style="flex:1;min-width:120px" value="'+subj+'">'+
                 '<input type="text" class="form-control" id="q'+id+'_topic" placeholder="Topic" style="flex:1;min-width:120px" value="'+topic+'">'+
@@ -4956,18 +4956,15 @@ const body = document.getElementById('resultsBody');
 
     // txt parser (Phase 1 robust)
     window.parseBulkQuestionsText = function(text) {
-        var parsed=[],errs=[],blocks=text.split(/
-s*
-/),lineOffset=1;
+        var parsed=[],errs=[],blocks=text.split(/\n\s*\n/),lineOffset=1;
         blocks.forEach(function(block){
-            var rawLines=block.split('
-'),lines=rawLines.map(function(l){return l.trim();}).filter(Boolean);
+            var rawLines=block.split('\n'),lines=rawLines.map(function(l){return l.trim();}).filter(Boolean);
             if(!lines.length){lineOffset+=rawLines.length;return;}
             var qText='',opts=[],cAns=-1;
             lines.forEach(function(line){
-                if(/^(Questions*[:.]?s*)/i.test(line)){qText=line.replace(/^Questions*[:.]?s*/i,'').trim();}
-                else if(/^[a-f]s*[).]s*/i.test(line)){opts.push(line.replace(/^[a-f]s*[).]s*/i,'').trim());}
-                else if(/^Corrects*(Answer|Ans)s*[:.]?s*/i.test(line)){var ans=line.replace(/^Corrects*(Answer|Ans)s*[:.]?s*/i,'').trim().toLowerCase();cAns='abcdef'.indexOf(ans.replace(/[).s]/g,'')[0]);}
+                if(/^(Question\s*[:.]?\s*)/i.test(line)){qText=line.replace(/^(Question\s*[:.]?\s*)/i,'').trim();}
+                else if(/^[a-f]\s*[).]\s*/i.test(line)){opts.push(line.replace(/^[a-f]\s*[).]\s*/i,'').trim());}
+                else if(/^Correct\s*(Answer|Ans)\s*[:.]?\s*/i.test(line)){var ans=line.replace(/^Correct\s*(Answer|Ans)\s*[:.]?\s*/i,'').trim().toLowerCase();cAns='abcdef'.indexOf(ans.replace(/[).\s]/g,'')[0]);}
                 else if(!qText&&!opts.length){qText=line;}
             });
             if(!qText)errs.push('Block near line '+lineOffset+': Missing Question Text');
@@ -5041,7 +5038,7 @@ s*
             snap.forEach(function(d){var data=d.data();var m=true;if(subj&&(data.subject||'').toLowerCase()!==subj)m=false;if(topic&&(data.topic||'').toLowerCase()!==topic)m=false;if(diff&&data.difficulty!==diff)m=false;if(m)_bankQ.push(Object.assign({id:d.id},data));});
             if(!_bankQ.length){listEl.innerHTML='<div style="text-align:center;color:var(--text-muted);padding:20px">No questions found.</div>';return;}
             listEl.innerHTML=_bankQ.map(function(q){
-                return '<div style="padding:10px;border-bottom:1px solid var(--glass-border);display:flex;gap:10px;align-items:flex-start"><input type="checkbox"'+(_selQ.has(q.id)?' checked':'')+' onchange="window._togBankQ(''+q.id+'',this.checked)" style="margin-top:3px"><div><div style="font-weight:600;font-size:13px">'+(q.questionText||q.question||'')+'</div><div style="font-size:11px;color:var(--text-muted);margin-top:3px"><span style="background:var(--primary);color:#fff;padding:2px 6px;border-radius:4px;margin-right:4px">'+q.type+'</span>'+(q.subject||'')+(q.topic?' · '+q.topic:'')+'</div></div></div>';
+                return '<div style="padding:10px;border-bottom:1px solid var(--glass-border);display:flex;gap:10px;align-items:flex-start"><input type="checkbox"'+(_selQ.has(q.id)?' checked':'')+' onchange="window._togBankQ(\\\''+q.id+'\\\',this.checked)" style="margin-top:3px"><div><div style="font-weight:600;font-size:13px">'+(q.questionText||q.question||'')+'</div><div style="font-size:11px;color:var(--text-muted);margin-top:3px"><span style="background:var(--primary);color:#fff;padding:2px 6px;border-radius:4px;margin-right:4px">'+q.type+'</span>'+(q.subject||'')+(q.topic?' · '+q.topic:'')+'</div></div></div>';
             }).join('');
             document.getElementById('impSelectedCount').textContent=_selQ.size;
         }catch(e){listEl.innerHTML='<div style="color:var(--danger);padding:10px">'+e.message+'</div>';}
