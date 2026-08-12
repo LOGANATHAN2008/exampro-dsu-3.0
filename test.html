@@ -39,6 +39,17 @@
             min-height: 100vh;
         }
 
+        body.test-active {
+            overflow: hidden !important;
+            overscroll-behavior-y: none !important;
+            touch-action: none !important;
+        }
+        body.test-active #testTakingView {
+            overflow-y: auto !important;
+            overscroll-behavior-y: contain !important;
+            touch-action: pan-y !important;
+        }
+
         /* ===== Test Selection View ===== */
         #testSelectionView {
             padding: 24px;
@@ -1197,8 +1208,13 @@
                                 await document.documentElement.requestFullscreen();
                             else if (document.documentElement.webkitRequestFullscreen)
                                 await document.documentElement.webkitRequestFullscreen();
+                            else {
+                                alert('Fullscreen API is not supported by your browser. You cannot take this exam.');
+                                return;
+                            }
                         } catch (err) {
-                            console.warn('Fullscreen request failed:', err);
+                            alert('Fullscreen mode is required to take this exam. Please allow fullscreen.');
+                            return;
                         }
 
                         // Request webcam + start proctoring
@@ -1208,6 +1224,9 @@
                         // -- Step 4: Show exam view ---------------------------
                         document.getElementById('testSelectionView').style.display = 'none';
                         document.getElementById('testTakingView').classList.add('active');
+                        document.body.classList.add('test-active');
+                        let vp = document.querySelector('meta[name="viewport"]');
+                        if (vp) vp.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0');
 
                         answers = {}; flagged = new Set(); currentQ = 0; tabSwitchCount = 0; testStarted = true;
                         timeLeft = (selectedTest.duration || 30) * 60;
@@ -1444,6 +1463,9 @@
             window.removeEventListener('blur', handleTabSwitch);
             document.getElementById('submitConfirm').classList.remove('show');
             document.getElementById('loader').style.display = 'flex';
+            document.body.classList.remove('test-active');
+            let vp = document.querySelector('meta[name="viewport"]');
+            if (vp) vp.setAttribute('content', 'width=device-width,initial-scale=1.0');
 
             // -- Stop Proctoring & save violation log ----------------------
             ExamProctor.stop();

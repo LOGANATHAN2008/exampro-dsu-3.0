@@ -93,6 +93,10 @@ const ExamProctor = (() => {
             document.removeEventListener('visibilitychange', _state._tabSwitchHandler);
         if (_state._blurHandler)
             window.removeEventListener('blur', _state._blurHandler);
+        if (_state._fullscreenHandler) {
+            document.removeEventListener('fullscreenchange', _state._fullscreenHandler);
+            document.removeEventListener('webkitfullscreenchange', _state._fullscreenHandler);
+        }
             
         _removeLockdownListeners();
         
@@ -133,7 +137,14 @@ const ExamProctor = (() => {
         header.appendChild(bar);
     }
 
-    function _dismissTabWarning() {
+    async function _dismissTabWarning() {
+        try {
+            if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+            else if (document.documentElement.webkitRequestFullscreen) await document.documentElement.webkitRequestFullscreen();
+        } catch (e) {
+            alert('Fullscreen mode is required. Please allow fullscreen to continue.');
+            return;
+        }
         document.getElementById('proctor-tab-overlay').classList.remove('show');
         const btn = document.querySelector('.proctor-tab-btn');
         if (btn) btn.style.display = '';
@@ -252,7 +263,7 @@ const ExamProctor = (() => {
                 <div class="ptab-count" id="proctor-tab-count">1</div>
                 <div class="ptab-title">&#9888;&#65039; Tab Switch Detected!</div>
                 <p class="ptab-desc" id="proctor-tab-desc">
-                    You switched tabs or minimized the window. This has been recorded.<br>
+                    You switched tabs, minimized the window, or exited fullscreen. This has been recorded.<br>
                     <strong id="proctor-warn-left">2 warnings remaining before auto-submit.</strong>
                 </p>
                 <button class="proctor-tab-btn" onclick="ExamProctor._dismissTabWarning()">
@@ -479,8 +490,11 @@ const ExamProctor = (() => {
     function _registerTabListeners() {
         _state._tabSwitchHandler = _handleTabSwitch;
         _state._blurHandler      = _handleWindowBlur;
+        _state._fullscreenHandler = _handleFullscreenChange;
         document.addEventListener('visibilitychange', _state._tabSwitchHandler);
         window.addEventListener('blur', _state._blurHandler);
+        document.addEventListener('fullscreenchange', _state._fullscreenHandler);
+        document.addEventListener('webkitfullscreenchange', _state._fullscreenHandler);
     }
 
     function _registerLockdownListeners() {
@@ -511,17 +525,25 @@ const ExamProctor = (() => {
 
     function _handleTabSwitch() {
         if (!_state.active || document.visibilityState !== 'hidden') return;
-        _triggerTabWarning();
+        _triggerTabWarning('tab');
     }
 
     function _handleWindowBlur() {
         if (!_state.active) return;
-        setTimeout(() => { if (!document.hasFocus() && _state.active) _triggerTabWarning(); }, 350);
+        setTimeout(() => { if (!document.hasFocus() && _state.active) _triggerTabWarning('blur'); }, 350);
     }
 
-    function _triggerTabWarning() {
+    function _handleFullscreenChange() {
+        if (!_state.active) return;
+        if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+            _triggerTabWarning('fullscreen');
+        }
+    }
+
+    function _triggerTabWarning(reason) {
         _state.tabWarnings++;
-        _logViolation('tab', `Tab switch / window blur — warning ${_state.tabWarnings}/${CONFIG.TAB_WARN_LIMIT}`);
+        const desc = reason === 'fullscreen' ? 'Fullscreen exit / Tab switch' : 'Tab switch / window blur';
+        _logViolation('tab', `${desc} — warning ${_state.tabWarnings}/${CONFIG.TAB_WARN_LIMIT}`);
 
         const remaining = CONFIG.TAB_WARN_LIMIT - _state.tabWarnings;
         document.getElementById('proctor-tab-count').textContent = _state.tabWarnings;
