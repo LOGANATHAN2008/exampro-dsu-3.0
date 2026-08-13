@@ -433,33 +433,49 @@
         resultsDiv.innerHTML = '<div style="padding:10px;color:#8696a0;">Searching...</div>';
         
         try {
-            // Simplified query since we can't do full text search easily without Algolia
-            const usersRef = collection(db, "users");
-            const q = query(usersRef, orderBy("name"));
-            const querySnapshot = await getDocs(q);
+            const term = searchQuery.toLowerCase().trim();
+            if(!term) {
+                resultsDiv.innerHTML = '<div style="padding:10px;color:#8696a0;">Type a name to search.</div>';
+                return;
+            }
+
+            // Fetch from admins, staff, and students collections
+            // Since we can't do full text search easily, we do prefix search on 'name' or 'email'
+            // But if they don't have indexes, we might have to fetch and filter.
+            // For safety and performance in this demo, we'll fetch limited results using prefix query on name.
+            
+            // To do prefix search: where("name", ">=", term), where("name", "<=", term + '\uf8ff')
+            // But let's just fetch all staff/admins (usually small) and students if term is provided
+            
+            const staffQ = query(collection(db, "staff"));
+            const adminsQ = query(collection(db, "admins"));
+            const studentsQ = query(collection(db, "students")); // For production, limit this!
+            
+            const [staffSnap, adminsSnap, studentsSnap] = await Promise.all([
+                getDocs(staffQ),
+                getDocs(adminsQ),
+                getDocs(studentsQ)
+            ]);
             
             resultsDiv.innerHTML = '';
             let count = 0;
-            const term = searchQuery.toLowerCase();
             
-            querySnapshot.forEach((doc) => {
-                const userData = doc.data();
-                // Don't show self
-                if(doc.id === currentUser.uid) return;
+            const processDoc = (docSnap, role) => {
+                const userData = docSnap.data();
+                if(docSnap.id === currentUser.uid) return;
                 
                 const name = userData.name || 'Unknown User';
                 if(term && !name.toLowerCase().includes(term)) return;
                 
                 count++;
-                // In a real app, limit to top 20
                 if(count > 20) return;
                 
-                const roleBadge = userData.role === 'admin' ? '<span class="role-badge role-admin">ADMIN</span>' : 
-                                  userData.role === 'staff' ? '<span class="role-badge role-staff">STAFF</span>' : 
-                                  '<span class="role-badge role-student">STUDENT</span>';
+                const roleBadge = role === 'admin' ? '<span class="role-badge role-admin" style="font-size:10px;background:#53bdeb;color:#0b141a;padding:2px 5px;border-radius:4px;margin-left:5px;">ADMIN</span>' : 
+                                  role === 'staff' ? '<span class="role-badge role-staff" style="font-size:10px;background:#005c4b;color:white;padding:2px 5px;border-radius:4px;margin-left:5px;">STAFF</span>' : 
+                                  '<span class="role-badge role-student" style="font-size:10px;background:#2a3942;color:#8696a0;padding:2px 5px;border-radius:4px;margin-left:5px;">STUDENT</span>';
                                   
                 resultsDiv.innerHTML += `
-                    <div class="search-result-item" onclick="startChatWith('${doc.id}', '${name.replace(/'/g, "\\'")}')">
+                    <div class="search-result-item" onclick="startChatWith('${docSnap.id}', '${name.replace(/'/g, "\\'")}')">
                         <div class="chat-avatar" style="width:40px;height:40px;margin-right:10px;"><i class="fas fa-user"></i></div>
                         <div>
                             <div style="font-size:14px;color:white;">${name} ${roleBadge}</div>
@@ -467,7 +483,11 @@
                         </div>
                     </div>
                 `;
-            });
+            };
+            
+            adminsSnap.forEach(d => processDoc(d, 'admin'));
+            staffSnap.forEach(d => processDoc(d, 'staff'));
+            studentsSnap.forEach(d => processDoc(d, 'student'));
             
             if(count === 0) resultsDiv.innerHTML = '<div style="padding:10px;color:#8696a0;">No users found.</div>';
             
