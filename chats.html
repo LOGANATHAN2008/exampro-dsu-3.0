@@ -1302,7 +1302,16 @@
                 }
                 
                 let imgHtml = msg.imageUrl ? `<img src="${msg.imageUrl}" onclick="openImageModal('${msg.imageUrl}')" style="max-width:200px; max-height:300px; border-radius:8px; display:block; margin-bottom:5px; object-fit: cover; cursor: pointer;">` : '';
-                let textHtml = msg.text ? `<div>${msg.text}</div>` : '';
+                // Linkify URLs in text
+                function linkify(text) {
+                    if (!text) return text;
+                    const urlRegex = /(https?:\/\/[^\s]+)/g;
+                    return text.replace(urlRegex, function(url) {
+                        return `<a href="${url}" target="_blank" style="color: #53bdeb; text-decoration: underline;">${url}</a>`;
+                    });
+                }
+                
+                let textHtml = msg.text ? `<div style="word-break: break-word;">${linkify(msg.text)}</div>` : '';
                 
                 // Reply snippet
                 let replyHtml = '';
