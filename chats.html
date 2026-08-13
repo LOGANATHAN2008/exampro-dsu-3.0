@@ -343,6 +343,7 @@
         .light-mode .modal-content { background: #ffffff; color: #111b21; }
         .light-mode .modal-header h3 { color: #111b21; }
         .light-mode .search-result-item > div > div:first-child { color: #111b21 !important; }
+        .light-mode .header-divider { background: rgba(0,0,0,0.1); }
 
         /* Modal Styles */
         .image-modal-overlay {
@@ -495,12 +496,21 @@
             </div>
             
             <div class="chat-view" id="chatView" style="display: none; height: 100%; flex-direction: column;">
-                <div class="chat-view-header">
+                <div class="chat-view-header" style="justify-content: space-between;">
                     <div style="display:flex; align-items:center;">
                         <div class="chat-avatar" id="activeChatAvatar"><i class="fas fa-user"></i></div>
                         <div class="chat-info">
                             <div class="chat-name" id="activeChatName">Loading...</div>
                         </div>
+                    </div>
+                    
+                    <!-- WhatsApp Header Actions -->
+                    <div style="display:flex; gap:15px; align-items:center;">
+                        <button class="icon-btn" onclick="showToast('Video call feature coming soon!')" title="Video Call"><i class="fas fa-video"></i></button>
+                        <button class="icon-btn" onclick="showToast('Voice call feature coming soon!')" title="Voice Call"><i class="fas fa-phone"></i></button>
+                        <div class="header-divider" style="width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 5px;"></div>
+                        <button class="icon-btn" onclick="showToast('Search inside chat coming soon!')" title="Search"><i class="fas fa-search"></i></button>
+                        <button class="icon-btn" onclick="showToast('Menu options coming soon!')" title="More Options"><i class="fas fa-ellipsis-v"></i></button>
                     </div>
                 </div>
                 <div class="chat-messages" id="chatMessages">
