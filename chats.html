@@ -1148,7 +1148,8 @@
         }
         
         // Hide message context menu if open
-        document.getElementById('msgContextMenu').style.display = 'none';
+        const msgContextMenu = document.getElementById('contextMenu');
+        if (msgContextMenu) msgContextMenu.style.display = 'none';
         
         menu.style.display = 'block';
         
