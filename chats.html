@@ -283,9 +283,14 @@
         }
         .context-menu {
             position: absolute; z-index: 1000;
-            background: #233138; border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-            padding: 5px 0; min-width: 150px; display: none;
+            background: rgba(35, 49, 56, 0.75); 
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            padding: 0; min-width: 180px; display: none;
+            overflow: hidden;
         }
         .header-menu {
             min-width: 250px;
@@ -293,27 +298,36 @@
         .header-menu hr {
             border: none;
             border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin: 5px 0;
+            margin: 0;
         }
         .context-menu-item {
-            padding: 12px 20px; color: #d1d7db; font-size: 15px;
+            padding: 14px 20px; color: #e9edef; font-size: 16px; font-weight: 500;
             cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            transition: background 0.2s;
+        }
+        .context-menu-item:last-child {
+            border-bottom: none;
         }
         .context-menu-item.left-icon {
             justify-content: flex-start; gap: 15px;
         }
-        .context-menu-item:hover { background: #182229; }
+        .context-menu-item:hover { background: rgba(255,255,255,0.1); }
         
         .reactions-bar {
             position: absolute; z-index: 1000;
-            background: #233138; border-radius: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-            padding: 5px 10px; display: none; gap: 8px;
+            background: rgba(35, 49, 56, 0.75); 
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            padding: 8px 12px; display: none; gap: 12px;
         }
         .reaction-emoji {
-            font-size: 20px; cursor: pointer; transition: transform 0.1s;
+            font-size: 24px; cursor: pointer; transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
-        .reaction-emoji:hover { transform: scale(1.3); }
+        .reaction-emoji:hover { transform: scale(1.4) translateY(-2px); }
         
         .reaction-badges {
             position: absolute; bottom: -12px; right: 10px;
@@ -359,9 +373,16 @@
         .light-mode .icon-btn:hover { color: #111b21; }
         .light-mode .empty-state h3 { color: #41525d; }
         
-        .light-mode .context-menu, .light-mode .reactions-bar, .light-mode .reaction-badges { background: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border: 1px solid #d1d7db; }
-        .light-mode .context-menu-item { color: #111b21; }
-        .light-mode .context-menu-item:hover { background: #f5f6f6; }
+        .light-mode .context-menu, .light-mode .reactions-bar, .light-mode .reaction-badges { 
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15); 
+            border: 1px solid rgba(0, 0, 0, 0.05); 
+        }
+        .light-mode .context-menu-item { color: #111b21; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .light-mode .context-menu-item:hover { background: rgba(0,0,0,0.05); }
+        .light-mode .header-menu hr { border-bottom: 1px solid rgba(0,0,0,0.05); }
         .light-mode .msg-options-btn { background: rgba(255,255,255,0.8); color: #54656f; }
         .light-mode .reply-preview-area { background: #f0f2f5; border-bottom: 1px solid #d1d7db; }
         .light-mode .reply-preview-box { background: rgba(0,0,0,0.05); }
