@@ -1,0 +1,17 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Allow users to upload to community chat files
+    match /community_chat_files/{department}/{fileName} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Allow fallback for anything else if they are using default rules, but typically it's closed.
+    // We'll just allow auth users for now, or match specific paths.
+    // If they have other things like profile pictures, they might need them.
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
