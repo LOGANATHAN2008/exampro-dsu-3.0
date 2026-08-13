@@ -379,6 +379,90 @@
         .light-mode .in-chat-search { background: #f0f2f5; border-bottom: 1px solid #d1d7db; }
         .light-mode .in-chat-search input { background: #ffffff; color: #111b21; border: 1px solid #d1d7db; }
 
+        /* ═══════════════ CONTACT INFO SIDE PANEL ═══════════════ */
+        .contact-info-panel {
+            position: absolute; right: 0; top: 0; bottom: 0; width: 340px;
+            background: #111b21; z-index: 500;
+            display: none; flex-direction: column;
+            border-left: 1px solid rgba(255,255,255,0.08);
+            animation: slideInRight 0.2s ease;
+        }
+        @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .contact-info-panel.open { display: flex; }
+        .contact-info-header {
+            background: #202c33; padding: 15px 20px;
+            display: flex; align-items: center; gap: 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .contact-info-body { padding: 20px; flex: 1; overflow-y: auto; }
+        .contact-info-avatar {
+            width: 80px; height: 80px; border-radius: 50%;
+            background: #3b4a54; display: flex; align-items: center;
+            justify-content: center; font-size: 32px; color: #8696a0;
+            margin: 0 auto 15px;
+        }
+        .contact-info-name { font-size: 22px; font-weight: 600; text-align: center; margin-bottom: 5px; }
+        .contact-info-role { font-size: 13px; color: #00a884; text-align: center; margin-bottom: 20px; }
+        .contact-info-row {
+            display: flex; align-items: flex-start; gap: 15px;
+            padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .contact-info-row i { color: #00a884; width: 20px; margin-top: 2px; }
+        .contact-info-label { font-size: 11px; color: #8696a0; margin-bottom: 3px; }
+        .contact-info-value { font-size: 14px; color: #e9edef; }
+
+        /* ═══════════════ MULTI-SELECT MODE ═══════════════ */
+        .message-bubble.selectable { cursor: pointer; padding-left: 40px !important; }
+        .message-bubble .msg-checkbox {
+            display: none; position: absolute; left: -30px; top: 50%; transform: translateY(-50%);
+            width: 20px; height: 20px; border-radius: 50%;
+            border: 2px solid #8696a0; background: transparent;
+            align-items: center; justify-content: center;
+        }
+        .message-bubble.selectable .msg-checkbox { display: flex; }
+        .message-bubble.selected .msg-checkbox {
+            background: #00a884; border-color: #00a884; color: white;
+        }
+        .bulk-action-bar {
+            background: #00a884; padding: 12px 20px;
+            display: none; align-items: center; justify-content: space-between;
+            gap: 10px; animation: slideUp 0.2s ease;
+        }
+        .bulk-action-bar.visible { display: flex; }
+        @keyframes slideUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .bulk-action-bar span { font-size: 14px; font-weight: 600; color: white; }
+        .bulk-action-btn {
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 13px;
+            transition: background 0.2s;
+        }
+        .bulk-action-btn:hover { background: rgba(255,255,255,0.35); }
+        .bulk-action-btn.danger { background: rgba(241,92,109,0.7); }
+
+        /* ═══════════════ HIGHLIGHT IN SEARCH ═══════════════ */
+        mark.search-highlight {
+            background: rgba(255, 214, 0, 0.45); color: inherit;
+            border-radius: 2px; padding: 0 1px;
+        }
+
+        /* ═══════════════ SCHEDULE CALL CHIP ═══════════════ */
+        .schedule-chip {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(0,168,132,0.15); border: 1px solid rgba(0,168,132,0.3);
+            border-radius: 8px; padding: 8px 12px; margin: 4px 50px;
+            font-size: 12px; color: #00a884; cursor: pointer;
+        }
+        .schedule-chip i { font-size: 14px; }
+
+        /* ═══════════════ LIGHT MODE ADDITIONS ═══════════════ */
+        .light-mode .contact-info-panel { background: #f0f2f5; border-left-color: #d1d7db; }
+        .light-mode .contact-info-header { background: #f0f2f5; }
+        .light-mode .contact-info-row { border-bottom-color: #d1d7db; }
+        .light-mode .contact-info-name { color: #111b21; }
+        .light-mode .contact-info-value { color: #111b21; }
+        .light-mode .bulk-action-bar { background: #005c4b; }
+        .light-mode .schedule-chip { background: rgba(0,92,75,0.1); border-color: rgba(0,92,75,0.3); }
+
         /* Modal Styles */
         .image-modal-overlay {
             position: fixed;
@@ -521,8 +605,8 @@
             </div>
         </div>
 
-        <!-- Right Panel (Placeholder for Phase 1) -->
-        <div class="conversation-panel" id="conversationPanel">
+        <!-- Right Panel -->
+        <div class="conversation-panel" id="conversationPanel" style="position:relative;">
             <div class="empty-state" id="emptyState">
                 <i class="fab fa-whatsapp"></i>
                 <h3>ExamPro Messages</h3>
@@ -531,28 +615,40 @@
             
             <div class="chat-view" id="chatView" style="display: none; height: 100%; flex-direction: column;">
                 <div class="chat-view-header" style="justify-content: space-between;">
-                    <div style="display:flex; align-items:center;">
+                    <div style="display:flex; align-items:center; cursor:pointer;" onclick="handleHeaderMenuAction('Contact info')">
                         <div class="chat-avatar" id="activeChatAvatar"><i class="fas fa-user"></i></div>
                         <div class="chat-info">
                             <div class="chat-name" id="activeChatName">Loading...</div>
+                            <div style="font-size:11px; color:#8696a0;" id="activeChatSub"></div>
                         </div>
                     </div>
                     
                     <!-- WhatsApp Header Actions -->
                     <div style="display:flex; gap:15px; align-items:center;">
-                        <button class="icon-btn" onclick="showToast('Video call feature coming soon!')" title="Video Call"><i class="fas fa-video"></i></button>
-                        <button class="icon-btn" onclick="showToast('Voice call feature coming soon!')" title="Voice Call"><i class="fas fa-phone"></i></button>
-                        <div class="header-divider" style="width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 5px;"></div>
+                        <button class="icon-btn" onclick="showToast('Video call coming soon!')" title="Video Call"><i class="fas fa-video"></i></button>
+                        <button class="icon-btn" onclick="showToast('Voice call coming soon!')" title="Voice Call"><i class="fas fa-phone"></i></button>
+                        <div class="header-divider" style="width:1px;height:24px;background:rgba(255,255,255,0.1);margin:0 5px;"></div>
                         <button class="icon-btn" onclick="toggleChatSearch()" title="Search"><i class="fas fa-search"></i></button>
                         <button class="icon-btn" onclick="toggleHeaderMenu(event)" title="More Options"><i class="fas fa-ellipsis-v"></i></button>
                     </div>
                 </div>
                 
                 <!-- In-Chat Search Bar -->
-                <div class="in-chat-search" id="inChatSearchBar" style="display: none;">
-                    <i class="fas fa-search" style="color: #8696a0;"></i>
-                    <input type="text" id="inChatSearchInput" placeholder="Search messages..." onkeyup="filterChatMessages()">
+                <div class="in-chat-search" id="inChatSearchBar" style="display:none;">
+                    <i class="fas fa-search" style="color:#8696a0;"></i>
+                    <input type="text" id="inChatSearchInput" placeholder="Search messages..." oninput="filterChatMessages()">
+                    <span id="searchCount" style="font-size:12px;color:#8696a0;white-space:nowrap;"></span>
                     <button class="icon-btn" onclick="toggleChatSearch()"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <!-- Bulk Action Bar (Multi-select mode) -->
+                <div class="bulk-action-bar" id="bulkActionBar">
+                    <span id="selectedCount">0 selected</span>
+                    <div style="display:flex;gap:8px;">
+                        <button class="bulk-action-btn" onclick="cancelSelectMode()">Cancel</button>
+                        <button class="bulk-action-btn" onclick="forwardSelectedMessages()"><i class="fas fa-share"></i> Forward</button>
+                        <button class="bulk-action-btn danger" onclick="deleteSelectedMessages()"><i class="fas fa-trash"></i> Delete</button>
+                    </div>
                 </div>
                 
                 <div class="chat-messages" id="chatMessages">
@@ -562,10 +658,10 @@
                 <!-- Reply Preview Area -->
                 <div class="reply-preview-area" id="replyPreviewArea">
                     <div class="reply-preview-box">
-                        <div style="font-size:12px; color:#00a884; font-weight:bold; margin-bottom:3px;" id="replyPreviewName">Name</div>
-                        <div style="font-size:13px; color:#e9edef; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="replyPreviewText">Message...</div>
+                        <div style="font-size:12px;color:#00a884;font-weight:bold;margin-bottom:3px;" id="replyPreviewName">Name</div>
+                        <div style="font-size:13px;color:#e9edef;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" id="replyPreviewText">Message...</div>
                     </div>
-                    <i class="fas fa-times" style="color:#8696a0; cursor:pointer; font-size:20px;" onclick="cancelReply()"></i>
+                    <i class="fas fa-times" style="color:#8696a0;cursor:pointer;font-size:20px;" onclick="cancelReply()"></i>
                 </div>
                 
                 <div class="chat-input-area">
@@ -575,6 +671,9 @@
                     <button class="icon-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
                 </div>
             </div>
+            
+            <!-- Contact Info Panel (slides in from right) -->
+            <div class="contact-info-panel" id="contactInfoPanel"></div>
         </div>
     </div>
 </div>
@@ -591,6 +690,96 @@
             <div id="userSearchResults" class="search-results">
                 <!-- User results will populate here -->
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Info Side Panel -->
+<div class="contact-info-panel" id="contactInfoPanel">
+    <div class="contact-info-header">
+        <button class="icon-btn" onclick="closeContactInfo()"><i class="fas fa-arrow-left"></i></button>
+        <span style="font-size:16px; font-weight:600;">Contact info</span>
+    </div>
+    <div class="contact-info-body">
+        <div class="contact-info-avatar"><i class="fas fa-user"></i></div>
+        <div class="contact-info-name" id="ciName">—</div>
+        <div class="contact-info-role" id="ciRole">—</div>
+        <div class="contact-info-row">
+            <i class="fas fa-id-card"></i>
+            <div><div class="contact-info-label">Department</div><div class="contact-info-value" id="ciDept">—</div></div>
+        </div>
+        <div class="contact-info-row">
+            <i class="fas fa-envelope"></i>
+            <div><div class="contact-info-label">Email</div><div class="contact-info-value" id="ciEmail">—</div></div>
+        </div>
+        <div class="contact-info-row">
+            <i class="fas fa-images"></i>
+            <div><div class="contact-info-label">Shared media</div><div class="contact-info-value" id="ciMedia">Loading...</div></div>
+        </div>
+    </div>
+</div>
+
+<!-- Disappearing Messages Modal -->
+<div class="modal-overlay" id="disappearingModal" style="display:none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-stopwatch" style="margin-right:8px;"></i>Disappearing messages</h3>
+            <button class="close-btn" onclick="document.getElementById('disappearingModal').style.display='none'"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" style="gap:8px;">
+            <p style="font-size:13px;color:#8696a0;margin-bottom:8px;">New messages will automatically disappear after the selected duration.</p>
+            <button class="bulk-action-btn" style="background:#2a3942;color:#e9edef;width:100%;padding:14px;border-radius:8px;text-align:left;" onclick="setDisappearingDuration(0)"><i class="fas fa-times-circle" style="margin-right:8px;color:#8696a0;"></i>Off</button>
+            <button class="bulk-action-btn" style="background:#2a3942;color:#e9edef;width:100%;padding:14px;border-radius:8px;text-align:left;" onclick="setDisappearingDuration(86400)"><i class="fas fa-clock" style="margin-right:8px;color:#00a884;"></i>24 hours</button>
+            <button class="bulk-action-btn" style="background:#2a3942;color:#e9edef;width:100%;padding:14px;border-radius:8px;text-align:left;" onclick="setDisappearingDuration(604800)"><i class="fas fa-clock" style="margin-right:8px;color:#00a884;"></i>7 days</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add to List Modal -->
+<div class="modal-overlay" id="addToListModal" style="display:none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-list" style="margin-right:8px;"></i>Add to list</h3>
+            <button class="close-btn" onclick="document.getElementById('addToListModal').style.display='none'"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <p style="font-size:13px;color:#8696a0;">Type a label name to tag this chat:</p>
+            <input type="text" id="listLabelInput" class="modal-search" placeholder="e.g. Classmates, Project, Important…">
+            <button onclick="saveToList()" style="background:#00a884;color:white;border:none;padding:12px;border-radius:8px;width:100%;font-size:14px;cursor:pointer;font-weight:600;">Save label</button>
+            <div id="existingLabels" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Schedule Call Modal -->
+<div class="modal-overlay" id="scheduleCallModal" style="display:none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-calendar-plus" style="margin-right:8px;"></i>Schedule call</h3>
+            <button class="close-btn" onclick="document.getElementById('scheduleCallModal').style.display='none'"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <p style="font-size:13px;color:#8696a0;">Pick a date and time for the call reminder.</p>
+            <input type="datetime-local" id="scheduleCallInput" class="modal-search" style="color:#e9edef;">
+            <button onclick="confirmScheduleCall()" style="background:#00a884;color:white;border:none;padding:12px;border-radius:8px;width:100%;font-size:14px;cursor:pointer;font-weight:600;">Schedule</button>
+        </div>
+    </div>
+</div>
+
+<!-- Report Modal -->
+<div class="modal-overlay" id="reportModal" style="display:none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-flag" style="margin-right:8px;color:#f15c6d;"></i>Report</h3>
+            <button class="close-btn" onclick="document.getElementById('reportModal').style.display='none'"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body" style="gap:8px;">
+            <p style="font-size:13px;color:#8696a0;margin-bottom:4px;">Why are you reporting this chat?</p>
+            <button class="bulk-action-btn" style="background:#2a3942;color:#e9edef;width:100%;padding:13px;border-radius:8px;text-align:left;" onclick="submitReport('Spam or scam')">Spam or scam</button>
+            <button class="bulk-action-btn" style="background:#2a3942;color:#e9edef;width:100%;padding:13px;border-radius:8px;text-align:left;" onclick="submitReport('Abusive content')">Abusive content</button>
+            <button class="bulk-action-btn" style="background:#2a3942;color:#e9edef;width:100%;padding:13px;border-radius:8px;text-align:left;" onclick="submitReport('Harassment')">Harassment</button>
+            <button class="bulk-action-btn" style="background:#2a3942;color:#e9edef;width:100%;padding:13px;border-radius:8px;text-align:left;" onclick="submitReport('Impersonation')">Impersonation</button>
+            <button class="bulk-action-btn" style="background:#2a3942;color:#e9edef;width:100%;padding:13px;border-radius:8px;text-align:left;" onclick="submitReport('Other')">Other</button>
         </div>
     </div>
 </div>
@@ -617,32 +806,32 @@
     <div class="reaction-emoji" onclick="submitReaction('🙏')">🙏</div>
 </div>
 
-<!-- Context Menu Dropdown -->
+<!-- Per-message Context Menu -->
 <div class="context-menu" id="contextMenu">
     <div class="context-menu-item" onclick="handleMenuAction('reply')">Reply <i class="fas fa-reply"></i></div>
     <div class="context-menu-item" onclick="handleMenuAction('copy')">Copy <i class="fas fa-copy"></i></div>
     <div class="context-menu-item" id="deleteMenuItem" onclick="handleMenuAction('delete')" style="color:#f15c6d;">Delete <i class="fas fa-trash"></i></div>
 </div>
 
-<!-- Header Context Menu -->
-<div class="context-menu header-menu" id="headerMenu">
-    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Contact info')"><i class="fas fa-info-circle" style="width:20px; text-align:center;"></i> Contact info</div>
-    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Search')"><i class="fas fa-search" style="width:20px; text-align:center;"></i> Search</div>
-    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Select messages')"><i class="fas fa-check-square" style="width:20px; text-align:center;"></i> Select messages</div>
-    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Mute notifications')"><i class="fas fa-bell-slash" style="width:20px; text-align:center;"></i> Mute notifications</div>
-    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Disappearing messages')"><i class="fas fa-stopwatch" style="width:20px; text-align:center;"></i> Disappearing messages</div>
-    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Add to favourites')"><i class="fas fa-heart" style="width:20px; text-align:center;"></i> Add to favourites</div>
-    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Add to list')"><i class="fas fa-list" style="width:20px; text-align:center;"></i> Add to list</div>
-    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('close')"><i class="fas fa-times-circle" style="width:20px; text-align:center;"></i> Close chat</div>
+<!-- Header 3-dot Context Menu -->
+<div class="context-menu header-menu" id="headerMenu" style="overflow-y:auto;max-height:85vh;">
+    <div class="context-menu-item left-icon" id="muteMenuItem" onclick="handleHeaderMenuAction('Contact info')"><i class="fas fa-info-circle" style="width:20px;text-align:center;"></i> Contact info</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Search')"><i class="fas fa-search" style="width:20px;text-align:center;"></i> Search</div>
+    <div class="context-menu-item left-icon" id="selectModeMenuItem" onclick="handleHeaderMenuAction('Select messages')"><i class="fas fa-check-square" style="width:20px;text-align:center;"></i> Select messages</div>
+    <div class="context-menu-item left-icon" id="muteToggleItem" onclick="handleHeaderMenuAction('Mute notifications')"><i class="fas fa-bell-slash" style="width:20px;text-align:center;"></i> <span id="muteLabel">Mute notifications</span></div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Disappearing messages')"><i class="fas fa-stopwatch" style="width:20px;text-align:center;"></i> Disappearing messages</div>
+    <div class="context-menu-item left-icon" id="favMenuItem" onclick="handleHeaderMenuAction('Add to favourites')"><i class="fas fa-heart" style="width:20px;text-align:center;"></i> <span id="favLabel">Add to favourites</span></div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Add to list')"><i class="fas fa-list" style="width:20px;text-align:center;"></i> Add to list</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('close')"><i class="fas fa-times-circle" style="width:20px;text-align:center;"></i> Close chat</div>
     <hr>
-    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Send call link')"><i class="fas fa-link" style="width:20px; text-align:center;"></i> Send call link</div>
-    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Schedule call')"><i class="fas fa-calendar-plus" style="width:20px; text-align:center;"></i> Schedule call</div>
-    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('New group call')"><i class="fas fa-user-plus" style="width:20px; text-align:center;"></i> New group call</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Send call link')"><i class="fas fa-link" style="width:20px;text-align:center;"></i> Send call link</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Schedule call')"><i class="fas fa-calendar-plus" style="width:20px;text-align:center;"></i> Schedule call</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('New group call')"><i class="fas fa-user-plus" style="width:20px;text-align:center;"></i> New group call</div>
     <hr>
-    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Report')"><i class="fas fa-thumbs-down" style="width:20px; text-align:center;"></i> Report</div>
-    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Block')"><i class="fas fa-ban" style="width:20px; text-align:center;"></i> Block</div>
-    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Clear chat')"><i class="fas fa-minus-circle" style="width:20px; text-align:center;"></i> Clear chat</div>
-    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Delete chat')"><i class="fas fa-trash" style="width:20px; text-align:center;"></i> Delete chat</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Report')"><i class="fas fa-thumbs-down" style="width:20px;text-align:center;"></i> Report</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Block')"><i class="fas fa-ban" style="width:20px;text-align:center;"></i> Block</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Clear chat')" style="color:#f15c6d;"><i class="fas fa-minus-circle" style="width:20px;text-align:center;"></i> Clear chat</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Delete chat')" style="color:#f15c6d;"><i class="fas fa-trash" style="width:20px;text-align:center;"></i> Delete chat</div>
 </div>
 
 <script src="theme.js"></script>
@@ -1098,104 +1287,468 @@
         }, 2500);
     }
     
-    // In-Chat Search Logic
+    // ═══════════════════════════════════════════════════
+    // 1. CONTACT INFO
+    // ═══════════════════════════════════════════════════
+    window.openContactInfo = async function() {
+        if (!currentChatId) return;
+        const panel = document.getElementById('contactInfoPanel');
+        panel.innerHTML = `
+            <div class="contact-info-header">
+                <button class="icon-btn" onclick="closeContactInfo()"><i class="fas fa-arrow-left"></i></button>
+                <span style="font-size:16px;font-weight:600;">Contact info</span>
+            </div>
+            <div class="contact-info-body">
+                <div class="contact-info-avatar"><i class="fas fa-user"></i></div>
+                <div class="contact-info-name" id="ciName">Loading…</div>
+                <div class="contact-info-role" id="ciRole"></div>
+                <div class="contact-info-row"><i class="fas fa-id-card"></i><div><div class="contact-info-label">Department</div><div class="contact-info-value" id="ciDept">—</div></div></div>
+                <div class="contact-info-row"><i class="fas fa-envelope"></i><div><div class="contact-info-label">Email</div><div class="contact-info-value" id="ciEmail">—</div></div></div>
+                <div class="contact-info-row"><i class="fas fa-images"></i><div><div class="contact-info-label">Shared media</div><div class="contact-info-value" id="ciMedia">Counting…</div></div></div>
+            </div>`;
+        panel.classList.add('open');
+        
+        try {
+            const chatSnap = await getDoc(doc(db, "chats", currentChatId));
+            if (!chatSnap.exists()) return;
+            const chatData = chatSnap.data();
+            const otherUid = chatData.participants.find(id => id !== currentUser.uid);
+            
+            // Fetch other user's profile
+            const [stdSnap, stfSnap, admSnap] = await Promise.all([
+                getDoc(doc(db, "students", otherUid)),
+                getDoc(doc(db, "staff", otherUid)),
+                getDoc(doc(db, "admins", otherUid))
+            ]);
+            
+            let name = "Unknown", role = "", dept = "—", email = "—";
+            if (stdSnap.exists()) { const d = stdSnap.data(); name = d.name || name; role = "Student"; dept = d.department || dept; email = d.email || email; }
+            else if (stfSnap.exists()) { const d = stfSnap.data(); name = d.name || name; role = "Staff"; dept = d.department || dept; email = d.email || email; }
+            else if (admSnap.exists()) { const d = admSnap.data(); name = d.name || name; role = "Admin"; email = d.email || email; }
+            
+            document.getElementById('ciName').textContent = name;
+            document.getElementById('ciRole').textContent = role;
+            document.getElementById('ciDept').textContent = dept;
+            document.getElementById('ciEmail').textContent = email;
+            
+            // Count shared media
+            const msgsSnap = await getDocs(collection(db, "chats", currentChatId, "messages"));
+            let mediaCount = 0;
+            msgsSnap.forEach(m => { if (m.data().imageUrl) mediaCount++; });
+            document.getElementById('ciMedia').textContent = mediaCount + " photo" + (mediaCount !== 1 ? "s" : "");
+        } catch(e) { console.error(e); }
+    }
+    window.closeContactInfo = function() {
+        document.getElementById('contactInfoPanel').classList.remove('open');
+    }
+
+    // ═══════════════════════════════════════════════════
+    // 2. SEARCH (In-Chat Message Search)
+    // ═══════════════════════════════════════════════════
     window.toggleChatSearch = function() {
-        const searchBar = document.getElementById('inChatSearchBar');
+        const bar = document.getElementById('inChatSearchBar');
         const input = document.getElementById('inChatSearchInput');
-        if (searchBar.style.display === 'none') {
-            searchBar.style.display = 'flex';
+        if (bar.style.display === 'none' || bar.style.display === '') {
+            bar.style.display = 'flex';
             input.focus();
         } else {
-            searchBar.style.display = 'none';
+            bar.style.display = 'none';
             input.value = '';
-            filterChatMessages(); // reset filter
+            document.getElementById('searchCount').textContent = '';
+            filterChatMessages();
         }
     }
     
     window.filterChatMessages = function() {
-        const query = document.getElementById('inChatSearchInput').value.toLowerCase();
+        const rawQuery = document.getElementById('inChatSearchInput').value;
+        const query = rawQuery.toLowerCase().trim();
         const messages = document.querySelectorAll('.message-bubble');
-        let hasMatch = false;
+        let matchCount = 0;
         
         messages.forEach(msg => {
-            const textContent = msg.textContent.toLowerCase();
-            if (textContent.includes(query)) {
-                msg.style.display = '';
-                hasMatch = true;
-            } else {
-                msg.style.display = 'none';
-            }
+            // Restore original text (strip old highlights)
+            msg.querySelectorAll('mark.search-highlight').forEach(m => {
+                m.outerHTML = m.textContent;
+            });
+            
+            if (!query) { msg.style.display = ''; return; }
+            
+            const textDivs = msg.querySelectorAll('div:not(.quoted-msg):not(.reaction-badges)');
+            let found = false;
+            textDivs.forEach(div => {
+                if (div.childElementCount === 0 && div.textContent.toLowerCase().includes(query)) {
+                    found = true;
+                    const regex = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                    div.innerHTML = div.textContent.replace(regex, '<mark class="search-highlight">$1</mark>');
+                }
+            });
+            msg.style.display = found ? '' : 'none';
+            if (found) matchCount++;
         });
         
-        // Ensure scroll stays at bottom if no filter, or top match if filtered
-        if (query.length > 0 && hasMatch) {
-            // Scroll to the first match
-            const firstMatch = Array.from(messages).find(m => m.style.display === '');
-            if (firstMatch) firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } else if (query.length === 0) {
-            const msgsDiv = document.getElementById('chatMessages');
-            msgsDiv.scrollTop = msgsDiv.scrollHeight;
+        const countEl = document.getElementById('searchCount');
+        if (query) {
+            countEl.textContent = matchCount > 0 ? matchCount + ' found' : 'No results';
+            if (matchCount > 0) {
+                const first = Array.from(messages).find(m => m.style.display === '');
+                if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        } else {
+            countEl.textContent = '';
+            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
         }
     }
+
+    // ═══════════════════════════════════════════════════
+    // 3. SELECT MESSAGES (Multi-select)
+    // ═══════════════════════════════════════════════════
+    let selectMode = false;
+    let selectedMessageIds = new Set();
     
-    // Header Menu Logic
+    window.enterSelectMode = function() {
+        selectMode = true;
+        selectedMessageIds.clear();
+        document.getElementById('bulkActionBar').classList.add('visible');
+        document.getElementById('selectedCount').textContent = '0 selected';
+        // Add checkboxes to each message bubble
+        document.querySelectorAll('.message-bubble').forEach(bubble => {
+            bubble.classList.add('selectable');
+            if (!bubble.querySelector('.msg-checkbox')) {
+                const cb = document.createElement('div');
+                cb.className = 'msg-checkbox'; cb.innerHTML = '<i class="fas fa-check" style="font-size:10px;"></i>';
+                bubble.insertBefore(cb, bubble.firstChild);
+            }
+            bubble.onclick = function(e) { toggleMessageSelect(this); e.stopPropagation(); };
+        });
+    }
+    
+    window.cancelSelectMode = function() {
+        selectMode = false;
+        selectedMessageIds.clear();
+        document.getElementById('bulkActionBar').classList.remove('visible');
+        document.querySelectorAll('.message-bubble').forEach(bubble => {
+            bubble.classList.remove('selectable', 'selected');
+            const cb = bubble.querySelector('.msg-checkbox');
+            if (cb) cb.remove();
+            bubble.onclick = null;
+        });
+    }
+    
+    window.toggleMessageSelect = function(bubble) {
+        const msgId = bubble.id.replace('msg-', '');
+        if (bubble.classList.contains('selected')) {
+            bubble.classList.remove('selected');
+            selectedMessageIds.delete(msgId);
+        } else {
+            bubble.classList.add('selected');
+            selectedMessageIds.add(msgId);
+        }
+        document.getElementById('selectedCount').textContent = selectedMessageIds.size + ' selected';
+    }
+    
+    window.deleteSelectedMessages = async function() {
+        if (selectedMessageIds.size === 0) { showToast('No messages selected'); return; }
+        if (!confirm(`Delete ${selectedMessageIds.size} message(s) for everyone?`)) return;
+        try {
+            await Promise.all([...selectedMessageIds].map(id => deleteDoc(doc(db, "chats", currentChatId, "messages", id))));
+            showToast(selectedMessageIds.size + ' message(s) deleted');
+        } catch(e) { console.error(e); showToast('Error deleting messages'); }
+        cancelSelectMode();
+    }
+    
+    window.forwardSelectedMessages = function() {
+        if (selectedMessageIds.size === 0) { showToast('No messages selected'); return; }
+        showToast('Forward feature coming soon!');
+        cancelSelectMode();
+    }
+
+    // ═══════════════════════════════════════════════════
+    // 4. MUTE NOTIFICATIONS
+    // ═══════════════════════════════════════════════════
+    window.toggleMuteChat = async function() {
+        if (!currentChatId) return;
+        try {
+            const chatSnap = await getDoc(doc(db, "chats", currentChatId));
+            const isMuted = chatSnap.data()?.muted?.[currentUser.uid] === true;
+            await updateDoc(doc(db, "chats", currentChatId), { [`muted.${currentUser.uid}`]: !isMuted });
+            const label = document.getElementById('muteLabel');
+            if (label) label.textContent = isMuted ? 'Mute notifications' : 'Unmute notifications';
+            showToast(isMuted ? 'Notifications unmuted' : 'Chat muted');
+        } catch(e) { console.error(e); showToast('Error updating mute setting'); }
+    }
+
+    // ═══════════════════════════════════════════════════
+    // 5. DISAPPEARING MESSAGES
+    // ═══════════════════════════════════════════════════
+    window.setDisappearingDuration = async function(seconds) {
+        document.getElementById('disappearingModal').style.display = 'none';
+        if (!currentChatId) return;
+        try {
+            await updateDoc(doc(db, "chats", currentChatId), { disappearingSeconds: seconds });
+            const label = seconds === 0 ? 'Disappearing messages: Off' : seconds === 86400 ? 'Disappearing messages: 24h' : 'Disappearing messages: 7 days';
+            showToast(label);
+        } catch(e) { console.error(e); showToast('Error saving setting'); }
+    }
+
+    // ═══════════════════════════════════════════════════
+    // 6. ADD TO FAVOURITES
+    // ═══════════════════════════════════════════════════
+    window.toggleFavourite = async function() {
+        if (!currentChatId) return;
+        try {
+            const chatSnap = await getDoc(doc(db, "chats", currentChatId));
+            const isFav = chatSnap.data()?.favourites?.[currentUser.uid] === true;
+            await updateDoc(doc(db, "chats", currentChatId), { [`favourites.${currentUser.uid}`]: !isFav });
+            const label = document.getElementById('favLabel');
+            if (label) label.textContent = isFav ? 'Add to favourites' : 'Remove from favourites';
+            showToast(isFav ? 'Removed from favourites' : '⭐ Added to favourites');
+        } catch(e) { console.error(e); showToast('Error updating favourites'); }
+    }
+
+    // ═══════════════════════════════════════════════════
+    // 7. ADD TO LIST (Custom Label)
+    // ═══════════════════════════════════════════════════
+    window.openAddToList = async function() {
+        document.getElementById('addToListModal').style.display = 'flex';
+        document.getElementById('listLabelInput').value = '';
+        // Load existing labels from user profile
+        const existingDiv = document.getElementById('existingLabels');
+        existingDiv.innerHTML = '';
+        try {
+            const [stdSnap, stfSnap, admSnap] = await Promise.all([
+                getDoc(doc(db, "students", currentUser.uid)),
+                getDoc(doc(db, "staff", currentUser.uid)),
+                getDoc(doc(db, "admins", currentUser.uid))
+            ]);
+            const profile = stdSnap.exists() ? stdSnap : stfSnap.exists() ? stfSnap : admSnap.exists() ? admSnap : null;
+            const labels = profile?.data()?.chatLabels || [];
+            labels.forEach(label => {
+                existingDiv.innerHTML += `<span onclick="document.getElementById('listLabelInput').value='${label}'" style="background:#2a3942;color:#e9edef;padding:5px 10px;border-radius:12px;font-size:12px;cursor:pointer;">${label}</span>`;
+            });
+        } catch(e) { console.error(e); }
+    }
+    
+    window.saveToList = async function() {
+        const label = document.getElementById('listLabelInput').value.trim();
+        if (!label) { showToast('Please enter a label name'); return; }
+        document.getElementById('addToListModal').style.display = 'none';
+        try {
+            // Save label to chat doc
+            await updateDoc(doc(db, "chats", currentChatId), { [`labels.${currentUser.uid}`]: label });
+            // Save label to user's known labels
+            const collections = ["students", "staff", "admins"];
+            for (const col of collections) {
+                const snap = await getDoc(doc(db, col, currentUser.uid));
+                if (snap.exists()) {
+                    const existing = snap.data().chatLabels || [];
+                    if (!existing.includes(label)) {
+                        await updateDoc(doc(db, col, currentUser.uid), { chatLabels: [...existing, label] });
+                    }
+                    break;
+                }
+            }
+            showToast('✅ Added to "' + label + '" list');
+        } catch(e) { console.error(e); showToast('Error saving label'); }
+    }
+
+    // ═══════════════════════════════════════════════════
+    // 8. CLOSE CHAT
+    // ═══════════════════════════════════════════════════
+    window.closeChat = function() {
+        document.getElementById('chatView').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'flex';
+        closeContactInfo();
+        cancelSelectMode();
+        currentChatId = null;
+        document.querySelectorAll('.chat-item').forEach(item => { item.style.background = ''; });
+    }
+
+    // ═══════════════════════════════════════════════════
+    // 9. SEND CALL LINK
+    // ═══════════════════════════════════════════════════
+    window.sendCallLink = async function() {
+        const roomId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+        const callLink = `https://meet.jit.si/ExamPro-${roomId}`;
+        try {
+            await navigator.clipboard.writeText(callLink);
+            // Also send as a message in the chat
+            await addDoc(collection(db, "chats", currentChatId, "messages"), {
+                senderId: currentUser.uid, senderName: currentUserName,
+                text: `📹 Join video call: ${callLink}`,
+                sentAt: serverTimestamp(), readBy: [currentUser.uid], type: 'call_link'
+            });
+            await updateDoc(doc(db, "chats", currentChatId), { lastMessage: '📹 Video call link sent', lastMessageAt: serverTimestamp() });
+            showToast('📋 Call link copied & sent!');
+        } catch(e) { console.error(e); showToast('Call link: ' + callLink); }
+    }
+
+    // ═══════════════════════════════════════════════════
+    // 10. SCHEDULE CALL
+    // ═══════════════════════════════════════════════════
+    window.openScheduleCall = function() {
+        const modal = document.getElementById('scheduleCallModal');
+        // Set default to 1 hour from now
+        const dt = new Date(Date.now() + 3600000);
+        document.getElementById('scheduleCallInput').value = dt.toISOString().slice(0, 16);
+        modal.style.display = 'flex';
+    }
+    
+    window.confirmScheduleCall = async function() {
+        const val = document.getElementById('scheduleCallInput').value;
+        if (!val) { showToast('Please pick a date & time'); return; }
+        document.getElementById('scheduleCallModal').style.display = 'none';
+        const scheduledAt = new Date(val);
+        try {
+            const roomId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+            const callLink = `https://meet.jit.si/ExamPro-${roomId}`;
+            await addDoc(collection(db, "scheduledCalls"), {
+                chatId: currentChatId, scheduledBy: currentUser.uid,
+                scheduledAt: scheduledAt, callLink, participants: []
+            });
+            // Show a reminder chip in the chat
+            const msgsDiv = document.getElementById('chatMessages');
+            const timeLabel = scheduledAt.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+            msgsDiv.insertAdjacentHTML('beforeend', `
+                <div class="schedule-chip" onclick="navigator.clipboard.writeText('${callLink}').then(()=>showToast('Link copied'))">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>Call scheduled for <strong>${timeLabel}</strong> · Tap to copy link</span>
+                </div>`);
+            msgsDiv.scrollTop = msgsDiv.scrollHeight;
+            showToast('📅 Call scheduled for ' + timeLabel);
+        } catch(e) { console.error(e); showToast('Error scheduling call'); }
+    }
+
+    // ═══════════════════════════════════════════════════
+    // 11. NEW GROUP CALL
+    // ═══════════════════════════════════════════════════
+    window.startGroupCall = async function() {
+        if (!currentChatId) return;
+        const roomId = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+        const callLink = `https://meet.jit.si/ExamPro-Group-${roomId}`;
+        try {
+            await navigator.clipboard.writeText(callLink);
+            await addDoc(collection(db, "chats", currentChatId, "messages"), {
+                senderId: currentUser.uid, senderName: currentUserName,
+                text: `📹 Group call started! Join here: ${callLink}`,
+                sentAt: serverTimestamp(), readBy: [currentUser.uid], type: 'group_call'
+            });
+            await updateDoc(doc(db, "chats", currentChatId), { lastMessage: '📹 Group call started', lastMessageAt: serverTimestamp() });
+            window.open(callLink, '_blank');
+            showToast('📹 Group call started! Link copied.');
+        } catch(e) { console.error(e); showToast('Error starting group call'); }
+    }
+
+    // ═══════════════════════════════════════════════════
+    // 12. REPORT
+    // ═══════════════════════════════════════════════════
+    window.openReport = function() {
+        document.getElementById('reportModal').style.display = 'flex';
+    }
+    
+    window.submitReport = async function(reason) {
+        document.getElementById('reportModal').style.display = 'none';
+        try {
+            await addDoc(collection(db, "reports"), {
+                chatId: currentChatId, reporterUID: currentUser.uid,
+                reason, reportedAt: serverTimestamp()
+            });
+            showToast('✅ Report submitted. Thank you.');
+        } catch(e) { console.error(e); showToast('Error submitting report'); }
+    }
+
+    // ═══════════════════════════════════════════════════
+    // 13. BLOCK
+    // ═══════════════════════════════════════════════════
+    window.blockUser = async function() {
+        if (!currentChatId) return;
+        if (!confirm('Block this user? Their messages will be hidden and they cannot message you.')) return;
+        try {
+            const chatSnap = await getDoc(doc(db, "chats", currentChatId));
+            const otherUid = chatSnap.data()?.participants.find(id => id !== currentUser.uid);
+            if (!otherUid) return;
+            const collections = ["students", "staff", "admins"];
+            for (const col of collections) {
+                const snap = await getDoc(doc(db, col, currentUser.uid));
+                if (snap.exists()) {
+                    const blocked = snap.data().blockedUsers || [];
+                    if (!blocked.includes(otherUid)) {
+                        await updateDoc(doc(db, col, currentUser.uid), { blockedUsers: [...blocked, otherUid] });
+                    }
+                    break;
+                }
+            }
+            showToast('🚫 User blocked');
+            closeChat();
+        } catch(e) { console.error(e); showToast('Error blocking user'); }
+    }
+
+    // ═══════════════════════════════════════════════════
+    // 14. CLEAR CHAT
+    // ═══════════════════════════════════════════════════
+    window.clearChat = async function() {
+        if (!currentChatId) return;
+        if (!confirm('Clear all messages? This cannot be undone.')) return;
+        try {
+            const snapshot = await getDocs(collection(db, "chats", currentChatId, "messages"));
+            await Promise.all(snapshot.docs.map(d => deleteDoc(d.ref)));
+            showToast('✅ Chat cleared');
+        } catch(e) { console.error(e); showToast('Error clearing chat'); }
+    }
+
+    // ═══════════════════════════════════════════════════
+    // 15. DELETE CHAT
+    // ═══════════════════════════════════════════════════
+    window.deleteChat = async function() {
+        if (!currentChatId) return;
+        if (!confirm('Permanently delete this entire chat for everyone? This cannot be undone.')) return;
+        try {
+            // Delete all messages first
+            const snapshot = await getDocs(collection(db, "chats", currentChatId, "messages"));
+            await Promise.all(snapshot.docs.map(d => deleteDoc(d.ref)));
+            // Delete the chat document itself
+            await deleteDoc(doc(db, "chats", currentChatId));
+            showToast('🗑️ Chat deleted');
+            closeChat();
+        } catch(e) { console.error(e); showToast('Error deleting chat'); }
+    }
+
+    // ═══════════════════════════════════════════════════
+    // HEADER MENU DISPATCHER
+    // ═══════════════════════════════════════════════════
     window.toggleHeaderMenu = function(event) {
         event.stopPropagation();
         const menu = document.getElementById('headerMenu');
-        if (menu.style.display === 'block') {
-            menu.style.display = 'none';
-            return;
-        }
-        
-        // Hide message context menu if open
-        const msgContextMenu = document.getElementById('contextMenu');
-        if (msgContextMenu) msgContextMenu.style.display = 'none';
-        
+        if (menu.style.display === 'block') { menu.style.display = 'none'; return; }
+        const cm = document.getElementById('contextMenu');
+        if (cm) cm.style.display = 'none';
         menu.style.display = 'block';
-        
-        // Position below the button
         const rect = event.currentTarget.getBoundingClientRect();
         menu.style.top = (rect.bottom + 5) + 'px';
         menu.style.right = (window.innerWidth - rect.right) + 'px';
-        menu.style.left = 'auto'; // override default left
+        menu.style.left = 'auto';
     }
     
-    window.handleHeaderMenuAction = async function(action) {
+    window.handleHeaderMenuAction = function(action) {
         document.getElementById('headerMenu').style.display = 'none';
-        
-        if (action === 'close') {
-            document.getElementById('chatView').style.display = 'none';
-            document.getElementById('emptyState').style.display = 'flex';
-            currentChatId = null;
-            
-            // Remove active class from list
-            document.querySelectorAll('.chat-item').forEach(item => {
-                item.style.background = '';
-                item.classList.remove('active');
-            });
-        } else if (action === 'Clear chat') {
-            if(confirm("Are you sure you want to clear this chat? This cannot be undone.")) {
-                try {
-                    const msgsRef = collection(db, `chats/${currentChatId}/messages`);
-                    const q = query(msgsRef);
-                    const snapshot = await getDocs(q);
-                    
-                    // Simple manual batch delete (for a real app, use writeBatch)
-                    snapshot.forEach(async (docSnap) => {
-                        await deleteDoc(doc(db, `chats/${currentChatId}/messages`, docSnap.id));
-                    });
-                    
-                    showToast("Chat cleared successfully");
-                } catch(e) {
-                    console.error(e);
-                    showToast("Error clearing chat", "error");
-                }
-            }
-        } else if (action === 'Search') {
-            toggleChatSearch();
-        } else {
-            showToast(action + ' coming soon!');
-        }
+        const map = {
+            'Contact info':        openContactInfo,
+            'Search':              toggleChatSearch,
+            'Select messages':     enterSelectMode,
+            'Mute notifications':  toggleMuteChat,
+            'Disappearing messages': () => document.getElementById('disappearingModal').style.display = 'flex',
+            'Add to favourites':   toggleFavourite,
+            'Add to list':         openAddToList,
+            'close':               closeChat,
+            'Send call link':      sendCallLink,
+            'Schedule call':       openScheduleCall,
+            'New group call':      startGroupCall,
+            'Report':              openReport,
+            'Block':               blockUser,
+            'Clear chat':          clearChat,
+            'Delete chat':         deleteChat,
+        };
+        const fn = map[action];
+        if (fn) fn(); else showToast(action + ' coming soon!');
     }
 
     // Context Menu State
