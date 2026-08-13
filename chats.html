@@ -165,6 +165,141 @@
         .empty-state h3 { font-size: 24px; color: #e9edef; font-weight: 300; margin-bottom: 10px; }
         .empty-state p { font-size: 14px; max-width: 400px; line-height: 1.5; }
         
+        /* Chat View */
+        .chat-view-header {
+            padding: 10px 20px;
+            background: #202c33;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px 50px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1;
+        }
+        
+        .message-bubble {
+            max-width: 65%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            position: relative;
+            line-height: 1.4;
+            color: #e9edef;
+            box-shadow: 0 1px 0.5px rgba(11,20,26,.13);
+        }
+        .message-bubble.sent {
+            background: #005c4b;
+            align-self: flex-end;
+            border-top-right-radius: 0;
+        }
+        .message-bubble.received {
+            background: #202c33;
+            align-self: flex-start;
+            border-top-left-radius: 0;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+            float: right;
+            margin-top: 4px;
+            margin-left: 10px;
+        }
+
+        .chat-input-area {
+            padding: 10px 20px;
+            background: #202c33;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 1;
+        }
+        
+        .chat-input-area input {
+            flex: 1;
+            background: #2a3942;
+            border: none;
+            color: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+        
+        .icon-btn {
+            background: none;
+            border: none;
+            color: #8696a0;
+            font-size: 22px;
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.2s;
+        }
+        .icon-btn:hover { color: #d1d7db; }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(11, 20, 26, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: #202c33;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .modal-header {
+            padding: 15px 20px;
+            background: #111b21;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 { font-size: 18px; font-weight: 500; }
+        .close-btn { background: none; border: none; color: #8696a0; font-size: 20px; cursor: pointer; }
+        
+        .modal-body { padding: 15px; display: flex; flex-direction: column; gap: 15px; max-height: 400px; }
+        .modal-search {
+            width: 100%;
+            background: #2a3942;
+            border: none;
+            color: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        .search-results { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; }
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .search-result-item:hover { background: #2a3942; }
+
         /* Temporary back to dashboard button for layout integration */
         .back-btn { background: none; border: none; color: #e9edef; font-size: 20px; cursor: pointer; margin-right: 15px; }
 
@@ -208,11 +343,46 @@
         </div>
 
         <!-- Right Panel (Placeholder for Phase 1) -->
-        <div class="conversation-panel">
-            <div class="empty-state">
+        <div class="conversation-panel" id="conversationPanel">
+            <div class="empty-state" id="emptyState">
                 <i class="fab fa-whatsapp"></i>
                 <h3>ExamPro Messages</h3>
                 <p>Select a chat from the left panel to start messaging with students, staff, and admins securely.</p>
+            </div>
+            
+            <div class="chat-view" id="chatView" style="display: none; height: 100%; flex-direction: column;">
+                <div class="chat-view-header">
+                    <div style="display:flex; align-items:center;">
+                        <div class="chat-avatar" id="activeChatAvatar"><i class="fas fa-user"></i></div>
+                        <div class="chat-info">
+                            <div class="chat-name" id="activeChatName">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Messages will appear here -->
+                </div>
+                <div class="chat-input-area">
+                    <button class="icon-btn"><i class="fas fa-paperclip"></i></button>
+                    <input type="text" id="messageInput" placeholder="Type a message" onkeypress="handleEnter(event)">
+                    <button class="icon-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Chat Modal -->
+<div id="newChatModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>New Chat</h3>
+            <button class="close-btn" onclick="closeNewChatModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <input type="text" id="userSearchInput" class="modal-search" placeholder="Search by name..." oninput="searchUsers(this.value)">
+            <div id="userSearchResults" class="search-results">
+                <!-- User results will populate here -->
             </div>
         </div>
     </div>
@@ -221,7 +391,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, collection, query, where, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
@@ -239,7 +409,108 @@
 
     let currentUser = null;
     let currentFilter = 'all';
+    let allChats = [];
+    let currentChatId = null;
+    let messagesUnsubscribe = null;
 
+    // --- Modal Logic ---
+    window.openNewChatModal = function() {
+        document.getElementById('newChatModal').style.display = 'flex';
+        document.getElementById('userSearchInput').value = '';
+        document.getElementById('userSearchResults').innerHTML = '';
+        // Load initial users
+        searchUsers('');
+    }
+    window.closeNewChatModal = function() {
+        document.getElementById('newChatModal').style.display = 'none';
+    }
+    
+    // Wire up the button in HTML
+    document.querySelector('.fa-edit').parentElement.onclick = window.openNewChatModal;
+
+    window.searchUsers = async function(searchQuery) {
+        const resultsDiv = document.getElementById('userSearchResults');
+        resultsDiv.innerHTML = '<div style="padding:10px;color:#8696a0;">Searching...</div>';
+        
+        try {
+            // Simplified query since we can't do full text search easily without Algolia
+            const usersRef = collection(db, "users");
+            const q = query(usersRef, orderBy("name"));
+            const querySnapshot = await getDocs(q);
+            
+            resultsDiv.innerHTML = '';
+            let count = 0;
+            const term = searchQuery.toLowerCase();
+            
+            querySnapshot.forEach((doc) => {
+                const userData = doc.data();
+                // Don't show self
+                if(doc.id === currentUser.uid) return;
+                
+                const name = userData.name || 'Unknown User';
+                if(term && !name.toLowerCase().includes(term)) return;
+                
+                count++;
+                // In a real app, limit to top 20
+                if(count > 20) return;
+                
+                const roleBadge = userData.role === 'admin' ? '<span class="role-badge role-admin">ADMIN</span>' : 
+                                  userData.role === 'staff' ? '<span class="role-badge role-staff">STAFF</span>' : 
+                                  '<span class="role-badge role-student">STUDENT</span>';
+                                  
+                resultsDiv.innerHTML += `
+                    <div class="search-result-item" onclick="startChatWith('${doc.id}', '${name.replace(/'/g, "\\'")}')">
+                        <div class="chat-avatar" style="width:40px;height:40px;margin-right:10px;"><i class="fas fa-user"></i></div>
+                        <div>
+                            <div style="font-size:14px;color:white;">${name} ${roleBadge}</div>
+                            <div style="font-size:12px;color:#8696a0;">${userData.regNo || userData.email || ''}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if(count === 0) resultsDiv.innerHTML = '<div style="padding:10px;color:#8696a0;">No users found.</div>';
+            
+        } catch(error) {
+            console.error("Search error", error);
+            resultsDiv.innerHTML = '<div style="padding:10px;color:#f87171;">Error fetching users.</div>';
+        }
+    }
+
+    window.startChatWith = async function(userId, userName) {
+        // Check if chat already exists
+        const existingChat = allChats.find(c => c.type === 'direct' && c.participants.includes(userId));
+        
+        if (existingChat) {
+            closeNewChatModal();
+            selectChat(existingChat.id, userName);
+            return;
+        }
+        
+        // Create new chat document
+        try {
+            const chatData = {
+                type: 'direct',
+                participants: [currentUser.uid, userId],
+                createdBy: currentUser.uid,
+                createdAt: serverTimestamp(),
+                lastMessage: '',
+                lastMessageAt: null,
+                participantNames: {
+                    [userId]: userName
+                }
+            };
+            
+            const docRef = await addDoc(collection(db, "chats"), chatData);
+            closeNewChatModal();
+            selectChat(docRef.id, userName);
+        } catch (error) {
+            console.error("Error creating chat", error);
+            alert("Failed to start chat.");
+        }
+    }
+
+    // --- Core Messaging Logic ---
     window.setFilter = function(filter, btnElem) {
         document.querySelectorAll('.filter-pill').forEach(btn => btn.classList.remove('active'));
         btnElem.classList.add('active');
@@ -256,10 +527,7 @@
         }
     });
 
-    let allChats = [];
-
     function listenToChats() {
-        // According to schema: query chats where participants contains currentUser.uid
         const q = query(
             collection(db, "chats"),
             where("participants", "array-contains", currentUser.uid),
@@ -274,8 +542,7 @@
             renderChats();
         }, (error) => {
             console.error("Error listening to chats:", error);
-            // Ignore missing index error on initial setup if user hasn't created it yet
-            document.getElementById('chatList').innerHTML = `<div style="padding:20px;text-align:center;color:#8696a0;">No chats yet, or requires Firestore composite index. Start a new chat!</div>`;
+            document.getElementById('chatList').innerHTML = `<div style="padding:20px;text-align:center;color:#8696a0;">No chats yet. Start a new chat!</div>`;
         });
     }
 
@@ -286,17 +553,27 @@
         let filteredChats = allChats;
         
         if(filteredChats.length === 0) {
-            listElem.innerHTML = `<div style="padding:20px;text-align:center;color:#8696a0;">No chats found. Say hi!</div>`;
+            listElem.innerHTML = `<div style="padding:20px;text-align:center;color:#8696a0;">No chats found. Click the edit icon to start one!</div>`;
             return;
         }
 
         filteredChats.forEach(chat => {
-            let displayName = chat.subject || "Direct Message"; 
+            let displayName = chat.subject || "Direct Message";
+            
+            // Try to extract name of the other person if we saved it in Phase 3 or earlier
+            if(chat.type === 'direct') {
+                const otherUid = chat.participants.find(id => id !== currentUser.uid);
+                if (chat.participantNames && chat.participantNames[otherUid]) {
+                    displayName = chat.participantNames[otherUid];
+                }
+            }
+            
             let roleBadgeHtml = "";
             let timeStr = chat.lastMessageAt ? new Date(chat.lastMessageAt.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+            const isActive = currentChatId === chat.id ? 'background: #2a3942;' : '';
 
             const itemHtml = `
-                <div class="chat-item">
+                <div class="chat-item" style="${isActive}" onclick="selectChat('${chat.id}', '${displayName.replace(/'/g, "\\'")}')">
                     <div class="chat-avatar"><i class="fas fa-user"></i></div>
                     <div class="chat-info">
                         <div class="chat-info-top">
@@ -304,13 +581,96 @@
                             <div class="chat-time">${timeStr}</div>
                         </div>
                         <div class="chat-info-bottom">
-                            <div class="chat-preview">${chat.lastMessage || 'No messages'}</div>
+                            <div class="chat-preview">${chat.lastMessage || 'Start messaging'}</div>
                         </div>
                     </div>
                 </div>
             `;
             listElem.insertAdjacentHTML('beforeend', itemHtml);
         });
+    }
+    
+    // Make selectChat global
+    window.selectChat = function(chatId, chatName) {
+        currentChatId = chatId;
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('chatView').style.display = 'flex';
+        document.getElementById('activeChatName').textContent = chatName;
+        
+        // Unsubscribe from previous chat messages if any
+        if (messagesUnsubscribe) messagesUnsubscribe();
+        
+        document.getElementById('chatMessages').innerHTML = '<div style="text-align:center;color:#8696a0;padding:20px;">Loading messages...</div>';
+        
+        // Listen to messages
+        const q = query(
+            collection(db, "chats", chatId, "messages"),
+            orderBy("sentAt", "asc")
+        );
+        
+        messagesUnsubscribe = onSnapshot(q, (snapshot) => {
+            const messagesDiv = document.getElementById('chatMessages');
+            messagesDiv.innerHTML = '';
+            
+            if(snapshot.empty) {
+                messagesDiv.innerHTML = '<div style="text-align:center;color:#8696a0;padding:20px;">Say hi!</div>';
+                return;
+            }
+            
+            snapshot.forEach(docSnap => {
+                const msg = docSnap.data();
+                const isMine = msg.senderId === currentUser.uid;
+                const bubbleClass = isMine ? 'sent' : 'received';
+                const timeStr = msg.sentAt ? new Date(msg.sentAt.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                
+                messagesDiv.innerHTML += `
+                    <div class="message-bubble ${bubbleClass}">
+                        ${!isMine && chatName === 'Group' ? `<div style="font-size:12px;color:#53bdeb;margin-bottom:3px;">${msg.senderName || 'Unknown'}</div>` : ''}
+                        ${msg.text}
+                        <span class="message-time">${timeStr}</span>
+                    </div>
+                `;
+            });
+            
+            // Auto scroll
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        });
+        
+        // Highlight active chat in list
+        renderChats(); 
+    }
+    
+    window.handleEnter = function(e) {
+        if(e.key === 'Enter') sendMessage();
+    }
+    
+    window.sendMessage = async function() {
+        if(!currentChatId) return;
+        const input = document.getElementById('messageInput');
+        const text = input.value.trim();
+        if(!text) return;
+        
+        input.value = ''; // Optimistic clear
+        
+        try {
+            // Write to messages subcollection
+            await addDoc(collection(db, "chats", currentChatId, "messages"), {
+                senderId: currentUser.uid,
+                text: text,
+                sentAt: serverTimestamp(),
+                readBy: [currentUser.uid]
+            });
+            
+            // Update parent chat
+            await updateDoc(doc(db, "chats", currentChatId), {
+                lastMessage: text,
+                lastMessageAt: serverTimestamp()
+            });
+            
+        } catch(error) {
+            console.error("Error sending message", error);
+            alert("Failed to send message.");
+        }
     }
 </script>
 </body>
