@@ -518,6 +518,11 @@
         if (existingChat) {
             closeNewChatModal();
             selectChat(existingChat.id, userName);
+            // Auto-heal old chat names
+            updateDoc(doc(db, "chats", existingChat.id), {
+                [`participantNames.${userId}`]: userName,
+                [`participantNames.${currentUser.uid}`]: currentUserName
+            }).catch(e => console.error("Error updating old chat name", e));
             return;
         }
         
@@ -610,6 +615,34 @@
         });
     }
 
+    async function fixChatName(chatId, otherUid) {
+        try {
+            let otherName = "Unknown User";
+            const [std, stf, adm] = await Promise.all([
+                getDoc(doc(db, "students", otherUid)),
+                getDoc(doc(db, "staff", otherUid)),
+                getDoc(doc(db, "admins", otherUid))
+            ]);
+            
+            if (std.exists()) {
+                const d = std.data();
+                otherName = d.regNo ? `${d.name} (${d.regNo})` : d.name;
+            } else if (stf.exists()) {
+                const d = stf.data();
+                otherName = (d.subject && d.department) ? `${d.subject}. ${d.department} (${d.name})` : d.name;
+            } else if (adm.exists()) {
+                otherName = `${adm.data().name} (Admin)`;
+            }
+            
+            await updateDoc(doc(db, "chats", chatId), {
+                [`participantNames.${otherUid}`]: otherName,
+                [`participantNames.${currentUser.uid}`]: currentUserName
+            });
+        } catch (e) {
+            console.error("Auto-fix name failed", e);
+        }
+    }
+
     function renderChats() {
         const listElem = document.getElementById('chatList');
         listElem.innerHTML = '';
@@ -629,6 +662,9 @@
                 const otherUid = chat.participants.find(id => id !== currentUser.uid);
                 if (chat.participantNames && chat.participantNames[otherUid]) {
                     displayName = chat.participantNames[otherUid];
+                } else if (otherUid && currentUserName !== "Unknown") {
+                    // Retroactively fetch and fix names for older broken chats!
+                    fixChatName(chat.id, otherUid);
                 }
             }
             
