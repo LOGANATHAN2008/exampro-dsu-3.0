@@ -2019,7 +2019,7 @@
         if (msgBubble) {
             msgBubble.style.position = 'relative';
             msgBubble.style.zIndex = '1000';
-            msgBubble.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+            // No massive shadow to keep it clean like iOS
         }
         
         overlay.style.display = 'block';
@@ -2027,13 +2027,36 @@
         reactBar.style.display = 'flex';
         deleteBtn.style.display = isMine ? 'flex' : 'none';
         
-        const rect = e.target.closest('.msg-options-btn').getBoundingClientRect();
-        
-        reactBar.style.top = (rect.top - 50) + 'px';
-        reactBar.style.left = Math.max(10, rect.left - 100) + 'px';
-        
-        menu.style.top = (rect.bottom + 10) + 'px';
-        menu.style.left = Math.max(10, rect.left - 100) + 'px';
+        // Position relative to the message bubble itself!
+        if (msgBubble) {
+            const bubbleRect = msgBubble.getBoundingClientRect();
+            const menuRect = menu.getBoundingClientRect();
+            const reactRect = reactBar.getBoundingClientRect();
+            
+            // Vertical position (Reactions above, Menu below)
+            let reactTop = bubbleRect.top - reactRect.height - 8;
+            let menuTop = bubbleRect.bottom + 8;
+            
+            // Keep on screen
+            if (reactTop < 10) reactTop = 10;
+            if (menuTop + menuRect.height > window.innerHeight - 10) {
+                menuTop = bubbleRect.top - menuRect.height - 8;
+            }
+            
+            reactBar.style.top = reactTop + 'px';
+            menu.style.top = menuTop + 'px';
+            
+            // Horizontal position (Align with bubble edge)
+            if (isMine) {
+                // Sent message -> align to the right edge
+                reactBar.style.left = (bubbleRect.right - reactRect.width) + 'px';
+                menu.style.left = (bubbleRect.right - menuRect.width) + 'px';
+            } else {
+                // Received message -> align to the left edge
+                reactBar.style.left = bubbleRect.left + 'px';
+                menu.style.left = bubbleRect.left + 'px';
+            }
+        }
     }
     
     document.addEventListener('click', function(event) {
