@@ -932,9 +932,21 @@
                                   role === 'staff' ? '<span class="role-badge role-staff" style="font-size:10px;background:#005c4b;color:white;padding:2px 5px;border-radius:4px;margin-left:5px;">STAFF</span>' : 
                                   '<span class="role-badge role-student" style="font-size:10px;background:#2a3942;color:#8696a0;padding:2px 5px;border-radius:4px;margin-left:5px;">STUDENT</span>';
                                   
+                const photoURL = userData.photoURL || '';
+                const initials = rawName.split(' ').filter(Boolean).map(w => w[0].toUpperCase()).slice(0, 2).join('') || '?';
+                const avatarBg = role === 'admin' ? 'linear-gradient(135deg,#b45309,#f59e0b)' : role === 'staff' ? 'linear-gradient(135deg,#005c4b,#00a884)' : 'linear-gradient(135deg,#6c63ff,#8c82ff)';
+
+                // Pre-populate cache so chat list avatars appear instantly
+                profileCache[docSnap.id] = { photoURL, name: rawName, initials, avatarBg };
+                
+                const avatarHtml = photoURL
+                    ? `<img src="${photoURL}" alt="${rawName}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.style.background='${avatarBg}';this.parentElement.innerHTML='<span style=\'font-weight:700;color:white;\'>${initials}</span>';">`
+                    : `<span style="font-weight:700;color:white;">${initials}</span>`;
+                const avatarStyle = photoURL ? 'background:transparent;' : `background:${avatarBg};`;
+
                 resultsDiv.innerHTML += `
-                    <div class="search-result-item" onclick="startChatWith('${docSnap.id}', '${formattedName.replace(/'/g, "\\'")}')">
-                        <div class="chat-avatar" style="width:40px;height:40px;margin-right:10px;"><i class="fas fa-user"></i></div>
+                    <div class="search-result-item" onclick="startChatWith('${docSnap.id}', '${formattedName.replace(/'/g, "\\'")}')">  
+                        <div class="chat-avatar" style="width:40px;height:40px;margin-right:10px;${avatarStyle}">${avatarHtml}</div>
                         <div>
                             <div style="font-size:14px;color:white;">${formattedName} ${roleBadge}</div>
                             <div style="font-size:12px;color:#8696a0;">${userData.regNo || userData.email || ''}</div>
@@ -962,13 +974,18 @@
         if (existingChat) {
             closeNewChatModal();
             selectChat(existingChat.id, userName);
-            // Auto-heal old chat names
+            // Auto-heal old chat names and photos
+            const otherProfile = profileCache[userId];
             updateDoc(doc(db, "chats", existingChat.id), {
                 [`participantNames.${userId}`]: userName,
-                [`participantNames.${currentUser.uid}`]: currentUserName
+                [`participantNames.${currentUser.uid}`]: currentUserName,
+                ...(otherProfile?.photoURL ? { [`participantPhotos.${userId}`]: otherProfile.photoURL } : {})
             }).catch(e => console.error("Error updating old chat name", e));
             return;
         }
+        
+        // Resolve the other user's photo if cached
+        const otherProfile = profileCache[userId];
         
         // Create new chat document
         try {
@@ -982,6 +999,10 @@
                 participantNames: {
                     [userId]: userName,
                     [currentUser.uid]: currentUserName
+                },
+                participantPhotos: {
+                    [userId]: otherProfile?.photoURL || '',
+                    [currentUser.uid]: ''
                 }
             };
             
@@ -1184,14 +1205,31 @@
             listElem.insertAdjacentHTML('beforeend', itemHtml);
 
             // Apply cached photo immediately or fetch in background
+            // Fast path: photo already in the chat doc itself
             if (otherUid) {
                 const avatarEl = document.getElementById('chat-avatar-' + chat.id);
+                const chatDocPhoto = chat.participantPhotos && chat.participantPhotos[otherUid];
+                if (chatDocPhoto) {
+                    // Pre-populate cache if not already there
+                    if (!profileCache[otherUid]) {
+                        const initials = displayName.split(' ').filter(Boolean).map(w => w[0].toUpperCase()).slice(0, 2).join('') || '?';
+                        profileCache[otherUid] = { photoURL: chatDocPhoto, name: displayName, initials, avatarBg: '#3b4a54' };
+                    } else {
+                        profileCache[otherUid].photoURL = chatDocPhoto;
+                    }
+                }
                 if (profileCache[otherUid]) {
                     applyAvatarToEl(avatarEl, profileCache[otherUid]);
                 } else {
                     fetchAndCacheProfile(otherUid).then(profile => {
                         const el = document.getElementById('chat-avatar-' + chat.id);
                         if (el) applyAvatarToEl(el, profile);
+                        // Also backfill photo into chat doc for faster future loads
+                        if (profile.photoURL) {
+                            updateDoc(doc(db, "chats", chat.id), {
+                                [`participantPhotos.${otherUid}`]: profile.photoURL
+                            }).catch(() => {});
+                        }
                     });
                 }
             }
