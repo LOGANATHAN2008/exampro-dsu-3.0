@@ -381,13 +381,14 @@
 
         /* ═══════════════ CONTACT INFO SIDE PANEL ═══════════════ */
         .contact-info-panel {
-            position: absolute; right: 0; top: 0; bottom: 0; width: 340px;
-            background: #111b21; z-index: 500;
+            position: fixed; right: 0; top: 0; bottom: 0; width: 340px;
+            background: #111b21; z-index: 1200;
             display: none; flex-direction: column;
             border-left: 1px solid rgba(255,255,255,0.08);
-            animation: slideInRight 0.2s ease;
+            box-shadow: -4px 0 20px rgba(0,0,0,0.4);
+            animation: slideInRight 0.22s cubic-bezier(0.25,0.46,0.45,0.94);
         }
-        @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity:0; } to { transform: translateX(0); opacity:1; } }
         .contact-info-panel.open { display: flex; }
         .contact-info-header {
             background: #202c33; padding: 15px 20px;
@@ -669,11 +670,7 @@
                     <button class="icon-btn" id="uploadBtn" onclick="document.getElementById('imageUploadInput').click()"><i class="fas fa-paperclip" id="uploadIcon"></i></button>
                     <input type="text" id="messageInput" placeholder="Type a message" onkeypress="handleEnter(event)">
                     <button class="icon-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
-                </div>
             </div>
-            
-            <!-- Contact Info Panel (slides in from right) -->
-            <div class="contact-info-panel" id="contactInfoPanel"></div>
         </div>
     </div>
 </div>
@@ -1299,11 +1296,14 @@
                 <span style="font-size:16px;font-weight:600;">Contact info</span>
             </div>
             <div class="contact-info-body">
-                <div class="contact-info-avatar"><i class="fas fa-user"></i></div>
+                <div class="contact-info-avatar" id="ciAvatar" style="font-size:36px;font-weight:700;background:linear-gradient(135deg,#005c4b,#00a884);color:white;width:100px;height:100px;font-size:40px;">
+                    <i class="fas fa-user"></i>
+                </div>
                 <div class="contact-info-name" id="ciName">Loading…</div>
-                <div class="contact-info-role" id="ciRole"></div>
+                <div class="contact-info-role" id="ciRole" style="margin-bottom:25px;"></div>
                 <div class="contact-info-row"><i class="fas fa-id-card"></i><div><div class="contact-info-label">Department</div><div class="contact-info-value" id="ciDept">—</div></div></div>
                 <div class="contact-info-row"><i class="fas fa-envelope"></i><div><div class="contact-info-label">Email</div><div class="contact-info-value" id="ciEmail">—</div></div></div>
+                <div class="contact-info-row" id="ciRegRow" style="display:none;"><i class="fas fa-id-badge"></i><div><div class="contact-info-label">Reg. No.</div><div class="contact-info-value" id="ciReg">—</div></div></div>
                 <div class="contact-info-row"><i class="fas fa-images"></i><div><div class="contact-info-label">Shared media</div><div class="contact-info-value" id="ciMedia">Counting…</div></div></div>
             </div>`;
         panel.classList.add('open');
@@ -1314,22 +1314,56 @@
             const chatData = chatSnap.data();
             const otherUid = chatData.participants.find(id => id !== currentUser.uid);
             
-            // Fetch other user's profile
+            // Fetch other user's profile from all collections
             const [stdSnap, stfSnap, admSnap] = await Promise.all([
                 getDoc(doc(db, "students", otherUid)),
                 getDoc(doc(db, "staff", otherUid)),
                 getDoc(doc(db, "admins", otherUid))
             ]);
             
-            let name = "Unknown", role = "", dept = "—", email = "—";
-            if (stdSnap.exists()) { const d = stdSnap.data(); name = d.name || name; role = "Student"; dept = d.department || dept; email = d.email || email; }
-            else if (stfSnap.exists()) { const d = stfSnap.data(); name = d.name || name; role = "Staff"; dept = d.department || dept; email = d.email || email; }
-            else if (admSnap.exists()) { const d = admSnap.data(); name = d.name || name; role = "Admin"; email = d.email || email; }
+            let name = "Unknown", role = "", dept = "—", email = "—", regNo = "";
+            let avatarBg = "linear-gradient(135deg,#1a3a4a,#2d5a6b)";
+            
+            if (stdSnap.exists()) {
+                const d = stdSnap.data();
+                name = d.name || name; role = "Student";
+                dept = d.department || dept; email = d.email || email;
+                regNo = d.regNo || "";
+                avatarBg = "linear-gradient(135deg,#6c63ff,#8c82ff)";
+            } else if (stfSnap.exists()) {
+                const d = stfSnap.data();
+                name = d.name || name; role = "Staff";
+                dept = d.department || dept; email = d.email || email;
+                avatarBg = "linear-gradient(135deg,#005c4b,#00a884)";
+            } else if (admSnap.exists()) {
+                const d = admSnap.data();
+                name = d.name || name; role = "Admin";
+                email = d.email || email;
+                avatarBg = "linear-gradient(135deg,#b45309,#f59e0b)";
+            }
+            
+            // Build initials avatar from real name
+            const initials = name.split(' ').filter(Boolean).map(w => w[0].toUpperCase()).slice(0, 2).join('');
+            const avatarEl = document.getElementById('ciAvatar');
+            if (avatarEl) {
+                avatarEl.style.background = avatarBg;
+                avatarEl.innerHTML = `<span style="font-size:38px;font-weight:700;letter-spacing:2px;">${initials || '?'}</span>`;
+            }
             
             document.getElementById('ciName').textContent = name;
-            document.getElementById('ciRole').textContent = role;
+            
+            // Role pill
+            const roleColors = { Student: '#6c63ff', Staff: '#00a884', Admin: '#f59e0b' };
+            const roleEl = document.getElementById('ciRole');
+            if (roleEl) roleEl.innerHTML = `<span style="background:${roleColors[role]||'#8696a0'}22;color:${roleColors[role]||'#8696a0'};padding:4px 14px;border-radius:12px;font-size:13px;font-weight:600;">${role}</span>`;
+            
             document.getElementById('ciDept').textContent = dept;
             document.getElementById('ciEmail').textContent = email;
+            
+            if (regNo) {
+                document.getElementById('ciReg').textContent = regNo;
+                document.getElementById('ciRegRow').style.display = 'flex';
+            }
             
             // Count shared media
             const msgsSnap = await getDocs(collection(db, "chats", currentChatId, "messages"));
