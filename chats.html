@@ -574,8 +574,8 @@
             });
             // Sort in memory to avoid missing composite index error
             allChats.sort((a, b) => {
-                const timeA = a.lastMessageAt ? a.lastMessageAt.toMillis() : 0;
-                const timeB = b.lastMessageAt ? b.lastMessageAt.toMillis() : 0;
+                const timeA = (a.lastMessageAt && typeof a.lastMessageAt.toMillis === 'function') ? a.lastMessageAt.toMillis() : 0;
+                const timeB = (b.lastMessageAt && typeof b.lastMessageAt.toMillis === 'function') ? b.lastMessageAt.toMillis() : 0;
                 return timeB - timeA;
             });
             renderChats();
@@ -608,7 +608,10 @@
             }
             
             let roleBadgeHtml = "";
-            let timeStr = chat.lastMessageAt ? new Date(chat.lastMessageAt.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+            let timeStr = '';
+            if (chat.lastMessageAt && typeof chat.lastMessageAt.toDate === 'function') {
+                timeStr = new Date(chat.lastMessageAt.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            }
             const isActive = currentChatId === chat.id ? 'background: #2a3942;' : '';
 
             const itemHtml = `
@@ -660,7 +663,10 @@
                 const msg = docSnap.data();
                 const isMine = msg.senderId === currentUser.uid;
                 const bubbleClass = isMine ? 'sent' : 'received';
-                const timeStr = msg.sentAt ? new Date(msg.sentAt.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+                let timeStr = '';
+                if (msg.sentAt && typeof msg.sentAt.toDate === 'function') {
+                    timeStr = new Date(msg.sentAt.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                }
                 
                 messagesDiv.innerHTML += `
                     <div class="message-bubble ${bubbleClass}">
