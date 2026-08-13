@@ -245,6 +245,32 @@
         .icon-btn:hover { color: #d1d7db; }
 
         /* Modal Styles */
+        .image-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .image-modal-overlay img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 4px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            cursor: default;
+        }
+        .image-modal-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        }
+
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -387,6 +413,12 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Image Fullscreen Modal -->
+<div class="image-modal-overlay" id="imageModal" onclick="closeImageModal(event)">
+    <i class="fas fa-times image-modal-close"></i>
+    <img src="" id="fullScreenImage" onclick="event.stopPropagation()">
 </div>
 
 <script type="module">
@@ -730,7 +762,7 @@
                     timeStr = new Date(msg.sentAt.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 }
                 
-                let imgHtml = msg.imageUrl ? `<img src="${msg.imageUrl}" style="max-width:200px; max-height:300px; border-radius:8px; display:block; margin-bottom:5px; object-fit: cover;">` : '';
+                let imgHtml = msg.imageUrl ? `<img src="${msg.imageUrl}" onclick="openImageModal('${msg.imageUrl}')" style="max-width:200px; max-height:300px; border-radius:8px; display:block; margin-bottom:5px; object-fit: cover; cursor: pointer;">` : '';
                 let textHtml = msg.text ? `<div>${msg.text}</div>` : '';
 
                 messagesDiv.innerHTML += `
@@ -755,6 +787,16 @@
         if(e.key === 'Enter') sendMessage();
     }
     
+    window.openImageModal = function(src) {
+        document.getElementById('fullScreenImage').src = src;
+        document.getElementById('imageModal').style.display = 'flex';
+    }
+    
+    window.closeImageModal = function(e) {
+        document.getElementById('imageModal').style.display = 'none';
+        document.getElementById('fullScreenImage').src = '';
+    }
+
     window.uploadImage = async function(event) {
         if(!currentChatId) return;
         const file = event.target.files[0];
