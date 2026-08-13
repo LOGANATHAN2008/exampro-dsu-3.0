@@ -1926,10 +1926,11 @@
                 <div id="rpText">Message text...</div>
             </div>
             <div class="chat-pill-container" style="margin-top: 15px;">
-                <button class="chat-pill-btn" title="Attach"><i class="fas fa-plus"></i></button>
+                <input type="file" id="chatFileInput" style="display:none;" onchange="handleFileUpload(event)">
+                <button class="chat-pill-btn" title="Attach" onclick="triggerFileUpload()"><i class="fas fa-plus"></i></button>
                 <div class="chat-pill-divider"></div>
                 <input type="text" id="commChatInput" placeholder="Type your message..." oninput="toggleChatIcon(this, 'commChatIcon')" onkeypress="if(event.key === 'Enter') sendChatMessage()">
-                <button class="chat-pill-btn" onclick="sendChatMessage()"><i class="fas fa-microphone" id="commChatIcon"></i></button>
+                <button class="chat-pill-btn" onclick="handleMicOrSend('commChatInput', 'commChatIcon', window.sendChatMessage)"><i class="fas fa-microphone" id="commChatIcon"></i></button>
             </div>
         </section>
 
@@ -2033,10 +2034,11 @@
             </div>
         </div>
         <div class="chat-pill-container" style="padding: 12px; border-top: 1px solid var(--glass-border); border-radius: 0; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
-            <button class="chat-pill-btn" title="Attach"><i class="fas fa-plus"></i></button>
+            <input type="file" id="botChatFileInput" style="display:none;" onchange="handleFileUpload(event)">
+            <button class="chat-pill-btn" title="Attach" onclick="document.getElementById('botChatFileInput').click()"><i class="fas fa-plus"></i></button>
             <div class="chat-pill-divider"></div>
-            <input type="text" id="botChatInput" placeholder="Ask about tests, login..." oninput="toggleChatIcon(this, 'botChatIcon')" onkeypress="if(event.key==='Enter')sendChat()" />
-            <button class="chat-pill-btn" onclick="sendChat()"><i class="fas fa-microphone" id="botChatIcon"></i></button>
+            <input type="text" id="botChatInput" placeholder="Ask about tests, login..." oninput="toggleChatIcon(this, 'botChatIcon')" onkeypress="if(event.key==='Enter')window.sendChat()" />
+            <button class="chat-pill-btn" onclick="handleMicOrSend('botChatInput', 'botChatIcon', window.sendChat)"><i class="fas fa-microphone" id="botChatIcon"></i></button>
         </div>
     </div>
 
@@ -2401,6 +2403,74 @@ function loadDepartmentChat() {
     });
 }
 
+window.triggerFileUpload = function() {
+    document.getElementById('chatFileInput').click();
+};
+
+window.handleFileUpload = function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        alert("File selected: " + file.name + "\n(File upload backend integration pending)");
+    }
+    // reset input
+    event.target.value = '';
+};
+
+window.handleMicOrSend = function(inputId, iconId, sendFn) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    
+    // If it's currently an arrow (has text), send it
+    if (input.value.trim().length > 0) {
+        sendFn();
+    } else {
+        // It's a microphone, start speech recognition
+        window.startVoiceRecognition(inputId, iconId);
+    }
+};
+
+window.startVoiceRecognition = function(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("Speech recognition is not supported in this browser. Please use Chrome/Edge.");
+        return;
+    }
+    
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+    
+    // Visual feedback
+    const originalColor = icon.style.color;
+    icon.style.color = 'var(--error)'; // red for recording
+    icon.classList.add('fa-beat-fade');
+    
+    recognition.onstart = function() {
+        input.placeholder = "Listening...";
+    };
+    
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        input.value = input.value + " " + transcript;
+        if(window.toggleChatIcon) window.toggleChatIcon(input, iconId); // update icon to arrow
+    };
+    
+    recognition.onerror = function(event) {
+        console.error("Speech recognition error", event.error);
+    };
+    
+    recognition.onend = function() {
+        icon.style.color = originalColor;
+        icon.classList.remove('fa-beat-fade');
+        input.placeholder = inputId === 'commChatInput' ? "Type your message..." : "Ask about tests, login...";
+    };
+    
+    recognition.start();
+};
 window.toggleChatIcon = function(inputElem, iconId) {
     const icon = document.getElementById(iconId);
     if (!icon) return;
