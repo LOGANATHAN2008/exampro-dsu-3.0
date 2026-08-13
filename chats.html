@@ -391,7 +391,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
@@ -408,6 +408,7 @@
     const db = getFirestore(app);
 
     let currentUser = null;
+    let currentUserName = "Unknown";
     let currentFilter = 'all';
     let allChats = [];
     let currentChatId = null;
@@ -517,7 +518,8 @@
                 lastMessage: '',
                 lastMessageAt: null,
                 participantNames: {
-                    [userId]: userName
+                    [userId]: userName,
+                    [currentUser.uid]: currentUserName
                 }
             };
             
@@ -538,9 +540,21 @@
         renderChats();
     }
 
-    onAuthStateChanged(auth, (user) => {
+    onAuthStateChanged(auth, async (user) => {
         if (user) {
             currentUser = user;
+            
+            // Try fetching name
+            const [std, stf, adm] = await Promise.all([
+                getDoc(doc(db, "students", user.uid)),
+                getDoc(doc(db, "staff", user.uid)),
+                getDoc(doc(db, "admins", user.uid))
+            ]);
+            
+            if (std.exists()) currentUserName = std.data().name || "Student";
+            else if (stf.exists()) currentUserName = stf.data().name || "Staff";
+            else if (adm.exists()) currentUserName = adm.data().name || "Admin";
+            
             listenToChats();
         } else {
             window.location.href = 'login.html';
@@ -550,14 +564,19 @@
     function listenToChats() {
         const q = query(
             collection(db, "chats"),
-            where("participants", "array-contains", currentUser.uid),
-            orderBy("lastMessageAt", "desc")
+            where("participants", "array-contains", currentUser.uid)
         );
 
         onSnapshot(q, (snapshot) => {
             allChats = [];
-            snapshot.forEach(doc => {
-                allChats.push({ id: doc.id, ...doc.data() });
+            snapshot.forEach(docSnap => {
+                allChats.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            // Sort in memory to avoid missing composite index error
+            allChats.sort((a, b) => {
+                const timeA = a.lastMessageAt ? a.lastMessageAt.toMillis() : 0;
+                const timeB = b.lastMessageAt ? b.lastMessageAt.toMillis() : 0;
+                return timeB - timeA;
             });
             renderChats();
         }, (error) => {
