@@ -363,7 +363,8 @@
                     <!-- Messages will appear here -->
                 </div>
                 <div class="chat-input-area">
-                    <button class="icon-btn"><i class="fas fa-paperclip"></i></button>
+                    <input type="file" id="imageUploadInput" style="display:none;" accept="image/*" onchange="uploadImage(event)">
+                    <button class="icon-btn" id="uploadBtn" onclick="document.getElementById('imageUploadInput').click()"><i class="fas fa-paperclip" id="uploadIcon"></i></button>
                     <input type="text" id="messageInput" placeholder="Type a message" onkeypress="handleEnter(event)">
                     <button class="icon-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
                 </div>
@@ -729,10 +730,14 @@
                     timeStr = new Date(msg.sentAt.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 }
                 
+                let imgHtml = msg.imageUrl ? `<img src="${msg.imageUrl}" style="max-width:200px; max-height:300px; border-radius:8px; display:block; margin-bottom:5px; object-fit: cover;">` : '';
+                let textHtml = msg.text ? `<div>${msg.text}</div>` : '';
+
                 messagesDiv.innerHTML += `
                     <div class="message-bubble ${bubbleClass}">
                         ${!isMine && chatName === 'Group' ? `<div style="font-size:12px;color:#53bdeb;margin-bottom:3px;">${msg.senderName || 'Unknown'}</div>` : ''}
-                        ${msg.text}
+                        ${imgHtml}
+                        ${textHtml}
                         <span class="message-time">${timeStr}</span>
                     </div>
                 `;
@@ -750,26 +755,68 @@
         if(e.key === 'Enter') sendMessage();
     }
     
-    window.sendMessage = async function() {
+    window.uploadImage = async function(event) {
+        if(!currentChatId) return;
+        const file = event.target.files[0];
+        if(!file) return;
+
+        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadIcon = document.getElementById('uploadIcon');
+        
+        uploadBtn.disabled = true;
+        uploadIcon.className = 'fas fa-spinner fa-spin';
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', 'DSU EXAM');
+
+            const res = await fetch('https://api.cloudinary.com/v1_1/dxsa93rr2/image/upload', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            
+            if (data.secure_url) {
+                await sendMessage(null, data.secure_url);
+            } else {
+                alert("Image upload failed");
+            }
+        } catch (error) {
+            console.error("Upload error", error);
+            alert("Upload error");
+        } finally {
+            uploadBtn.disabled = false;
+            uploadIcon.className = 'fas fa-paperclip';
+            event.target.value = '';
+        }
+    }
+
+    window.sendMessage = async function(e = null, imageUrl = null) {
         if(!currentChatId) return;
         const input = document.getElementById('messageInput');
         const text = input.value.trim();
-        if(!text) return;
         
-        input.value = ''; // Optimistic clear
+        if(!text && !imageUrl) return; 
+        
+        input.value = ''; 
         
         try {
-            // Write to messages subcollection
-            await addDoc(collection(db, "chats", currentChatId, "messages"), {
+            const msgData = {
                 senderId: currentUser.uid,
-                text: text,
                 sentAt: serverTimestamp(),
                 readBy: [currentUser.uid]
-            });
+            };
+            if (text) msgData.text = text;
+            if (imageUrl) msgData.imageUrl = imageUrl;
+
+            await addDoc(collection(db, "chats", currentChatId, "messages"), msgData);
             
-            // Update parent chat
+            let previewText = text;
+            if (!text && imageUrl) previewText = "📷 Image";
+
             await updateDoc(doc(db, "chats", currentChatId), {
-                lastMessage: text,
+                lastMessage: previewText,
                 lastMessageAt: serverTimestamp()
             });
             
