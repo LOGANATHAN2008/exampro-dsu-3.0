@@ -280,9 +280,12 @@
         .context-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             z-index: 999; display: none;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
         .context-menu {
-            position: absolute; z-index: 1000;
+            position: absolute; z-index: 1001;
             background: rgba(35, 49, 56, 0.75); 
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -315,7 +318,7 @@
         .context-menu-item:hover { background: rgba(255,255,255,0.1); }
         
         .reactions-bar {
-            position: absolute; z-index: 1000;
+            position: absolute; z-index: 1001;
             background: rgba(35, 49, 56, 0.75); 
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -2011,6 +2014,14 @@
         const reactBar = document.getElementById('reactionsBar');
         const deleteBtn = document.getElementById('deleteMenuItem');
         
+        // Highlight active message (elevate above overlay)
+        const msgBubble = document.getElementById('msg-' + msgId);
+        if (msgBubble) {
+            msgBubble.style.position = 'relative';
+            msgBubble.style.zIndex = '1000';
+            msgBubble.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+        }
+        
         overlay.style.display = 'block';
         menu.style.display = 'block';
         reactBar.style.display = 'flex';
@@ -2045,6 +2056,15 @@
         document.getElementById('contextOverlay').style.display = 'none';
         document.getElementById('contextMenu').style.display = 'none';
         document.getElementById('reactionsBar').style.display = 'none';
+        
+        if (activeMessageId) {
+            const msgBubble = document.getElementById('msg-' + activeMessageId);
+            if (msgBubble) {
+                msgBubble.style.zIndex = '';
+                msgBubble.style.boxShadow = '';
+            }
+        }
+        
         activeMessageId = null;
     }
 
