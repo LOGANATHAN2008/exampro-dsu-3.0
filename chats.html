@@ -1296,11 +1296,21 @@
                 <span style="font-size:16px;font-weight:600;">Contact info</span>
             </div>
             <div class="contact-info-body">
-                <div class="contact-info-avatar" id="ciAvatar" style="font-size:36px;font-weight:700;background:linear-gradient(135deg,#005c4b,#00a884);color:white;width:100px;height:100px;font-size:40px;">
-                    <i class="fas fa-user"></i>
+                <!-- Hero profile section -->
+                <div style="background:linear-gradient(160deg,#1a2f38,#111b21);padding:30px 20px 20px;text-align:center;margin:-20px -20px 20px;border-bottom:1px solid rgba(255,255,255,0.06);">
+                    <div id="ciAvatar" style="
+                        width:100px;height:100px;border-radius:50%;
+                        background:linear-gradient(135deg,#005c4b,#00a884);
+                        display:flex;align-items:center;justify-content:center;
+                        font-size:42px;font-weight:700;color:white;
+                        margin:0 auto 16px;
+                        border:3px solid rgba(255,255,255,0.12);
+                        overflow:hidden;
+                        box-shadow:0 4px 20px rgba(0,0,0,0.4);
+                    "><i class="fas fa-user" style="font-size:38px;opacity:0.7;"></i></div>
+                    <div class="contact-info-name" id="ciName" style="font-size:22px;font-weight:700;margin-bottom:8px;">Loading…</div>
+                    <div id="ciRole" style="margin-bottom:0;"></div>
                 </div>
-                <div class="contact-info-name" id="ciName">Loading…</div>
-                <div class="contact-info-role" id="ciRole" style="margin-bottom:25px;"></div>
                 <div class="contact-info-row"><i class="fas fa-id-card"></i><div><div class="contact-info-label">Department</div><div class="contact-info-value" id="ciDept">—</div></div></div>
                 <div class="contact-info-row"><i class="fas fa-envelope"></i><div><div class="contact-info-label">Email</div><div class="contact-info-value" id="ciEmail">—</div></div></div>
                 <div class="contact-info-row" id="ciRegRow" style="display:none;"><i class="fas fa-id-badge"></i><div><div class="contact-info-label">Reg. No.</div><div class="contact-info-value" id="ciReg">—</div></div></div>
@@ -1322,32 +1332,43 @@
             ]);
             
             let name = "Unknown", role = "", dept = "—", email = "—", regNo = "";
-            let avatarBg = "linear-gradient(135deg,#1a3a4a,#2d5a6b)";
+            let photoURL = "", avatarBg = "linear-gradient(135deg,#1a3a4a,#2d5a6b)";
             
             if (stdSnap.exists()) {
                 const d = stdSnap.data();
                 name = d.name || name; role = "Student";
                 dept = d.department || dept; email = d.email || email;
                 regNo = d.regNo || "";
+                photoURL = d.photoURL || "";
                 avatarBg = "linear-gradient(135deg,#6c63ff,#8c82ff)";
             } else if (stfSnap.exists()) {
                 const d = stfSnap.data();
                 name = d.name || name; role = "Staff";
                 dept = d.department || dept; email = d.email || email;
+                photoURL = d.photoURL || "";
                 avatarBg = "linear-gradient(135deg,#005c4b,#00a884)";
             } else if (admSnap.exists()) {
                 const d = admSnap.data();
                 name = d.name || name; role = "Admin";
                 email = d.email || email;
+                photoURL = d.photoURL || "";
                 avatarBg = "linear-gradient(135deg,#b45309,#f59e0b)";
             }
             
-            // Build initials avatar from real name
+            // Build avatar: real photo → initials with gradient
             const initials = name.split(' ').filter(Boolean).map(w => w[0].toUpperCase()).slice(0, 2).join('');
             const avatarEl = document.getElementById('ciAvatar');
             if (avatarEl) {
-                avatarEl.style.background = avatarBg;
-                avatarEl.innerHTML = `<span style="font-size:38px;font-weight:700;letter-spacing:2px;">${initials || '?'}</span>`;
+                if (photoURL) {
+                    // Real profile photo
+                    avatarEl.style.background = 'transparent';
+                    avatarEl.style.border = '3px solid rgba(0,168,132,0.5)';
+                    avatarEl.innerHTML = `<img src="${photoURL}" alt="${name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.style.background='${avatarBg}';this.parentElement.innerHTML='<span style=\\"font-size:38px;font-weight:700;\\">${initials||'?'}</span>'">`;
+                } else {
+                    // Initials fallback
+                    avatarEl.style.background = avatarBg;
+                    avatarEl.innerHTML = `<span style="font-size:38px;font-weight:700;letter-spacing:1px;">${initials || '?'}</span>`;
+                }
             }
             
             document.getElementById('ciName').textContent = name;
@@ -1355,7 +1376,7 @@
             // Role pill
             const roleColors = { Student: '#6c63ff', Staff: '#00a884', Admin: '#f59e0b' };
             const roleEl = document.getElementById('ciRole');
-            if (roleEl) roleEl.innerHTML = `<span style="background:${roleColors[role]||'#8696a0'}22;color:${roleColors[role]||'#8696a0'};padding:4px 14px;border-radius:12px;font-size:13px;font-weight:600;">${role}</span>`;
+            if (roleEl) roleEl.innerHTML = `<span style="background:${roleColors[role]||'#8696a0'}33;color:${roleColors[role]||'#8696a0'};padding:5px 16px;border-radius:20px;font-size:13px;font-weight:600;">${role}</span>`;
             
             document.getElementById('ciDept').textContent = dept;
             document.getElementById('ciEmail').textContent = email;
@@ -1363,6 +1384,19 @@
             if (regNo) {
                 document.getElementById('ciReg').textContent = regNo;
                 document.getElementById('ciRegRow').style.display = 'flex';
+            }
+            
+            // Also update the chat header avatar with their photo
+            const headerAvatar = document.getElementById('activeChatAvatar');
+            if (headerAvatar && photoURL) {
+                headerAvatar.style.background = 'transparent';
+                headerAvatar.innerHTML = `<img src="${photoURL}" alt="${name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.innerHTML='<i class=\\"fas fa-user\\"></i>';this.parentElement.style.background='#3b4a54';">`;
+            } else if (headerAvatar && initials) {
+                headerAvatar.style.background = avatarBg;
+                headerAvatar.style.fontSize = '18px';
+                headerAvatar.style.fontWeight = '700';
+                headerAvatar.style.color = 'white';
+                headerAvatar.innerHTML = initials;
             }
             
             // Count shared media
