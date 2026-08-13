@@ -809,6 +809,25 @@
     <img src="" id="fullScreenImage" onclick="event.stopPropagation()">
 </div>
 
+<!-- Forward Message Modal -->
+<div class="modal-overlay" id="forwardModal" onclick="document.getElementById('forwardModal').style.display='none'">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3>Forward Message</h3>
+            <i class="fas fa-times icon-btn" onclick="document.getElementById('forwardModal').style.display='none'"></i>
+        </div>
+        <div style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <input type="text" id="forwardSearchInput" placeholder="Search chats..." style="width: 100%; padding: 10px; background: #2a3942; border: none; border-radius: 6px; color: white; outline: none;">
+        </div>
+        <div class="modal-body" id="forwardChatsList" style="max-height: 400px; overflow-y: auto;">
+            <!-- Populated by JS -->
+        </div>
+        <div style="padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: flex-end;">
+            <button onclick="sendForwardedMessage()" style="background: #00a884; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;"><i class="fas fa-paper-plane" style="margin-right: 8px;"></i>Send</button>
+        </div>
+    </div>
+</div>
+
 <!-- Message Context Menu Overlay -->
 <div class="context-overlay" id="contextOverlay" onclick="closeContextMenu()"></div>
 
@@ -860,7 +879,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, getDocs, doc, updateDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, getDocs, doc, updateDoc, getDoc, deleteDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
@@ -1374,16 +1393,22 @@
                     reactionsHtml = `<div class="reaction-badges">${uniqueEmojis.join('')} <span style="margin-left:2px;">${count > 1 ? count : ''}</span></div>`;
                 }
 
+                let starHtml = '';
+                const isStarred = msg.starredBy && msg.starredBy.includes(currentUser.uid);
+                if (isStarred) {
+                    starHtml = `<i class="fas fa-star" style="font-size: 10px; margin-right: 4px; color: #8696a0;"></i>`;
+                }
+
                 messagesDiv.innerHTML += `
                     <div class="message-bubble ${bubbleClass}" id="msg-${docSnap.id}" style="transition: background 0.3s;">
-                        <div class="msg-options-btn" onclick="openContextMenu(event, '${docSnap.id}', ${isMine}, '${(msg.text || 'Image').replace(/'/g, "\\'")}', '${msg.senderName || chatName}')">
+                        <div class="msg-options-btn" onclick="openContextMenu(event, '${docSnap.id}', ${isMine}, '${(msg.text || 'Image').replace(/'/g, "\\'")}', '${msg.senderName || chatName}', ${isStarred})">
                             <i class="fas fa-chevron-down"></i>
                         </div>
                         ${!isMine && chatName === 'Group' ? `<div style="font-size:12px;color:#53bdeb;margin-bottom:3px;">${msg.senderName || 'Unknown'}</div>` : ''}
                         ${replyHtml}
                         ${imgHtml}
                         ${textHtml}
-                        <span class="message-time">${timeStr}</span>
+                        <span class="message-time">${starHtml}${timeStr}</span>
                         ${reactionsHtml}
                     </div>
                 `;
@@ -2004,17 +2029,23 @@
     let activeMessageName = '';
     let replyingToMsg = null;
 
-    window.openContextMenu = function(e, msgId, isMine, msgText, msgName) {
+    window.openContextMenu = function(e, msgId, isMine, msgText, msgName, isStarred) {
         e.stopPropagation();
         activeMessageId = msgId;
         activeMessageText = msgText;
         activeMessageName = msgName;
+        window.activeMessageIsStarred = isStarred;
         
         const overlay = document.getElementById('contextOverlay');
         const menu = document.getElementById('contextMenu');
         const reactBar = document.getElementById('reactionsBar');
         const deleteBtn = document.getElementById('deleteMenuItem');
         const reportBtn = document.getElementById('reportMenuItem');
+        const starBtn = document.getElementById('starMenuItem');
+        
+        if (starBtn) {
+            starBtn.innerHTML = isStarred ? `Unstar <i class="fas fa-star" style="color:#f59e0b;"></i>` : `Star <i class="fas fa-star"></i>`;
+        }
         
         // Highlight active message (elevate above overlay)
         const msgBubble = document.getElementById('msg-' + msgId);
@@ -2128,12 +2159,124 @@
             document.getElementById('replyPreviewText').textContent = msgText;
             document.getElementById('messageInput').focus();
         } else if (action === 'star') {
-            showToast('Message starred (Coming soon)');
+            const isStarred = window.activeMessageIsStarred;
+            try {
+                const msgRef = doc(db, "chats", currentChatId, "messages", msgId);
+                await updateDoc(msgRef, {
+                    starredBy: isStarred ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
+                });
+            } catch(e) { console.error("Error starring:", e); }
         } else if (action === 'forward') {
-            showToast('Forward message (Coming soon)');
+            openForwardModal();
         } else if (action === 'report') {
-            showToast('Message reported (Coming soon)');
+            if (confirm("Report this message to administrators?")) {
+                try {
+                    await addDoc(collection(db, "reportedMessages"), {
+                        chatId: currentChatId,
+                        messageId: msgId,
+                        messageText: msgText,
+                        senderName: msgName,
+                        reportedBy: currentUser.uid,
+                        reportedAt: serverTimestamp(),
+                        status: 'pending'
+                    });
+                    showToast('Message reported successfully');
+                } catch(e) { console.error("Error reporting:", e); showToast('Failed to report'); }
+            }
         }
+    }
+    
+    window.openForwardModal = function() {
+        const modal = document.getElementById('forwardModal');
+        const listElem = document.getElementById('forwardChatsList');
+        listElem.innerHTML = '';
+        window.selectedForwardChats = new Set();
+        
+        allChats.forEach(chat => {
+            let displayName = chat.subject || "Direct Message";
+            let otherUid = null;
+            if(chat.type === 'direct') {
+                otherUid = chat.participants.find(id => id !== currentUser.uid);
+                if (chat.participantNames && chat.participantNames[otherUid]) {
+                    displayName = chat.participantNames[otherUid];
+                }
+            }
+            
+            let photoUrl = '';
+            if (otherUid && chat.participantPhotos && chat.participantPhotos[otherUid]) {
+                photoUrl = chat.participantPhotos[otherUid];
+            }
+            
+            const avatarHtml = photoUrl ? `<img src="${photoUrl}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:50%;background:#3b4a54;display:flex;align-items:center;justify-content:center;color:white;"><i class="fas fa-user"></i></div>`;
+            
+            listElem.innerHTML += `
+                <div class="search-result-item" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 15px;border-bottom:1px solid rgba(255,255,255,0.05);" onclick="toggleForwardChat('${chat.id}', this)">
+                    <div style="display:flex;align-items:center;gap:15px;">
+                        ${avatarHtml}
+                        <span style="color:#e9edef;font-weight:500;" class="chat-name-txt">${displayName}</span>
+                    </div>
+                    <div class="forward-checkbox" style="width:20px;height:20px;border:2px solid #8696a0;border-radius:4px;display:flex;align-items:center;justify-content:center;"></div>
+                </div>
+            `;
+        });
+        
+        modal.style.display = 'flex';
+        
+        document.getElementById('forwardSearchInput').oninput = function(e) {
+            const val = e.target.value.toLowerCase();
+            const items = listElem.children;
+            for(let item of items) {
+                const name = item.querySelector('.chat-name-txt').textContent.toLowerCase();
+                item.style.display = name.includes(val) ? 'flex' : 'none';
+            }
+        };
+    }
+    
+    window.toggleForwardChat = function(chatId, elem) {
+        const checkbox = elem.querySelector('.forward-checkbox');
+        if (window.selectedForwardChats.has(chatId)) {
+            window.selectedForwardChats.delete(chatId);
+            checkbox.style.background = 'transparent';
+            checkbox.style.borderColor = '#8696a0';
+            checkbox.innerHTML = '';
+        } else {
+            window.selectedForwardChats.add(chatId);
+            checkbox.style.background = '#00a884';
+            checkbox.style.borderColor = '#00a884';
+            checkbox.innerHTML = '<i class="fas fa-check" style="color:white;font-size:12px;"></i>';
+        }
+    }
+    
+    window.sendForwardedMessage = async function() {
+        if (!activeMessageText) return;
+        if (!window.selectedForwardChats || window.selectedForwardChats.size === 0) {
+            showToast('Select at least one chat');
+            return;
+        }
+        
+        document.getElementById('forwardModal').style.display = 'none';
+        showToast('Forwarding message...');
+        
+        let successCount = 0;
+        for (let chatId of window.selectedForwardChats) {
+            try {
+                await addDoc(collection(db, "chats", chatId, "messages"), {
+                    text: activeMessageText,
+                    senderId: currentUser.uid,
+                    senderName: currentUserName,
+                    sentAt: serverTimestamp()
+                });
+                await updateDoc(doc(db, "chats", chatId), {
+                    lastMessage: activeMessageText,
+                    lastMessageAt: serverTimestamp()
+                });
+                successCount++;
+            } catch(e) {
+                console.error("Error forwarding to", chatId, e);
+            }
+        }
+        
+        showToast(\`Forwarded to \${successCount} chat(s)\`);
     }
 
     window.cancelReply = function() {
