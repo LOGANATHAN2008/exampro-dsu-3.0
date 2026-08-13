@@ -532,7 +532,7 @@
                         <button class="icon-btn" onclick="showToast('Voice call feature coming soon!')" title="Voice Call"><i class="fas fa-phone"></i></button>
                         <div class="header-divider" style="width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 5px;"></div>
                         <button class="icon-btn" onclick="toggleChatSearch()" title="Search"><i class="fas fa-search"></i></button>
-                        <button class="icon-btn" onclick="showToast('Menu options coming soon!')" title="More Options"><i class="fas fa-ellipsis-v"></i></button>
+                        <button class="icon-btn" onclick="toggleHeaderMenu(event)" title="More Options"><i class="fas fa-ellipsis-v"></i></button>
                     </div>
                 </div>
                 
@@ -612,11 +612,20 @@
     <div class="context-menu-item" id="deleteMenuItem" onclick="handleMenuAction('delete')" style="color:#f15c6d;">Delete <i class="fas fa-trash"></i></div>
 </div>
 
+<!-- Header Context Menu -->
+<div class="context-menu" id="headerMenu">
+    <div class="context-menu-item" onclick="handleHeaderMenuAction('Contact info')">Contact info</div>
+    <div class="context-menu-item" onclick="handleHeaderMenuAction('Select messages')">Select messages</div>
+    <div class="context-menu-item" onclick="handleHeaderMenuAction('Mute notifications')">Mute notifications</div>
+    <div class="context-menu-item" onclick="handleHeaderMenuAction('Clear chat')">Clear chat</div>
+    <div class="context-menu-item" onclick="handleHeaderMenuAction('close')">Close chat</div>
+</div>
+
 <script src="theme.js"></script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, getDocs, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, getDocs, doc, updateDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
@@ -1104,6 +1113,63 @@
             msgsDiv.scrollTop = msgsDiv.scrollHeight;
         }
     }
+    
+    // Header Menu Logic
+    window.toggleHeaderMenu = function(event) {
+        event.stopPropagation();
+        const menu = document.getElementById('headerMenu');
+        if (menu.style.display === 'block') {
+            menu.style.display = 'none';
+            return;
+        }
+        
+        // Hide message context menu if open
+        document.getElementById('msgContextMenu').style.display = 'none';
+        
+        menu.style.display = 'block';
+        
+        // Position below the button
+        const rect = event.currentTarget.getBoundingClientRect();
+        menu.style.top = (rect.bottom + 5) + 'px';
+        menu.style.right = (window.innerWidth - rect.right) + 'px';
+        menu.style.left = 'auto'; // override default left
+    }
+    
+    window.handleHeaderMenuAction = async function(action) {
+        document.getElementById('headerMenu').style.display = 'none';
+        
+        if (action === 'close') {
+            document.getElementById('chatView').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'flex';
+            currentChatId = null;
+            
+            // Remove active class from list
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.style.background = '';
+                item.classList.remove('active');
+            });
+        } else if (action === 'Clear chat') {
+            if(confirm("Are you sure you want to clear this chat? This cannot be undone.")) {
+                try {
+                    const msgsRef = collection(db, `chats/${currentChatId}/messages`);
+                    const q = query(msgsRef);
+                    const snapshot = await getDocs(q);
+                    
+                    // Simple manual batch delete (for a real app, use writeBatch)
+                    snapshot.forEach(async (docSnap) => {
+                        await deleteDoc(doc(db, `chats/${currentChatId}/messages`, docSnap.id));
+                    });
+                    
+                    showToast("Chat cleared successfully");
+                } catch(e) {
+                    console.error(e);
+                    showToast("Error clearing chat", "error");
+                }
+            }
+        } else {
+            showToast(action + ' coming soon!');
+        }
+    }
 
     // Context Menu State
     let activeMessageId = null;
@@ -1135,6 +1201,22 @@
         menu.style.top = (rect.bottom + 10) + 'px';
         menu.style.left = Math.max(10, rect.left - 100) + 'px';
     }
+    
+    document.addEventListener('click', function(event) {
+        const contextMenu = document.getElementById('contextMenu');
+        const reactionsBar = document.getElementById('reactionsBar');
+        const headerMenu = document.getElementById('headerMenu');
+        
+        if (contextMenu && contextMenu.style.display === 'block' && !event.target.closest('.context-menu')) {
+            contextMenu.style.display = 'none';
+        }
+        if (reactionsBar && reactionsBar.style.display === 'flex' && !event.target.closest('.reactions-bar')) {
+            reactionsBar.style.display = 'none';
+        }
+        if (headerMenu && headerMenu.style.display === 'block' && !event.target.closest('.context-menu') && !event.target.closest('.fa-ellipsis-v')) {
+            headerMenu.style.display = 'none';
+        }
+    });
 
     window.closeContextMenu = function() {
         document.getElementById('contextOverlay').style.display = 'none';
