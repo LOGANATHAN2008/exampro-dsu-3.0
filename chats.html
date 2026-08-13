@@ -282,6 +282,13 @@
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
         }
+
+        .delete-modal-btn {
+            background: transparent; border: none; padding: 15px; text-align: right; 
+            cursor: pointer; font-size: 15px; border-radius: 8px; transition: background 0.2s; color: inherit;
+        }
+        .delete-modal-btn:hover { background: rgba(255,255,255,0.05); }
+
         .context-menu {
             position: absolute; z-index: 1001;
             background: rgba(35, 49, 56, 0.75); 
@@ -400,6 +407,7 @@
         .light-mode .header-menu hr { border-bottom: 1px solid #d1d7db; }
         .light-mode .in-chat-search { background: #f0f2f5; border-bottom: 1px solid #d1d7db; }
         .light-mode .in-chat-search input { background: #ffffff; color: #111b21; border: 1px solid #d1d7db; }
+        .light-mode .delete-modal-btn:hover { background: rgba(0,0,0,0.05); }
 
         /* ═══════════════ CONTACT INFO SIDE PANEL ═══════════════ */
         .contact-info-panel {
@@ -831,13 +839,13 @@
 <!-- Delete Message Modal -->
 <div class="modal-overlay" id="deleteModal" style="display:none;" onclick="document.getElementById('deleteModal').style.display='none'">
     <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 350px;">
-        <div style="padding: 20px; font-size: 16px; color: #e9edef;">
+        <div style="padding: 20px; font-size: 16px; font-weight: 500;">
             Delete message?
         </div>
         <div style="padding: 10px; display: flex; flex-direction: column; gap: 5px;">
-            <button id="deleteForEveryoneBtn" onclick="deleteMessageForEveryone()" style="background: transparent; color: #f15c6d; border: none; padding: 15px; text-align: right; cursor: pointer; font-size: 15px; border-radius: 8px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Delete for everyone</button>
-            <button onclick="deleteMessageForMe()" style="background: transparent; color: #00a884; border: none; padding: 15px; text-align: right; cursor: pointer; font-size: 15px; border-radius: 8px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Delete for me</button>
-            <button onclick="document.getElementById('deleteModal').style.display='none'" style="background: transparent; color: #e9edef; border: none; padding: 15px; text-align: right; cursor: pointer; font-size: 15px; border-radius: 8px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Cancel</button>
+            <button class="delete-modal-btn" id="deleteForEveryoneBtn" onclick="deleteMessageForEveryone()" style="color: #f15c6d;">Delete for everyone</button>
+            <button class="delete-modal-btn" onclick="deleteMessageForMe()" style="color: #00a884;">Delete for me</button>
+            <button class="delete-modal-btn" onclick="document.getElementById('deleteModal').style.display='none'" style="color: inherit;">Cancel</button>
         </div>
     </div>
 </div>
