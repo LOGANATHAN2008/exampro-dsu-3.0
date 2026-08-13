@@ -1366,9 +1366,14 @@
                 // Linkify URLs in text
                 function linkify(text) {
                     if (!text) return text;
-                    const urlRegex = /(https?:\/\/[^\s]+)/g;
+                    const urlRegex = /((?:https?:\/\/|www\.)[^\s]+)|(\b[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?\b)/g;
                     return text.replace(urlRegex, function(url) {
-                        return `<a href="${url}" target="_blank" style="color: #53bdeb; text-decoration: underline;">${url}</a>`;
+                        // Prevent matching common false positives like "e.g." or file extensions without spaces, if possible
+                        let href = url;
+                        if (!href.match(/^https?:\/\//i)) {
+                            href = 'https://' + href;
+                        }
+                        return `<a href="${href}" target="_blank" style="color: #53bdeb; text-decoration: underline;" onclick="event.stopPropagation()">${url}</a>`;
                     });
                 }
                 
