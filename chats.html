@@ -828,6 +828,20 @@
     </div>
 </div>
 
+<!-- Delete Message Modal -->
+<div class="modal-overlay" id="deleteModal" style="display:none;" onclick="document.getElementById('deleteModal').style.display='none'">
+    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 350px;">
+        <div style="padding: 20px; font-size: 16px; color: #e9edef;">
+            Delete message?
+        </div>
+        <div style="padding: 10px; display: flex; flex-direction: column; gap: 5px;">
+            <button id="deleteForEveryoneBtn" onclick="deleteMessageForEveryone()" style="background: transparent; color: #f15c6d; border: none; padding: 15px; text-align: right; cursor: pointer; font-size: 15px; border-radius: 8px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Delete for everyone</button>
+            <button onclick="deleteMessageForMe()" style="background: transparent; color: #00a884; border: none; padding: 15px; text-align: right; cursor: pointer; font-size: 15px; border-radius: 8px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Delete for me</button>
+            <button onclick="document.getElementById('deleteModal').style.display='none'" style="background: transparent; color: #e9edef; border: none; padding: 15px; text-align: right; cursor: pointer; font-size: 15px; border-radius: 8px; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='transparent'">Cancel</button>
+        </div>
+    </div>
+</div>
+
 <!-- Message Context Menu Overlay -->
 <div class="context-overlay" id="contextOverlay" onclick="closeContextMenu()"></div>
 
@@ -1355,11 +1369,26 @@
             
             snapshot.forEach(docSnap => {
                 const msg = docSnap.data();
+                
+                if (msg.deletedFor && msg.deletedFor.includes(currentUser.uid)) {
+                    return; // Skip rendering deleted-for-me messages
+                }
+                
                 const isMine = msg.senderId === currentUser.uid;
                 const bubbleClass = isMine ? 'sent' : 'received';
                 let timeStr = '';
                 if (msg.sentAt && typeof msg.sentAt.toDate === 'function') {
                     timeStr = new Date(msg.sentAt.toDate()).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                }
+
+                if (msg.isDeletedForEveryone) {
+                    messagesDiv.innerHTML += `
+                        <div class="message-bubble ${bubbleClass}" id="msg-${docSnap.id}">
+                            <div style="font-style: italic; color: #8696a0;">🚫 This message was deleted</div>
+                            <span class="message-time">${timeStr}</span>
+                        </div>
+                    `;
+                    return;
                 }
                 
                 let imgHtml = msg.imageUrl ? `<img src="${msg.imageUrl}" onclick="openImageModal('${msg.imageUrl}')" style="max-width:200px; max-height:300px; border-radius:8px; display:block; margin-bottom:5px; object-fit: cover; cursor: pointer;">` : '';
@@ -2040,6 +2069,7 @@
         activeMessageText = msgText;
         activeMessageName = msgName;
         window.activeMessageIsStarred = isStarred;
+        window.activeMessageIsMine = isMine;
         
         const overlay = document.getElementById('contextOverlay');
         const menu = document.getElementById('contextMenu');
@@ -2063,7 +2093,6 @@
         overlay.style.display = 'block';
         menu.style.display = 'block';
         reactBar.style.display = 'flex';
-        deleteBtn.style.display = isMine ? 'flex' : 'none';
         reportBtn.style.display = !isMine ? 'flex' : 'none';
         
         // Position relative to the message bubble itself!
@@ -2152,11 +2181,9 @@
         if (action === 'copy') {
             navigator.clipboard.writeText(msgText).then(() => showToast('Copied to clipboard'));
         } else if (action === 'delete') {
-            if (confirm('Delete this message for everyone?')) {
-                try {
-                    await deleteDoc(doc(db, "chats", currentChatId, "messages", msgId));
-                } catch(e) { console.error(e); }
-            }
+            const modal = document.getElementById('deleteModal');
+            document.getElementById('deleteForEveryoneBtn').style.display = window.activeMessageIsMine ? 'block' : 'none';
+            modal.style.display = 'flex';
         } else if (action === 'reply') {
             replyingToMsg = { id: msgId, text: msgText, name: msgName };
             document.getElementById('replyPreviewArea').style.display = 'flex';
@@ -2282,6 +2309,37 @@
         }
         
         showToast(`Forwarded to ${successCount} chat(s)`);
+    }
+
+    window.deleteMessageForMe = async function() {
+        document.getElementById('deleteModal').style.display = 'none';
+        if (!activeMessageId || !currentChatId) return;
+        try {
+            const msgRef = doc(db, "chats", currentChatId, "messages", activeMessageId);
+            await updateDoc(msgRef, {
+                deletedFor: arrayUnion(currentUser.uid)
+            });
+            showToast('Message deleted for you');
+        } catch(e) { console.error("Error deleting for me:", e); }
+    }
+
+    window.deleteMessageForEveryone = async function() {
+        document.getElementById('deleteModal').style.display = 'none';
+        if (!activeMessageId || !currentChatId) return;
+        try {
+            const msgRef = doc(db, "chats", currentChatId, "messages", activeMessageId);
+            await updateDoc(msgRef, {
+                isDeletedForEveryone: true,
+                text: "",
+                imageUrl: null
+            });
+            
+            // Also update the chat's lastMessage to reflect the deletion
+            await updateDoc(doc(db, "chats", currentChatId), {
+                lastMessage: "🚫 This message was deleted"
+            });
+            showToast('Message deleted for everyone');
+        } catch(e) { console.error("Error deleting for everyone:", e); }
     }
 
     window.cancelReply = function() {
