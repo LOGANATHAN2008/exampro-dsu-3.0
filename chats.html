@@ -287,9 +287,20 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.5);
             padding: 5px 0; min-width: 150px; display: none;
         }
+        .header-menu {
+            min-width: 250px;
+        }
+        .header-menu hr {
+            border: none;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin: 5px 0;
+        }
         .context-menu-item {
-            padding: 10px 20px; color: #d1d7db; font-size: 14px;
+            padding: 12px 20px; color: #d1d7db; font-size: 15px;
             cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+        }
+        .context-menu-item.left-icon {
+            justify-content: flex-start; gap: 15px;
         }
         .context-menu-item:hover { background: #182229; }
         
@@ -364,6 +375,7 @@
         .light-mode .modal-header h3 { color: #111b21; }
         .light-mode .search-result-item > div > div:first-child { color: #111b21 !important; }
         .light-mode .header-divider { background: rgba(0,0,0,0.1); }
+        .light-mode .header-menu hr { border-bottom: 1px solid #d1d7db; }
         .light-mode .in-chat-search { background: #f0f2f5; border-bottom: 1px solid #d1d7db; }
         .light-mode .in-chat-search input { background: #ffffff; color: #111b21; border: 1px solid #d1d7db; }
 
@@ -613,12 +625,24 @@
 </div>
 
 <!-- Header Context Menu -->
-<div class="context-menu" id="headerMenu">
-    <div class="context-menu-item" onclick="handleHeaderMenuAction('Contact info')">Contact info</div>
-    <div class="context-menu-item" onclick="handleHeaderMenuAction('Select messages')">Select messages</div>
-    <div class="context-menu-item" onclick="handleHeaderMenuAction('Mute notifications')">Mute notifications</div>
-    <div class="context-menu-item" onclick="handleHeaderMenuAction('Clear chat')">Clear chat</div>
-    <div class="context-menu-item" onclick="handleHeaderMenuAction('close')">Close chat</div>
+<div class="context-menu header-menu" id="headerMenu">
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Contact info')"><i class="fas fa-info-circle" style="width:20px; text-align:center;"></i> Contact info</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Search')"><i class="fas fa-search" style="width:20px; text-align:center;"></i> Search</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Select messages')"><i class="fas fa-check-square" style="width:20px; text-align:center;"></i> Select messages</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Mute notifications')"><i class="fas fa-bell-slash" style="width:20px; text-align:center;"></i> Mute notifications</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Disappearing messages')"><i class="fas fa-stopwatch" style="width:20px; text-align:center;"></i> Disappearing messages</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Add to favourites')"><i class="fas fa-heart" style="width:20px; text-align:center;"></i> Add to favourites</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Add to list')"><i class="fas fa-list" style="width:20px; text-align:center;"></i> Add to list</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('close')"><i class="fas fa-times-circle" style="width:20px; text-align:center;"></i> Close chat</div>
+    <hr>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Send call link')"><i class="fas fa-link" style="width:20px; text-align:center;"></i> Send call link</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Schedule call')"><i class="fas fa-calendar-plus" style="width:20px; text-align:center;"></i> Schedule call</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('New group call')"><i class="fas fa-user-plus" style="width:20px; text-align:center;"></i> New group call</div>
+    <hr>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Report')"><i class="fas fa-thumbs-down" style="width:20px; text-align:center;"></i> Report</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Block')"><i class="fas fa-ban" style="width:20px; text-align:center;"></i> Block</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Clear chat')"><i class="fas fa-minus-circle" style="width:20px; text-align:center;"></i> Clear chat</div>
+    <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Delete chat')"><i class="fas fa-trash" style="width:20px; text-align:center;"></i> Delete chat</div>
 </div>
 
 <script src="theme.js"></script>
@@ -1166,6 +1190,8 @@
                     showToast("Error clearing chat", "error");
                 }
             }
+        } else if (action === 'Search') {
+            toggleChatSearch();
         } else {
             showToast(action + ' coming soon!');
         }
