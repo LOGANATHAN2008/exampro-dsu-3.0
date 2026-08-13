@@ -2274,6 +2274,7 @@
                         <label>Cabin / Office Location</label>
                         <input type="text" id="s_cabin" class="form-control" placeholder="Block A, Room 304">
                     </div>
+                </div>
                 <div class="form-grid" style="margin-bottom:12px">
                     <div class="form-group">
                         <label>Office Hours / Availability</label>
@@ -3451,8 +3452,7 @@ const body = document.getElementById('resultsBody');
       <td><span class="chip ${status.class}"><i class="fas ${status.icon}"></i> ${status.label}</span></td>
       <td style="font-size:11px;color:var(--text-muted)">${depts}</td>
       <td><div class="actions-cell">
-        <button class="icon-action icon-edit" onclick="cloneTest('${t.id}')" title="Clone Test"><i class="fas fa-copy"></i></button>
-        <button class="icon-action icon-edit" onclick="window.cloneTest&&window.cloneTest('${t.id}')" title="Clone"><i class="fas fa-copy"></i></button>
+        <button class="icon-action icon-edit" onclick="window.cloneTest&&window.cloneTest('${t.id}')" title="Clone Test"><i class="fas fa-copy"></i></button>
         <button class="icon-action" onclick="toggleTestStatus('${t.id}')" title="${t.isActive ? 'Close Test' : 'Open Test'}"><i class="fas ${t.isActive ? 'fa-toggle-on' : 'fa-toggle-off'}" style="color:${t.isActive ? 'var(--success)' : 'var(--text-muted)'};font-size:18px"></i></button>
         <button class="icon-action icon-edit" onclick="editTest('${t.id}')" title="Edit"><i class="fas fa-edit"></i></button>
         <button class="icon-action icon-del" onclick="deleteTestById('${t.id}')" title="Delete"><i class="fas fa-trash"></i></button>
@@ -3810,11 +3810,17 @@ const body = document.getElementById('resultsBody');
             const questions = [];
             document.querySelectorAll('.q-item').forEach(item => {
                 const id = item.id.replace('q-', '');
-                const text = document.getElementById(`q${id}_text`)?.value.trim();
-                if (!text) return;
-                const opts = ['A', 'B', 'C', 'D'].map((_, i) => document.getElementById(`q${id}_opt${i}`)?.value.trim() || '');
-                const correctEl = item.querySelector(`input[name="correct_${id}"]:checked`);
-                questions.push({ question: text, options: opts, correctIndex: correctEl ? parseInt(correctEl.value) : 0 });
+                const qData = window.extractQuestionData ? window.extractQuestionData(id) : null;
+                if (qData) {
+                    questions.push(qData);
+                } else {
+                    const text = document.getElementById(`q${id}_text`)?.value.trim();
+                    if (text) {
+                        const opts = ['A', 'B', 'C', 'D'].map((_, i) => document.getElementById(`q${id}_opt${i}`)?.value.trim() || '');
+                        const correctEl = item.querySelector(`input[name="correct_${id}"]:checked`);
+                        questions.push({ question: text, options: opts, correctIndex: correctEl ? parseInt(correctEl.value) : 0 });
+                    }
+                }
             });
 
             const departments = [];
