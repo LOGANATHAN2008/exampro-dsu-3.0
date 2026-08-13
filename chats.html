@@ -1162,10 +1162,27 @@
         const listElem = document.getElementById('chatList');
         listElem.innerHTML = '';
         
-        let filteredChats = allChats;
+        let filteredChats = allChats.filter(chat => {
+            if (currentFilter === 'all') return true;
+            if (currentFilter === 'subjects') return chat.type === 'group';
+            
+            if (chat.type !== 'direct') return false;
+            const otherUid = chat.participants.find(id => id !== currentUser.uid);
+            const profile = profileCache[otherUid];
+            
+            // If not cached yet, allow it to render, it will re-render anyway if we force it, but usually it's cached.
+            // Let's hide it if we are sure it doesn't match.
+            if (!profile) return false; 
+            
+            if (currentFilter === 'admin') return profile.avatarBg.includes('#b45309');
+            if (currentFilter === 'staff') return profile.avatarBg.includes('#005c4b');
+            if (currentFilter === 'friends') return profile.avatarBg.includes('#6c63ff');
+            
+            return false;
+        });
         
         if(filteredChats.length === 0) {
-            listElem.innerHTML = `<div style="padding:20px;text-align:center;color:#8696a0;">No chats found. Click the edit icon to start one!</div>`;
+            listElem.innerHTML = `<div style="padding:20px;text-align:center;color:#8696a0;">No chats found for this filter.</div>`;
             return;
         }
 
