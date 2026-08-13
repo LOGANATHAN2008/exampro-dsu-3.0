@@ -818,7 +818,7 @@
             let roleBadgeHtml = "";
             let timeStr = '';
             if (chat.lastMessageAt && typeof chat.lastMessageAt.toDate === 'function') {
-                timeStr = new Date(chat.lastMessageAt.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                timeStr = new Date(chat.lastMessageAt.toDate()).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
             }
             const isActive = currentChatId === chat.id ? 'background: #2a3942;' : '';
 
@@ -873,7 +873,7 @@
                 const bubbleClass = isMine ? 'sent' : 'received';
                 let timeStr = '';
                 if (msg.sentAt && typeof msg.sentAt.toDate === 'function') {
-                    timeStr = new Date(msg.sentAt.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    timeStr = new Date(msg.sentAt.toDate()).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
                 }
                 
                 let imgHtml = msg.imageUrl ? `<img src="${msg.imageUrl}" onclick="openImageModal('${msg.imageUrl}')" style="max-width:200px; max-height:300px; border-radius:8px; display:block; margin-bottom:5px; object-fit: cover; cursor: pointer;">` : '';
