@@ -244,6 +244,26 @@
         }
         .icon-btn:hover { color: #d1d7db; }
 
+        /* In-Chat Search */
+        .in-chat-search {
+            background: #202c33;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .in-chat-search input {
+            flex: 1;
+            background: #2a3942;
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+        }
+
         /* Message Context Menu & Actions */
         .message-bubble:hover .msg-options-btn { display: flex; }
         .msg-options-btn {
@@ -344,6 +364,8 @@
         .light-mode .modal-header h3 { color: #111b21; }
         .light-mode .search-result-item > div > div:first-child { color: #111b21 !important; }
         .light-mode .header-divider { background: rgba(0,0,0,0.1); }
+        .light-mode .in-chat-search { background: #f0f2f5; border-bottom: 1px solid #d1d7db; }
+        .light-mode .in-chat-search input { background: #ffffff; color: #111b21; border: 1px solid #d1d7db; }
 
         /* Modal Styles */
         .image-modal-overlay {
@@ -509,10 +531,18 @@
                         <button class="icon-btn" onclick="showToast('Video call feature coming soon!')" title="Video Call"><i class="fas fa-video"></i></button>
                         <button class="icon-btn" onclick="showToast('Voice call feature coming soon!')" title="Voice Call"><i class="fas fa-phone"></i></button>
                         <div class="header-divider" style="width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 5px;"></div>
-                        <button class="icon-btn" onclick="showToast('Search inside chat coming soon!')" title="Search"><i class="fas fa-search"></i></button>
+                        <button class="icon-btn" onclick="toggleChatSearch()" title="Search"><i class="fas fa-search"></i></button>
                         <button class="icon-btn" onclick="showToast('Menu options coming soon!')" title="More Options"><i class="fas fa-ellipsis-v"></i></button>
                     </div>
                 </div>
+                
+                <!-- In-Chat Search Bar -->
+                <div class="in-chat-search" id="inChatSearchBar" style="display: none;">
+                    <i class="fas fa-search" style="color: #8696a0;"></i>
+                    <input type="text" id="inChatSearchInput" placeholder="Search messages..." onkeyup="filterChatMessages()">
+                    <button class="icon-btn" onclick="toggleChatSearch()"><i class="fas fa-times"></i></button>
+                </div>
+                
                 <div class="chat-messages" id="chatMessages">
                     <!-- Messages will appear here -->
                 </div>
@@ -1033,6 +1063,46 @@
                 toast.style.display = 'none';
             }
         }, 2500);
+    }
+    
+    // In-Chat Search Logic
+    window.toggleChatSearch = function() {
+        const searchBar = document.getElementById('inChatSearchBar');
+        const input = document.getElementById('inChatSearchInput');
+        if (searchBar.style.display === 'none') {
+            searchBar.style.display = 'flex';
+            input.focus();
+        } else {
+            searchBar.style.display = 'none';
+            input.value = '';
+            filterChatMessages(); // reset filter
+        }
+    }
+    
+    window.filterChatMessages = function() {
+        const query = document.getElementById('inChatSearchInput').value.toLowerCase();
+        const messages = document.querySelectorAll('.message-bubble');
+        let hasMatch = false;
+        
+        messages.forEach(msg => {
+            const textContent = msg.textContent.toLowerCase();
+            if (textContent.includes(query)) {
+                msg.style.display = '';
+                hasMatch = true;
+            } else {
+                msg.style.display = 'none';
+            }
+        });
+        
+        // Ensure scroll stays at bottom if no filter, or top match if filtered
+        if (query.length > 0 && hasMatch) {
+            // Scroll to the first match
+            const firstMatch = Array.from(messages).find(m => m.style.display === '');
+            if (firstMatch) firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (query.length === 0) {
+            const msgsDiv = document.getElementById('chatMessages');
+            msgsDiv.scrollTop = msgsDiv.scrollHeight;
+        }
     }
 
     // Context Menu State
