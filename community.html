@@ -2058,7 +2058,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, arrayUnion, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 // Ensure this matches the existing dashboard.js firebase config!
 const firebaseConfig = {
@@ -2074,7 +2073,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
 let currentUser = null;
 let userData = null;
@@ -2450,25 +2448,33 @@ window.handleFileUpload = async function(event) {
     chatBox.insertAdjacentHTML('beforeend', tempMsgHtml);
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    const storageRef = ref(storage, `community_chat_files/${userData.branch}/${Date.now()}_${file.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, file);
-
-    uploadTask.on('state_changed', 
-        (snapshot) => {
-            const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+    // Cloudinary setup
+    const CLOUD_NAME = "YOUR_CLOUD_NAME"; // <-- Change this!
+    const UPLOAD_PRESET = "YOUR_UPLOAD_PRESET"; // <-- Change this!
+    
+    const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', UPLOAD_PRESET);
+    
+    // We use XMLHttpRequest instead of fetch to get upload progress!
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url, true);
+    
+    xhr.upload.onprogress = function(e) {
+        if (e.lengthComputable) {
+            const progress = Math.round((e.loaded / e.total) * 100);
             const textElem = document.getElementById(`${tempMsgId}-text`);
             if (textElem) textElem.innerText = `Uploading ${file.name}... ${progress}%`;
-        }, 
-        (error) => {
-            console.error("Upload failed:", error);
-            alert("File upload failed: " + error.message);
-            const tempMsg = document.getElementById(tempMsgId);
-            if (tempMsg) tempMsg.remove();
-        }, 
-        async () => {
-            // Upload completed successfully
+        }
+    };
+    
+    xhr.onload = async function() {
+        if (xhr.status === 200) {
+            const response = JSON.parse(xhr.responseText);
+            const downloadURL = response.secure_url;
+            
             try {
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                 const messagesRef = collection(db, 'chatRooms', userData.branch, 'messages');
                 await addDoc(messagesRef, {
                     text: '', // Empty text for file
@@ -2483,11 +2489,24 @@ window.handleFileUpload = async function(event) {
                 console.error("Error saving message after upload:", err);
                 alert("Failed to send file message.");
             }
-            // Remove temporary message, actual message will be rendered by onSnapshot
-            const tempMsg = document.getElementById(tempMsgId);
-            if (tempMsg) tempMsg.remove();
+        } else {
+            console.error("Upload failed:", xhr.responseText);
+            alert("Cloudinary upload failed! Did you add your cloud_name and upload_preset in community.html?");
         }
-    );
+        
+        // Remove temporary message
+        const tempMsg = document.getElementById(tempMsgId);
+        if (tempMsg) tempMsg.remove();
+    };
+    
+    xhr.onerror = function() {
+        console.error("Upload failed due to network error");
+        alert("Upload failed. Check your network.");
+        const tempMsg = document.getElementById(tempMsgId);
+        if (tempMsg) tempMsg.remove();
+    };
+    
+    xhr.send(formData);
 
     // reset input
     event.target.value = '';
