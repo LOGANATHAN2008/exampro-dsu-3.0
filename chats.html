@@ -1087,6 +1087,56 @@
         }
     }
 
+    // ─── Profile photo cache: uid → { photoURL, name, initials, avatarBg } ───
+    const profileCache = {};
+
+    async function fetchAndCacheProfile(uid) {
+        if (profileCache[uid]) return profileCache[uid];
+        try {
+            const [stdSnap, stfSnap, admSnap] = await Promise.all([
+                getDoc(doc(db, "students", uid)),
+                getDoc(doc(db, "staff", uid)),
+                getDoc(doc(db, "admins", uid))
+            ]);
+            let name = "?", photoURL = "", avatarBg = "linear-gradient(135deg,#1a3a4a,#2d5a6b)";
+            if (stdSnap.exists()) {
+                const d = stdSnap.data(); name = d.name || "?"; photoURL = d.photoURL || "";
+                avatarBg = "linear-gradient(135deg,#6c63ff,#8c82ff)";
+            } else if (stfSnap.exists()) {
+                const d = stfSnap.data(); name = d.name || "?"; photoURL = d.photoURL || "";
+                avatarBg = "linear-gradient(135deg,#005c4b,#00a884)";
+            } else if (admSnap.exists()) {
+                const d = admSnap.data(); name = d.name || "?"; photoURL = d.photoURL || "";
+                avatarBg = "linear-gradient(135deg,#b45309,#f59e0b)";
+            }
+            const initials = name.split(' ').filter(Boolean).map(w => w[0].toUpperCase()).slice(0, 2).join('') || '?';
+            profileCache[uid] = { photoURL, name, initials, avatarBg };
+        } catch(e) {
+            profileCache[uid] = { photoURL: '', name: '?', initials: '?', avatarBg: '#3b4a54' };
+        }
+        return profileCache[uid];
+    }
+
+    function applyAvatarToEl(el, profile) {
+        if (!el || !profile) return;
+        if (profile.photoURL) {
+            el.style.background = 'transparent';
+            const img = document.createElement('img');
+            img.src = profile.photoURL;
+            img.alt = profile.name;
+            img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+            img.onerror = function() {
+                el.style.background = profile.avatarBg;
+                el.innerHTML = '<span style="font-weight:700;font-size:17px;color:white;">' + profile.initials + '</span>';
+            };
+            el.innerHTML = '';
+            el.appendChild(img);
+        } else {
+            el.style.background = profile.avatarBg;
+            el.innerHTML = '<span style="font-weight:700;font-size:17px;color:white;">' + profile.initials + '</span>';
+        }
+    }
+
     function renderChats() {
         const listElem = document.getElementById('chatList');
         listElem.innerHTML = '';
@@ -1100,19 +1150,17 @@
 
         filteredChats.forEach(chat => {
             let displayName = chat.subject || "Direct Message";
-            
-            // Try to extract name of the other person if we saved it in Phase 3 or earlier
+            let otherUid = null;
+
             if(chat.type === 'direct') {
-                const otherUid = chat.participants.find(id => id !== currentUser.uid);
+                otherUid = chat.participants.find(id => id !== currentUser.uid);
                 if (chat.participantNames && chat.participantNames[otherUid]) {
                     displayName = chat.participantNames[otherUid];
                 } else if (otherUid && currentUserName !== "Unknown") {
-                    // Retroactively fetch and fix names for older broken chats!
                     fixChatName(chat.id, otherUid);
                 }
             }
             
-            let roleBadgeHtml = "";
             let timeStr = '';
             if (chat.lastMessageAt && typeof chat.lastMessageAt.toDate === 'function') {
                 timeStr = new Date(chat.lastMessageAt.toDate()).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
@@ -1121,10 +1169,10 @@
 
             const itemHtml = `
                 <div class="chat-item" style="${isActive}" onclick="selectChat('${chat.id}', '${displayName.replace(/'/g, "\\'")}')">
-                    <div class="chat-avatar"><i class="fas fa-user"></i></div>
+                    <div class="chat-avatar" id="chat-avatar-${chat.id}"><i class="fas fa-user"></i></div>
                     <div class="chat-info">
                         <div class="chat-info-top">
-                            <div class="chat-name">${displayName} ${roleBadgeHtml}</div>
+                            <div class="chat-name">${displayName}</div>
                             <div class="chat-time">${timeStr}</div>
                         </div>
                         <div class="chat-info-bottom">
@@ -1134,6 +1182,19 @@
                 </div>
             `;
             listElem.insertAdjacentHTML('beforeend', itemHtml);
+
+            // Apply cached photo immediately or fetch in background
+            if (otherUid) {
+                const avatarEl = document.getElementById('chat-avatar-' + chat.id);
+                if (profileCache[otherUid]) {
+                    applyAvatarToEl(avatarEl, profileCache[otherUid]);
+                } else {
+                    fetchAndCacheProfile(otherUid).then(profile => {
+                        const el = document.getElementById('chat-avatar-' + chat.id);
+                        if (el) applyAvatarToEl(el, profile);
+                    });
+                }
+            }
         });
     }
     
@@ -1143,6 +1204,35 @@
         document.getElementById('emptyState').style.display = 'none';
         document.getElementById('chatView').style.display = 'flex';
         document.getElementById('activeChatName').textContent = chatName;
+        
+        // Reset header avatar
+        const headerAvatar = document.getElementById('activeChatAvatar');
+        headerAvatar.style.background = '#3b4a54';
+        headerAvatar.innerHTML = '<i class="fas fa-user"></i>';
+        document.getElementById('activeChatSub').textContent = '';
+        
+        // Find other participant and load their profile photo
+        const chat = allChats.find(c => c.id === chatId);
+        if (chat && chat.type === 'direct') {
+            const otherUid = chat.participants.find(id => id !== currentUser.uid);
+            if (otherUid) {
+                // Apply immediately if cached, else fetch
+                const applyToHeader = (profile) => {
+                    applyAvatarToEl(headerAvatar, profile);
+                    const roleMap = {
+                        'linear-gradient(135deg,#6c63ff,#8c82ff)': 'Student',
+                        'linear-gradient(135deg,#005c4b,#00a884)': 'Staff',
+                        'linear-gradient(135deg,#b45309,#f59e0b)': 'Admin'
+                    };
+                    document.getElementById('activeChatSub').textContent = roleMap[profile.avatarBg] || '';
+                };
+                if (profileCache[otherUid]) {
+                    applyToHeader(profileCache[otherUid]);
+                } else {
+                    fetchAndCacheProfile(otherUid).then(applyToHeader);
+                }
+            }
+        }
         
         // Unsubscribe from previous chat messages if any
         if (messagesUnsubscribe) messagesUnsubscribe();
