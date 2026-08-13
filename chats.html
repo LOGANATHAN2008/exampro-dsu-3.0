@@ -827,8 +827,11 @@
 
 <!-- Per-message Context Menu -->
 <div class="context-menu" id="contextMenu">
+    <div class="context-menu-item" onclick="handleMenuAction('star')">Star <i class="fas fa-star"></i></div>
     <div class="context-menu-item" onclick="handleMenuAction('reply')">Reply <i class="fas fa-reply"></i></div>
+    <div class="context-menu-item" onclick="handleMenuAction('forward')">Forward <i class="fas fa-share"></i></div>
     <div class="context-menu-item" onclick="handleMenuAction('copy')">Copy <i class="fas fa-copy"></i></div>
+    <div class="context-menu-item" id="reportMenuItem" onclick="handleMenuAction('report')">Report <i class="fas fa-exclamation-triangle"></i></div>
     <div class="context-menu-item" id="deleteMenuItem" onclick="handleMenuAction('delete')" style="color:#f15c6d;">Delete <i class="fas fa-trash"></i></div>
 </div>
 
@@ -2011,6 +2014,7 @@
         const menu = document.getElementById('contextMenu');
         const reactBar = document.getElementById('reactionsBar');
         const deleteBtn = document.getElementById('deleteMenuItem');
+        const reportBtn = document.getElementById('reportMenuItem');
         
         // Highlight active message (elevate above overlay)
         const msgBubble = document.getElementById('msg-' + msgId);
@@ -2024,6 +2028,7 @@
         menu.style.display = 'block';
         reactBar.style.display = 'flex';
         deleteBtn.style.display = isMine ? 'flex' : 'none';
+        reportBtn.style.display = !isMine ? 'flex' : 'none';
         
         // Position relative to the message bubble itself!
         if (msgBubble) {
@@ -2122,6 +2127,12 @@
             document.getElementById('replyPreviewName').textContent = msgName;
             document.getElementById('replyPreviewText').textContent = msgText;
             document.getElementById('messageInput').focus();
+        } else if (action === 'star') {
+            showToast('Message starred (Coming soon)');
+        } else if (action === 'forward') {
+            showToast('Forward message (Coming soon)');
+        } else if (action === 'report') {
+            showToast('Message reported (Coming soon)');
         }
     }
 
