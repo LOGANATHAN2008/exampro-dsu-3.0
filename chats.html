@@ -997,38 +997,40 @@
                                 <div class="attach-icon-wrapper c-blue"><i class="fas fa-image"></i></div>
                                 <span>Gallery</span>
                             </div>
-                            <div class="attach-item" onclick="showToast('Location sharing coming soon!'); toggleAttachmentMenu();">
+                            <div class="attach-item" onclick="sendLocation();">
                                 <div class="attach-icon-wrapper c-green"><i class="fas fa-map-marker-alt"></i></div>
                                 <span>Location</span>
                             </div>
-                            <div class="attach-item" onclick="showToast('Contact sharing coming soon!'); toggleAttachmentMenu();">
+                            <div class="attach-item" onclick="openContactPicker();">
                                 <div class="attach-icon-wrapper c-lblue"><i class="fas fa-user"></i></div>
                                 <span>Contact</span>
                             </div>
-                            <div class="attach-item" onclick="showToast('Document sharing coming soon!'); toggleAttachmentMenu();">
+                            <div class="attach-item" onclick="document.getElementById('documentUploadInput').click();">
                                 <div class="attach-icon-wrapper c-purple"><i class="fas fa-file-alt"></i></div>
                                 <span>Document</span>
                             </div>
-                            <div class="attach-item" onclick="showToast('Polls coming soon!'); toggleAttachmentMenu();">
+                            <div class="attach-item" onclick="openPollModal()">
                                 <div class="attach-icon-wrapper c-yellow"><i class="fas fa-poll-h"></i></div>
                                 <span>Poll</span>
                             </div>
-                            <div class="attach-item" onclick="showToast('Payments coming soon!'); toggleAttachmentMenu();">
+                            <div class="attach-item" onclick="openEventModal()">
+                                <div class="attach-icon-wrapper c-orange"><i class="fas fa-calendar-alt"></i></div>
+                                <span>Event</span>
+                            </div>
+                            <div class="attach-item" onclick="openAIModal()">
+                                <div class="attach-icon-wrapper c-pink"><i class="fas fa-magic"></i></div>
+                                <span>AI Image</span>
+                            </div>
+                            <div class="attach-item" onclick="openPaymentModal()">
                                 <div class="attach-icon-wrapper c-teal"><i class="fas fa-rupee-sign"></i></div>
                                 <span>Payment</span>
                             </div>
-                            <div class="attach-item" onclick="showToast('Events coming soon!'); toggleAttachmentMenu();">
-                                <div class="attach-icon-wrapper c-pink"><i class="fas fa-calendar-alt"></i></div>
-                                <span>Event</span>
-                            </div>
-                            <div class="attach-item" onclick="showToast('AI images coming soon!'); toggleAttachmentMenu();">
-                                <div class="attach-icon-wrapper c-blue"><i class="fas fa-magic"></i></div>
-                                <span>AI images</span>
-                            </div>
+
                         </div>
                     </div>
                     
-                    <input type="file" id="imageUploadInput" style="display:none;" accept="image/*" onchange="uploadImage(event)">
+                    <input type="file" id="imageUploadInput" style="display:none;" accept="image/*,video/*" onchange="uploadImage(event)">
+                    <input type="file" id="documentUploadInput" style="display:none;" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt" onchange="uploadDocument(event)">
                     <button class="icon-btn" id="uploadBtn" onclick="toggleAttachmentMenu()"><i class="fas fa-paperclip" id="uploadIcon"></i></button>
                     <input type="text" id="messageInput" placeholder="Type a message" onkeypress="handleEnter(event)">
                     <button class="icon-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
@@ -1049,6 +1051,88 @@
             <div id="userSearchResults" class="search-results">
                 <!-- User results will populate here -->
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Picker Modal -->
+<div id="contactPickerModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Send Contact</h3>
+            <button class="close-btn" onclick="document.getElementById('contactPickerModal').style.display='none'"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <input type="text" id="contactSearchInput" class="modal-search" placeholder="Search users to share..." oninput="searchContacts(this.value)">
+            <div id="contactSearchResults" class="search-results">
+                <!-- User results will populate here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Poll Modal -->
+<div id="pollModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Create Poll</h3>
+            <button class="close-btn" onclick="document.getElementById('pollModal').style.display='none'"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <input type="text" id="pollQuestion" class="modal-search" placeholder="Ask a question..." style="margin-bottom:15px; font-weight:bold;">
+            <div id="pollOptionsContainer" style="display:flex; flex-direction:column; gap:10px;">
+                <input type="text" class="modal-search poll-option-input" placeholder="Option 1">
+                <input type="text" class="modal-search poll-option-input" placeholder="Option 2">
+            </div>
+            <button class="bulk-action-btn" style="background:transparent; color:#53bdeb; margin-top:10px; width:100%; border:1px dashed #53bdeb;" onclick="addPollOption()">+ Add Option</button>
+            <button class="bulk-action-btn" style="background:#00a884; color:white; width:100%; margin-top:20px;" onclick="sendPoll()">Send Poll</button>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div id="paymentModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Request Payment</h3>
+            <button class="close-btn" onclick="document.getElementById('paymentModal').style.display='none'"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <input type="number" id="paymentAmount" class="modal-search" placeholder="Amount (₹)" style="margin-bottom:10px; font-weight:bold; font-size:24px;">
+            <input type="text" id="paymentNote" class="modal-search" placeholder="What's this for?" style="margin-bottom:20px;">
+            <button class="bulk-action-btn" style="background:#00a884; color:white; width:100%;" onclick="sendPayment()">Send Request</button>
+        </div>
+    </div>
+</div>
+
+<!-- Event Modal -->
+<div id="eventModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Create Event</h3>
+            <button class="close-btn" onclick="document.getElementById('eventModal').style.display='none'"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <input type="text" id="eventTitle" class="modal-search" placeholder="Event Name" style="margin-bottom:15px; font-weight:bold;">
+            <input type="date" id="eventDate" class="modal-search" style="margin-bottom:10px;">
+            <input type="time" id="eventTime" class="modal-search" style="margin-bottom:20px;">
+            <button class="bulk-action-btn" style="background:#00a884; color:white; width:100%;" onclick="sendEvent()">Send Event</button>
+        </div>
+    </div>
+</div>
+
+<!-- AI Image Modal -->
+<div id="aiModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Generate AI Image</h3>
+            <button class="close-btn" onclick="document.getElementById('aiModal').style.display='none'"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="modal-body">
+            <textarea id="aiPrompt" class="modal-search" placeholder="Describe the image you want to generate..." style="min-height: 80px; margin-bottom:15px; resize:none; padding:10px;"></textarea>
+            <button class="bulk-action-btn" id="generateAIBtn" style="background:linear-gradient(90deg, #d81b60, #8e24aa); color:white; width:100%;" onclick="generateAIImage()">
+                <i class="fas fa-magic" style="margin-right:5px;"></i> Generate & Send
+            </button>
         </div>
     </div>
 </div>
@@ -1233,6 +1317,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, getDocs, doc, updateDoc, getDoc, deleteDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
@@ -1248,6 +1333,7 @@
     const auth = getAuth(app);
     await setPersistence(auth, browserLocalPersistence);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
     let currentUser = null;
     let currentUserName = "Unknown";
@@ -1748,7 +1834,7 @@
                     return;
                 }
                 
-                let imgHtml = msg.imageUrl ? `<img src="${msg.imageUrl}" onclick="openImageModal('${msg.imageUrl}')" style="max-width:200px; max-height:300px; border-radius:8px; display:block; margin-bottom:5px; object-fit: cover; cursor: pointer;">` : '';
+                let imgHtml = (msg.imageUrl && msg.type !== 'video') ? `<img src="${msg.imageUrl}" onclick="openImageModal('${msg.imageUrl}')" style="max-width:200px; max-height:300px; border-radius:8px; display:block; margin-bottom:5px; object-fit: cover; cursor: pointer;">` : '';
                 // Linkify URLs in text
                 function linkify(text) {
                     if (!text) return text;
@@ -1764,6 +1850,125 @@
                 }
                 
                 let textHtml = msg.text ? `<div style="word-break: break-word;">${linkify(msg.text)}</div>` : '';
+                
+                let customHtml = '';
+                if (msg.type === 'video' && msg.imageUrl) {
+                    customHtml = `
+                        <video src="${msg.imageUrl}" controls style="max-width:200px; max-height:300px; border-radius:8px; display:block; margin-bottom:5px; background:#000;"></video>
+                    `;
+                } else if (msg.type === 'location') {
+                    // Google Static Maps fallback to dark gray box on error
+                    customHtml = `
+                        <div style="margin-bottom: 5px;">
+                            <a href="${msg.mapUrl}" target="_blank" style="display:block; text-decoration:none;">
+                                <div style="width: 200px; height: 120px; background: #3b4a54; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
+                                    <img src="https://maps.googleapis.com/maps/api/staticmap?center=${msg.lat},${msg.lng}&zoom=15&size=200x120&markers=color:red%7C${msg.lat},${msg.lng}&key=AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\\'color:#8696a0;padding:10px;text-align:center;\\'><i class=\\'fas fa-map-marker-alt fa-2x\\'></i><br>View Location</div>';">
+                                    <div style="position:absolute; bottom:5px; right:5px; background:rgba(0,0,0,0.6); color:white; font-size:10px; padding:2px 6px; border-radius:4px;">Google Maps</div>
+                                </div>
+                            </a>
+                        </div>
+                    `;
+                } else if (msg.type === 'contact' && msg.contact) {
+                    const c = msg.contact;
+                    const avatarHtml = c.photoURL ? `<img src="${c.photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : `<span style="font-weight:700;color:white;">${c.initials}</span>`;
+                    const avatarStyle = c.photoURL ? 'background:transparent;' : `background:${c.avatarBg};`;
+                    customHtml = `
+                        <div style="width: 220px; background: rgba(0,0,0,0.1); border-radius: 8px; margin-bottom: 5px; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="padding: 12px; display: flex; align-items: center;">
+                                <div class="chat-avatar" style="width:40px;height:40px;margin-right:12px;flex-shrink:0;${avatarStyle}">${avatarHtml}</div>
+                                <div style="overflow:hidden;">
+                                    <div style="font-size:15px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.name}</div>
+                                    <div style="font-size:13px; color:#8696a0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${c.department}</div>
+                                </div>
+                            </div>
+                            <div style="text-align:center; padding: 10px; border-top: 1px solid rgba(255,255,255,0.05); color:#53bdeb; font-size:14px; font-weight:600; cursor:pointer;" onclick="showToast('Message feature coming soon!')">Message</div>
+                        </div>
+                    `;
+                } else if (msg.type === 'document') {
+                    customHtml = `
+                        <div style="background: rgba(0,0,0,0.1); border-radius: 8px; padding: 10px; margin-bottom: 5px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.05); width: 220px;">
+                            <div style="width: 40px; height: 40px; border-radius: 8px; background: #7e57c2; color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 12px; flex-shrink:0;">
+                                <i class="${msg.fileIcon || 'fas fa-file-alt'}"></i>
+                            </div>
+                            <div style="flex:1; overflow:hidden;">
+                                <div style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #e9edef;">${msg.fileName}</div>
+                                <div style="font-size: 12px; color: #8696a0; margin-top:2px;">${msg.fileSize || 'File'}</div>
+                            </div>
+                            <a href="${msg.fileUrl}" target="_blank" download style="color:#8696a0; font-size:18px; margin-left:10px;"><i class="fas fa-download"></i></a>
+                        </div>
+                    `;
+                } else if (msg.type === 'poll') {
+                    let totalVotes = 0;
+                    msg.options.forEach(opt => totalVotes += opt.votes.length);
+                    
+                    let optionsHtml = '';
+                    msg.options.forEach((opt, idx) => {
+                        const hasVoted = opt.votes.includes(currentUser.uid);
+                        const percent = totalVotes > 0 ? Math.round((opt.votes.length / totalVotes) * 100) : 0;
+                        const bgStyle = hasVoted ? 'background: rgba(0, 168, 132, 0.2); border-color: #00a884;' : 'background: rgba(255,255,255,0.05); border-color: transparent;';
+                        const barWidth = `${percent}%`;
+                        
+                        optionsHtml += `
+                            <div style="margin-bottom:8px; position:relative; overflow:hidden; border-radius:8px; border:1px solid transparent; ${bgStyle} cursor:pointer;" onclick="votePoll('${docSnap.id}', ${idx})">
+                                <div style="position:absolute; left:0; top:0; bottom:0; width:${barWidth}; background:rgba(0,168,132,0.15); z-index:1; transition:width 0.3s;"></div>
+                                <div style="position:relative; z-index:2; padding:10px 12px; display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="font-size:14px; font-weight:${hasVoted ? 'bold' : 'normal'}; color:white;">${opt.text}</span>
+                                    ${totalVotes > 0 ? `<span style="font-size:12px; color:#8696a0;">${percent}%</span>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    customHtml = `
+                        <div style="background: rgba(0,0,0,0.1); border-radius: 8px; padding: 12px; margin-bottom: 5px; width: 240px; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="display:flex; align-items:center; margin-bottom:12px; font-size:16px; font-weight:bold; color:white;">
+                                <i class="fas fa-poll-h" style="margin-right:8px; color:#ffb300;"></i>
+                                ${msg.question}
+                            </div>
+                            ${optionsHtml}
+                            <div style="text-align:center; color:#8696a0; font-size:11px; margin-top:5px;">${totalVotes} vote${totalVotes !== 1 ? 's' : ''}</div>
+                        </div>
+                    `;
+                } else if (msg.type === 'payment') {
+                    // UPI deep link stub
+                    const upiLink = `upi://pay?pa=dsu@upi&pn=DSU&am=${msg.amount}&cu=INR&tn=${encodeURIComponent(msg.note)}`;
+                    customHtml = `
+                        <div style="background: rgba(0, 168, 132, 0.1); border-radius: 8px; padding: 15px; margin-bottom: 5px; width: 220px; border: 1px solid rgba(0, 168, 132, 0.3);">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                                <div style="width:40px; height:40px; border-radius:50%; background:#00a884; color:white; display:flex; align-items:center; justify-content:center; font-size:18px;">
+                                    <i class="fas fa-rupee-sign"></i>
+                                </div>
+                                <div style="font-size:22px; font-weight:bold; color:white;">₹${msg.amount}</div>
+                            </div>
+                            <div style="font-size:14px; color:#e9edef; font-weight:600; margin-bottom:5px;">Payment Request</div>
+                            ${msg.note ? `<div style="font-size:13px; color:#8696a0; margin-bottom:15px; font-style:italic;">"${msg.note}"</div>` : ''}
+                            <a href="${upiLink}" target="_blank" style="display:block; text-align:center; background:#00a884; color:white; padding:10px; border-radius:8px; text-decoration:none; font-weight:bold;">Pay Now</a>
+                        </div>
+                    `;
+                } else if (msg.type === 'event') {
+                    // Format date nicely
+                    const d = new Date(msg.date + 'T' + msg.time);
+                    const month = d.toLocaleString('en-US', { month: 'short' });
+                    const day = d.getDate();
+                    const timeStrEvt = d.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                    
+                    customHtml = `
+                        <div style="background: rgba(0,0,0,0.1); border-radius: 8px; margin-bottom: 5px; width: 220px; border: 1px solid rgba(255,255,255,0.05); overflow:hidden;">
+                            <div style="background: #e53935; color: white; padding: 10px; display: flex; align-items: center; justify-content: space-between;">
+                                <div>
+                                    <div style="font-size:11px; text-transform:uppercase; font-weight:bold; letter-spacing:1px; opacity:0.9;">${month}</div>
+                                    <div style="font-size:24px; font-weight:bold; line-height:1;">${day}</div>
+                                </div>
+                                <i class="fas fa-calendar-alt" style="font-size:24px; opacity:0.3;"></i>
+                            </div>
+                            <div style="padding: 12px;">
+                                <div style="font-size: 15px; font-weight: bold; color: #e9edef; margin-bottom: 3px;">${msg.title}</div>
+                                <div style="font-size: 13px; color: #8696a0; margin-bottom: 12px;"><i class="far fa-clock" style="margin-right:4px;"></i>${timeStrEvt}</div>
+                                <button style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#53bdeb; padding:8px; border-radius:6px; cursor:pointer; font-weight:bold; font-size:13px;" onclick="downloadICS('${msg.title.replace(/'/g, "\\'")}', '${msg.date}', '${msg.time}')">Add to Calendar</button>
+                            </div>
+                        </div>
+                    `;
+                }
                 
                 // Reply snippet
                 let replyHtml = '';
@@ -1804,6 +2009,7 @@
                         ${!isMine && chatName === 'Group' ? `<div style="font-size:12px;color:#53bdeb;margin-bottom:3px;">${msg.senderName || 'Unknown'}</div>` : ''}
                         ${replyHtml}
                         ${imgHtml}
+                        ${customHtml}
                         ${textHtml}
                         <span class="message-time">${starHtml}${timeStr}</span>
                         ${reactionsHtml}
@@ -1843,31 +2049,345 @@
         
         uploadBtn.disabled = true;
         uploadIcon.className = 'fas fa-spinner fa-spin';
+        showToast('Uploading file...');
 
         try {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', 'DSU EXAM');
-
-            const res = await fetch('https://api.cloudinary.com/v1_1/dxsa93rr2/image/upload', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await res.json();
+            const storageRef = ref(storage, `chatMedia/${currentChatId}/${Date.now()}_${file.name}`);
+            const uploadTask = uploadBytesResumable(storageRef, file);
             
-            if (data.secure_url) {
-                await sendMessage(null, data.secure_url);
-            } else {
-                alert("Image upload failed");
-            }
+            uploadTask.on('state_changed', 
+                (snapshot) => {}, 
+                (error) => {
+                    console.error("Upload error", error);
+                    showToast("Upload failed");
+                    uploadBtn.disabled = false;
+                    uploadIcon.className = 'fas fa-paperclip';
+                }, 
+                async () => {
+                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                    const isVideo = file.type.startsWith('video/');
+                    await sendMessage(null, { type: isVideo ? 'video' : 'image', imageUrl: downloadURL });
+                    showToast('Sent successfully');
+                    uploadBtn.disabled = false;
+                    uploadIcon.className = 'fas fa-paperclip';
+                    event.target.value = '';
+                }
+            );
         } catch (error) {
             console.error("Upload error", error);
-            alert("Upload error");
-        } finally {
+            showToast("Upload error");
             uploadBtn.disabled = false;
             uploadIcon.className = 'fas fa-paperclip';
-            event.target.value = '';
         }
+    }
+
+    window.sendLocation = async function() {
+        if(!currentChatId) return;
+        toggleAttachmentMenu();
+        if (!navigator.geolocation) {
+            showToast("Geolocation is not supported");
+            return;
+        }
+        showToast("Fetching location...");
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const mapUrl = `https://maps.google.com/?q=${lat},${lng}`;
+            await sendMessage(null, { 
+                type: 'location', 
+                lat: lat, 
+                lng: lng,
+                mapUrl: mapUrl
+            });
+            showToast("Location sent");
+        }, (err) => {
+            console.error(err);
+            showToast("Failed to fetch location");
+        }, { enableHighAccuracy: true });
+    }
+
+    window.uploadDocument = async function(event) {
+        if(!currentChatId) return;
+        const file = event.target.files[0];
+        if(!file) return;
+        
+        toggleAttachmentMenu();
+        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadIcon = document.getElementById('uploadIcon');
+        
+        uploadBtn.disabled = true;
+        uploadIcon.className = 'fas fa-spinner fa-spin';
+        showToast('Uploading document...');
+
+        try {
+            const storageRef = ref(storage, `chatMedia/${currentChatId}/${Date.now()}_${file.name}`);
+            const uploadTask = uploadBytesResumable(storageRef, file);
+            
+            uploadTask.on('state_changed', 
+                (snapshot) => {}, 
+                (error) => {
+                    console.error("Upload error", error);
+                    showToast("Upload failed");
+                    uploadBtn.disabled = false;
+                    uploadIcon.className = 'fas fa-paperclip';
+                }, 
+                async () => {
+                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                    
+                    let sizeStr = '';
+                    if (file.size < 1024 * 1024) sizeStr = (file.size / 1024).toFixed(1) + ' KB';
+                    else sizeStr = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+                    
+                    const ext = file.name.split('.').pop().toLowerCase();
+                    let fileIcon = 'fas fa-file-alt';
+                    if (ext === 'pdf') fileIcon = 'fas fa-file-pdf';
+                    else if (['doc','docx'].includes(ext)) fileIcon = 'fas fa-file-word';
+                    else if (['ppt','pptx'].includes(ext)) fileIcon = 'fas fa-file-powerpoint';
+                    else if (['xls','xlsx'].includes(ext)) fileIcon = 'fas fa-file-excel';
+                    
+                    await sendMessage(null, { 
+                        type: 'document', 
+                        fileUrl: downloadURL, 
+                        fileName: file.name,
+                        fileSize: sizeStr,
+                        fileIcon: fileIcon
+                    });
+                    showToast('Document sent');
+                    uploadBtn.disabled = false;
+                    uploadIcon.className = 'fas fa-paperclip';
+                    event.target.value = '';
+                }
+            );
+        } catch (error) {
+            console.error("Upload error", error);
+            showToast("Upload error");
+            uploadBtn.disabled = false;
+            uploadIcon.className = 'fas fa-paperclip';
+        }
+    }
+
+    window.openContactPicker = function() {
+        toggleAttachmentMenu();
+        document.getElementById('contactPickerModal').style.display = 'flex';
+        document.getElementById('contactSearchInput').value = '';
+        document.getElementById('contactSearchResults').innerHTML = '';
+        searchContacts('');
+    }
+
+    window.searchContacts = async function(searchQuery) {
+        const resultsDiv = document.getElementById('contactSearchResults');
+        resultsDiv.innerHTML = '<div style="padding:10px;color:#8696a0;">Searching...</div>';
+        try {
+            const term = searchQuery.toLowerCase().trim();
+            const [staffSnap, adminsSnap, studentsSnap] = await Promise.all([
+                getDocs(query(collection(db, "staff"))),
+                getDocs(query(collection(db, "admins"))),
+                getDocs(query(collection(db, "students")))
+            ]);
+            resultsDiv.innerHTML = '';
+            let count = 0;
+            const processDoc = (docSnap, role) => {
+                const userData = docSnap.data();
+                let rawName = userData.name || 'Unknown User';
+                if(term && !rawName.toLowerCase().includes(term)) return;
+                count++;
+                if(count > 20) return;
+                let formattedName = rawName;
+                let deptStr = '';
+                if (role === 'staff') {
+                    deptStr = userData.department ? `${userData.subject || ''} ${userData.department}` : 'Staff';
+                } else if (role === 'admin') deptStr = 'Admin';
+                else if (role === 'student') deptStr = userData.regNo || 'Student';
+                
+                const initials = rawName.split(' ').filter(Boolean).map(w => w[0].toUpperCase()).slice(0, 2).join('') || '?';
+                const avatarBg = role === 'admin' ? 'linear-gradient(135deg,#b45309,#f59e0b)' : role === 'staff' ? 'linear-gradient(135deg,#005c4b,#00a884)' : 'linear-gradient(135deg,#6c63ff,#8c82ff)';
+                const photoURL = userData.photoURL || '';
+                
+                const avatarHtml = photoURL ? `<img src="${photoURL}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">` : `<span style="font-weight:700;color:white;">${initials}</span>`;
+                const avatarStyle = photoURL ? 'background:transparent;' : `background:${avatarBg};`;
+                
+                const encName = encodeURIComponent(rawName);
+                const encDept = encodeURIComponent(deptStr);
+                const encPhoto = encodeURIComponent(photoURL);
+                const encBg = encodeURIComponent(avatarBg);
+                const encInitials = encodeURIComponent(initials);
+                
+                resultsDiv.innerHTML += `
+                    <div class="search-result-item" onclick="sendContact('${docSnap.id}', '${encName}', '${encDept}', '${encPhoto}', '${encBg}', '${encInitials}')">  
+                        <div class="chat-avatar" style="width:40px;height:40px;margin-right:10px;${avatarStyle}">${avatarHtml}</div>
+                        <div>
+                            <div style="font-size:14px;color:white;">${rawName}</div>
+                            <div style="font-size:12px;color:#8696a0;">${deptStr}</div>
+                        </div>
+                    </div>
+                `;
+            };
+            adminsSnap.forEach(d => processDoc(d, 'admin'));
+            staffSnap.forEach(d => processDoc(d, 'staff'));
+            studentsSnap.forEach(d => processDoc(d, 'student'));
+            if(count === 0) resultsDiv.innerHTML = '<div style="padding:10px;color:#8696a0;">No users found.</div>';
+        } catch(error) {
+            console.error("Search error", error);
+            resultsDiv.innerHTML = '<div style="padding:10px;color:#f87171;">Error fetching users.</div>';
+        }
+    }
+
+    window.sendContact = async function(id, encName, encDept, encPhoto, encBg, encInitials) {
+        document.getElementById('contactPickerModal').style.display = 'none';
+        const contactData = {
+            id: id,
+            name: decodeURIComponent(encName),
+            department: decodeURIComponent(encDept),
+            photoURL: decodeURIComponent(encPhoto),
+            avatarBg: decodeURIComponent(encBg),
+            initials: decodeURIComponent(encInitials)
+        };
+        await sendMessage(null, { type: 'contact', contact: contactData });
+        showToast("Contact sent");
+    }
+
+    window.openPollModal = function() {
+        toggleAttachmentMenu();
+        document.getElementById('pollModal').style.display = 'flex';
+        document.getElementById('pollQuestion').value = '';
+        document.getElementById('pollOptionsContainer').innerHTML = `
+            <input type="text" class="modal-search poll-option-input" placeholder="Option 1">
+            <input type="text" class="modal-search poll-option-input" placeholder="Option 2">
+        `;
+    }
+
+    window.addPollOption = function() {
+        const container = document.getElementById('pollOptionsContainer');
+        if (container.children.length >= 6) {
+            showToast("Maximum 6 options allowed");
+            return;
+        }
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'modal-search poll-option-input';
+        input.placeholder = 'Option ' + (container.children.length + 1);
+        container.appendChild(input);
+    }
+
+    window.sendPoll = async function() {
+        const question = document.getElementById('pollQuestion').value.trim();
+        if (!question) { showToast("Enter a question"); return; }
+        
+        const inputs = document.querySelectorAll('.poll-option-input');
+        const options = [];
+        inputs.forEach(input => {
+            const val = input.value.trim();
+            if (val) options.push({ text: val, votes: [] });
+        });
+        if (options.length < 2) { showToast("Enter at least 2 options"); return; }
+        
+        document.getElementById('pollModal').style.display = 'none';
+        
+        await sendMessage(null, { type: 'poll', question: question, options: options });
+        showToast("Poll sent");
+    }
+
+    window.votePoll = async function(msgId, optionIndex) {
+        if(!currentChatId) return;
+        try {
+            const msgRef = doc(db, "chats", currentChatId, "messages", msgId);
+            const msgSnap = await getDoc(msgRef);
+            if (!msgSnap.exists()) return;
+            const msgData = msgSnap.data();
+            if (msgData.type !== 'poll') return;
+            
+            const options = [...msgData.options];
+            
+            // Remove user's previous votes (single choice)
+            options.forEach(opt => {
+                opt.votes = opt.votes.filter(uid => uid !== currentUser.uid);
+            });
+            
+            // Add vote to new option
+            options[optionIndex].votes.push(currentUser.uid);
+            
+            await updateDoc(msgRef, { options: options });
+        } catch(e) { console.error(e); showToast("Vote failed"); }
+    }
+
+    window.openPaymentModal = function() {
+        toggleAttachmentMenu();
+        document.getElementById('paymentModal').style.display = 'flex';
+        document.getElementById('paymentAmount').value = '';
+        document.getElementById('paymentNote').value = '';
+    }
+
+    window.sendPayment = async function() {
+        const amount = document.getElementById('paymentAmount').value.trim();
+        const note = document.getElementById('paymentNote').value.trim();
+        if (!amount || isNaN(amount) || Number(amount) <= 0) { showToast("Enter a valid amount"); return; }
+        
+        document.getElementById('paymentModal').style.display = 'none';
+        
+        await sendMessage(null, { type: 'payment', amount: Number(amount), note: note });
+        showToast("Payment request sent");
+    }
+
+    window.openEventModal = function() {
+        toggleAttachmentMenu();
+        document.getElementById('eventModal').style.display = 'flex';
+        document.getElementById('eventTitle').value = '';
+        document.getElementById('eventDate').value = '';
+        document.getElementById('eventTime').value = '';
+    }
+
+    window.sendEvent = async function() {
+        const title = document.getElementById('eventTitle').value.trim();
+        const date = document.getElementById('eventDate').value;
+        const time = document.getElementById('eventTime').value;
+        if (!title || !date || !time) { showToast("Fill all event fields"); return; }
+        
+        document.getElementById('eventModal').style.display = 'none';
+        
+        await sendMessage(null, { type: 'event', title: title, date: date, time: time });
+        showToast("Event sent");
+    }
+
+    window.downloadICS = function(title, dateStr, timeStr) {
+        const startDt = dateStr.replace(/-/g, '') + 'T' + timeStr.replace(':', '') + '00';
+        const icsContent = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//DSU EXAM//EN\nBEGIN:VEVENT\nUID:${Date.now()}@dsu.edu\nDTSTAMP:${startDt}Z\nDTSTART;TZID=Asia/Kolkata:${startDt}\nSUMMARY:${title}\nEND:VEVENT\nEND:VCALENDAR`;
+        
+        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title.replace(/\s+/g, '_')}.ics`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    window.openAIModal = function() {
+        toggleAttachmentMenu();
+        document.getElementById('aiModal').style.display = 'flex';
+        document.getElementById('aiPrompt').value = '';
+    }
+
+    window.generateAIImage = async function() {
+        const prompt = document.getElementById('aiPrompt').value.trim();
+        if (!prompt) { showToast("Enter a description"); return; }
+        
+        const btn = document.getElementById('generateAIBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        showToast("Generating image (Stub)...");
+        
+        // STUB: Simulate API delay, then send a placeholder image
+        setTimeout(async () => {
+            const stubUrl = "https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?auto=format&fit=crop&w=400&q=80"; // random AI-looking placeholder
+            document.getElementById('aiModal').style.display = 'none';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-magic" style="margin-right:5px;"></i> Generate & Send';
+            
+            await sendMessage(null, { type: 'image', imageUrl: stubUrl, text: `✨ AI: "${prompt}"` });
+            showToast("AI image sent!");
+        }, 2500);
     }
 
     // iOS Toast Utility
@@ -2743,12 +3263,16 @@
         }
     }
 
-    window.sendMessage = async function(e = null, imageUrl = null) {
+    window.sendMessage = async function(e = null, options = {}) {
         if(!currentChatId) return;
         const input = document.getElementById('messageInput');
         const text = input.value.trim();
         
-        if(!text && !imageUrl) return; 
+        if (typeof options === 'string') {
+            options = { imageUrl: options, type: 'image' };
+        }
+        
+        if(!text && Object.keys(options).length === 0) return; 
         
         input.value = ''; 
         
@@ -2756,17 +3280,26 @@
             const msgData = {
                 senderId: currentUser.uid,
                 sentAt: serverTimestamp(),
-                readBy: [currentUser.uid]
+                readBy: [currentUser.uid],
+                ...options
             };
             if (text) msgData.text = text;
-            if (imageUrl) msgData.imageUrl = imageUrl;
             if (replyingToMsg) msgData.replyTo = replyingToMsg;
 
             await addDoc(collection(db, "chats", currentChatId, "messages"), msgData);
             cancelReply();
             
-            let previewText = text;
-            if (!text && imageUrl) previewText = "📷 Image";
+            let previewText = text || 'Attachment';
+            if (!text) {
+                if (options.type === 'image' || options.imageUrl) previewText = '📷 Image';
+                else if (options.type === 'video') previewText = '🎥 Video';
+                else if (options.type === 'document') previewText = '📄 Document';
+                else if (options.type === 'location') previewText = '📍 Location';
+                else if (options.type === 'contact') previewText = '👤 Contact';
+                else if (options.type === 'poll') previewText = '📊 Poll';
+                else if (options.type === 'payment') previewText = '💸 Payment';
+                else if (options.type === 'event') previewText = '📅 Event';
+            }
 
             await updateDoc(doc(db, "chats", currentChatId), {
                 lastMessage: previewText,
@@ -2775,7 +3308,7 @@
             
         } catch(error) {
             console.error("Error sending message", error);
-            alert("Failed to send message.");
+            showToast("Failed to send message");
         }
     }
 </script>
