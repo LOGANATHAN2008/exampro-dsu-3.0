@@ -75,8 +75,8 @@ window.addEventListener('DOMContentLoaded', () => {
     let currentPage = window.location.pathname.split('/').pop();
     if (!currentPage) currentPage = 'dashboard.html';
     
-    // Do not inject navigation on authentication or standalone pages
-    if (['', 'index.html', 'about.html', 'login.html', 'register.html', 'admin.html', 'faculty.html'].includes(currentPage.split('?')[0])) return;
+    // Do not inject navigation on authentication or standalone full-screen apps (like chats)
+    if (['', 'index.html', 'about.html', 'login.html', 'register.html', 'admin.html', 'faculty.html', 'chats.html'].includes(currentPage.split('?')[0])) return;
     
     // Background Page Prefetching for Ultra-Fast Instant Transitions
     const prefetchPages = ['dashboard.html', 'materials.html', 'test.html', 'result.html', 'profile.html'];
