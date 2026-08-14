@@ -1,5 +1,5 @@
-// ExamPro DSU - Service Worker v4
-const CACHE_NAME = 'exampro-dsu-v4';
+// ExamPro DSU - Service Worker v5
+const CACHE_NAME = 'exampro-dsu-v5';
 
 // Static assets to cache immediately on install (App Shell)
 const STATIC_ASSETS = [
@@ -62,7 +62,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // CACHE-FIRST for static assets (HTML, CSS, images, JS files)
+  // NETWORK-FIRST for HTML pages to ensure users always get the latest code
+  if (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html')) {
+    event.respondWith(
+      fetch(event.request).then((networkResponse) => {
+        // Cache the latest HTML for offline fallback
+        const responseToCache = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseToCache);
+        });
+        return networkResponse;
+      }).catch(() => {
+        // Fallback to cached HTML if offline
+        return caches.match(event.request).then((cachedResponse) => {
+            if (cachedResponse) return cachedResponse;
+            return caches.match('/login.html');
+        });
+      })
+    );
+    return;
+  }
+
+  // CACHE-FIRST for static assets (CSS, images, JS files)
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
