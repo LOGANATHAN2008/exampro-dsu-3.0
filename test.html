@@ -1491,7 +1491,8 @@
             document.removeEventListener('visibilitychange', handleTabSwitch);
             window.removeEventListener('blur', handleTabSwitch);
             document.getElementById('submitConfirm').classList.remove('show');
-            document.getElementById('loader').style.display = 'flex';
+            const loader = document.getElementById('loader');
+            if (loader) loader.style.display = 'flex';
             document.body.classList.remove('test-active');
             let vp = document.querySelector('meta[name="viewport"]');
             if (vp) vp.setAttribute('content', 'width=device-width,initial-scale=1.0');
