@@ -99,7 +99,7 @@ service cloud.firestore {
 
     // ===== Results Collection =====
     match /results/{resultId} {
-      allow read: if request.auth != null && staffReadFilter(resource.data);
+      allow read: if staffReadFilter(resource.data);
       allow create: if request.auth != null && request.resource.data.studentId == request.auth.uid;
       allow update: if (request.auth != null && request.resource.data.studentId == request.auth.uid) || isAnyAdmin() || isStaffOf(resource.data.subject, resource.data.department);
       allow delete: if isAnyAdmin() || isStaffOf(resource.data.subject, resource.data.department);
