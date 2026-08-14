@@ -482,7 +482,8 @@ export function initGlobalListener(db, currentUser) {
                 const data = change.doc.data();
                 if (data.lastMessageSenderId && data.lastMessageSenderId !== currentUser.uid) {
                     const now = new Date().getTime();
-                    const msgTime = data.lastMessageAt ? (typeof data.lastMessageAt.toMillis === 'function' ? data.lastMessageAt.toMillis() : 0) : 0;
+                    // If lastMessageAt is null (pending server timestamp), assume it's right now
+                    const msgTime = data.lastMessageAt ? (typeof data.lastMessageAt.toMillis === 'function' ? data.lastMessageAt.toMillis() : 0) : now;
                     
                     // Only notify if message is recent (within 10 seconds) to avoid spam
                     if (now - msgTime < 10000) {

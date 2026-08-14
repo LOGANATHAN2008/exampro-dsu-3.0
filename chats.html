@@ -2153,11 +2153,6 @@
                     </div>
                 `;
             });
-            
-            if (isNewMessage && typeof window.playNotification === 'function') {
-                window.playNotification();
-            }
-
             // Auto scroll
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         });
