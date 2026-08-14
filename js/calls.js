@@ -24,6 +24,7 @@ let pc = null;
 let localStream = null;
 let remoteStream = null;
 let currentCallDocId = null;
+let currentChatDocId = null;
 let callType = null;
 let unsubscribeCallDoc = null;
 let unsubscribeOfferCandidates = null;
@@ -66,12 +67,13 @@ export async function cleanupCall(db) {
 /**
  * Caller function: starts a call to a specific user.
  */
-export async function startCall(db, currentUser, type, calleeUID, calleeName, calleeAvatar) {
+export async function startCall(db, currentUser, type, calleeUID, calleeName, calleeAvatar, chatId) {
     if (!calleeUID) {
         if(window.showToast) window.showToast("Cannot call: User ID missing");
         return;
     }
     callType = type;
+    currentChatDocId = chatId;
     
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         console.error("navigator.mediaDevices not found. HTTPS is required for WebRTC.");
@@ -131,7 +133,7 @@ export async function startCall(db, currentUser, type, calleeUID, calleeName, ca
     };
     await setDoc(callDocRef, callData);
 
-    unsubscribeCallDoc = onSnapshot(callDocRef, (snapshot) => {
+    unsubscribeCallDoc = onSnapshot(callDocRef, async (snapshot) => {
         if (!snapshot.exists()) {
             cleanupCall(db);
             return;
@@ -139,6 +141,20 @@ export async function startCall(db, currentUser, type, calleeUID, calleeName, ca
         const data = snapshot.data();
         if (data.status === 'declined' || data.status === 'ended' || data.status === 'missed') {
             if(window.showToast) window.showToast(`Call ${data.status}`);
+            
+            if (currentChatDocId) {
+                try {
+                    await addDoc(collection(db, "chats", currentChatDocId, "messages"), {
+                        senderId: currentUser.uid,
+                        type: 'call',
+                        callType: type,
+                        callStatus: data.status,
+                        durationSeconds: callSeconds,
+                        sentAt: new Date()
+                    });
+                } catch(e) { console.error("Error saving call message:", e); }
+            }
+
             cleanupCall(db);
         }
         if (data.answer && !pc.currentRemoteDescription) {
@@ -172,9 +188,10 @@ export async function startCall(db, currentUser, type, calleeUID, calleeName, ca
 /**
  * Callee function: accepts an incoming call.
  */
-export async function acceptCall(db, callId, type) {
+export async function acceptCall(db, callId, type, chatId) {
     if (!callId) return;
     currentCallDocId = callId;
+    currentChatDocId = chatId;
     callType = type;
     
     const callDocRef = doc(db, 'calls', callId);

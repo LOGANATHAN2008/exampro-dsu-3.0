@@ -1632,7 +1632,7 @@
                 if (profileCache[otherUid]) {
                     otherAvatar = profileCache[otherUid].photoURL || "";
                 }
-                CallService.startCall(db, currentUser, type, otherUid, otherName, otherAvatar);
+                CallService.startCall(db, currentUser, type, otherUid, otherName, otherAvatar, currentChatId);
             }
         } catch (e) {
             console.error("Failed to start call", e);
@@ -2075,6 +2075,37 @@
                             <div style="font-size:14px; color:#e9edef; font-weight:600; margin-bottom:5px;">Payment Request</div>
                             ${msg.note ? `<div style="font-size:13px; color:#8696a0; margin-bottom:15px; font-style:italic;">"${msg.note}"</div>` : ''}
                             <a href="${upiLink}" target="_blank" style="display:block; text-align:center; background:#00a884; color:white; padding:10px; border-radius:8px; text-decoration:none; font-weight:bold;">Pay Now</a>
+                        </div>
+                    `;
+                } else if (msg.type === 'call') {
+                    const iconClass = msg.callType === 'video' ? 'fas fa-video' : 'fas fa-phone';
+                    const iconColor = msg.callStatus === 'missed' ? '#f15c6d' : (isMine ? '#fff' : '#e9edef');
+                    const titleText = msg.callType === 'video' ? 'Video call' : 'Voice call';
+                    
+                    let statusText = '';
+                    if (msg.callStatus === 'missed') {
+                        statusText = 'Missed';
+                    } else if (msg.callStatus === 'declined') {
+                        statusText = 'Declined';
+                    } else {
+                        const mins = Math.floor((msg.durationSeconds || 0) / 60);
+                        const secs = (msg.durationSeconds || 0) % 60;
+                        if (mins > 0) {
+                            statusText = `${mins} minute${mins !== 1 ? 's' : ''}`;
+                        } else {
+                            statusText = `${secs} second${secs !== 1 ? 's' : ''}`;
+                        }
+                    }
+
+                    customHtml = `
+                        <div style="background: ${isMine ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.05)'}; border-radius: 8px; padding: 10px 14px; margin-bottom: 5px; min-width: 200px; display: flex; align-items: center; cursor:pointer;" onclick="startMediaCall('${msg.callType}')">
+                            <div style="width: 44px; height: 44px; border-radius: 50%; background: ${isMine ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)'}; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 14px; flex-shrink:0;">
+                                <i class="${iconClass}" style="color:${iconColor};"></i>
+                            </div>
+                            <div style="flex:1; overflow:hidden;">
+                                <div style="font-size: 16px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: ${msg.callStatus === 'missed' ? '#f15c6d' : (isMine ? '#fff' : '#e9edef')};">${titleText}</div>
+                                <div style="font-size: 13px; color: ${isMine ? 'rgba(255,255,255,0.75)' : '#8696a0'}; margin-top:3px;">${statusText}</div>
+                            </div>
                         </div>
                     `;
                 } else if (msg.type === 'event') {
