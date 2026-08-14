@@ -3,11 +3,11 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-com
 
 const firebaseConfig = {
     apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
-    authDomain: "dsu-exampro.firebaseapp.com",
-    projectId: "dsu-exampro",
-    storageBucket: "dsu-exampro.appspot.com",
-    messagingSenderId: "530095819717",
-    appId: "1:530095819717:web:2cbfd97ce8a958cfb99db1",
+    authDomain: "dsu-exam-system.firebaseapp.com",
+    projectId: "dsu-exam-system",
+    storageBucket: "dsu-exam-system.firebasestorage.app",
+    messagingSenderId: "155083834622",
+    appId: "1:155083834622:web:ff0a9780b88bad0b8811af",
     measurementId: "G-G605ZRL3N6"
 };
 
