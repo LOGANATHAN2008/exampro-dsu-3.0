@@ -73,6 +73,12 @@ export async function startCall(db, currentUser, type, calleeUID, calleeName, ca
     }
     callType = type;
     
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error("navigator.mediaDevices not found. HTTPS is required for WebRTC.");
+        if(window.showToast) window.showToast("Calling requires HTTPS or a modern browser.");
+        return;
+    }
+    
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ 
             video: type === 'video', 
@@ -174,6 +180,13 @@ export async function acceptCall(db, callId, type) {
     const callDocRef = doc(db, 'calls', callId);
     const offerCandidatesRef = collection(callDocRef, 'offerCandidates');
     const answerCandidatesRef = collection(callDocRef, 'answerCandidates');
+    
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error("navigator.mediaDevices not found. HTTPS is required for WebRTC.");
+        if(window.showToast) window.showToast("Calling requires HTTPS or a modern browser.");
+        await updateDoc(callDocRef, { status: 'declined_no_media' });
+        return;
+    }
     
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ 

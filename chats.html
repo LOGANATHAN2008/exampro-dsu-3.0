@@ -872,7 +872,7 @@
             .icon-btn { padding: 8px; font-size: 20px; }
 
             /* Header action buttons - hide call buttons to save space */
-            .header-call-btn { display: none; }
+            .header-call-btn { display: inline-flex; }
             .header-divider { display: none; }
 
             /* Message options button always visible on touch */
@@ -1621,12 +1621,11 @@
         }
     });
 
-    window.startMediaCall = async function(type) {
+    window.startMediaCall = function(type) {
         if (!currentChatId) return;
         try {
-            const chatSnap = await getDoc(doc(db, "chats", currentChatId));
-            if (chatSnap.exists()) {
-                const chatData = chatSnap.data();
+            const chatData = allChats.find(c => c.id === currentChatId);
+            if (chatData) {
                 const otherUid = chatData.participants.find(id => id !== currentUser.uid);
                 const otherName = chatData.participantNames ? chatData.participantNames[otherUid] : "User";
                 let otherAvatar = "";
