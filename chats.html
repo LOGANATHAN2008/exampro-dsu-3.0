@@ -281,7 +281,9 @@
         .context-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             z-index: 999; display: none;
-            background: rgba(0, 0, 0, 0.5); /* slightly darker to make menu pop without blur */
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
 
         .delete-modal-btn {
@@ -2247,9 +2249,27 @@
         // Highlight active message (elevate above overlay)
         const msgBubble = document.getElementById('msg-' + msgId);
         if (msgBubble) {
-            msgBubble.style.position = 'relative';
-            msgBubble.style.zIndex = '1000';
-            // No massive shadow to keep it clean like iOS
+            // Create a clone to sit above the fixed blur overlay
+            const oldClone = document.getElementById('msg-clone');
+            if (oldClone) oldClone.remove();
+            
+            const rect = msgBubble.getBoundingClientRect();
+            const clone = msgBubble.cloneNode(true);
+            clone.id = 'msg-clone';
+            clone.style.position = 'fixed';
+            clone.style.top = rect.top + 'px';
+            clone.style.left = rect.left + 'px';
+            clone.style.width = rect.width + 'px';
+            clone.style.height = rect.height + 'px';
+            clone.style.margin = '0';
+            clone.style.zIndex = '1000';
+            clone.style.pointerEvents = 'none'; // so we can still click the overlay to close
+            
+            // Clean up the clone's internal options button to prevent UI glitches
+            const cloneOptBtn = clone.querySelector('.msg-options-btn');
+            if (cloneOptBtn) cloneOptBtn.style.display = 'none';
+            
+            document.body.appendChild(clone);
         }
         
         overlay.style.display = 'block';
@@ -2310,13 +2330,8 @@
         document.getElementById('contextMenu').style.display = 'none';
         document.getElementById('reactionsBar').style.display = 'none';
         
-        if (activeMessageId) {
-            const msgBubble = document.getElementById('msg-' + activeMessageId);
-            if (msgBubble) {
-                msgBubble.style.zIndex = '';
-                msgBubble.style.boxShadow = '';
-            }
-        }
+        const oldClone = document.getElementById('msg-clone');
+        if (oldClone) oldClone.remove();
         
         activeMessageId = null;
     }
