@@ -167,15 +167,24 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        let isDraggingNav = false;
+
         document.addEventListener('touchstart', e => {
-            touchstartX = e.changedTouches[0].screenX;
-            touchstartY = e.changedTouches[0].screenY;
+            if (e.target.closest('.mobile-bottom-nav')) {
+                isDraggingNav = true;
+                touchstartX = e.changedTouches[0].screenX;
+                touchstartY = e.changedTouches[0].screenY;
+            } else {
+                isDraggingNav = false;
+            }
         }, { passive: true });
 
         document.addEventListener('touchend', e => {
+            if (!isDraggingNav) return;
             touchendX = e.changedTouches[0].screenX;
             touchendY = e.changedTouches[0].screenY;
             handleGesture();
+            isDraggingNav = false;
         }, { passive: true });
     }
 });
