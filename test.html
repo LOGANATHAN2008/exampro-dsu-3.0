@@ -1187,21 +1187,31 @@
                     showToast('This test has no questions yet.', 'error'); return;
                 }
 
-                // -- Step 1: Initialise AI Proctoring module ------------------
-                await ExamProctor.init({
-                    db:           db,
-                    currentUser:  currentUser,
-                    selectedTest: selectedTest,
-                    // Called when exam is force-terminated (3rd tab violation)
-                    onTerminate: () => {
-                        testStarted = false;
-                        clearInterval(timerInterval);
-                        submitTest(true, true);
-                    },
-                });
+                // Show loading state
+                const btn = document.querySelector('.btn-start');
+                const origText = btn ? btn.innerHTML : '';
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading AI...';
+                    btn.disabled = true;
+                    btn.style.opacity = '0.7';
+                }
 
-                // -- Step 2: Close confirm modal, show proctoring guidelines --
-                document.getElementById('testConfirmView').classList.remove('active');
+                try {
+                    // -- Step 1: Initialise AI Proctoring module ------------------
+                    await ExamProctor.init({
+                        db:           db,
+                        currentUser:  currentUser,
+                        selectedTest: selectedTest,
+                        // Called when exam is force-terminated (3rd tab violation)
+                        onTerminate: () => {
+                            testStarted = false;
+                            clearInterval(timerInterval);
+                            submitTest(true, true);
+                        },
+                    });
+
+                    // -- Step 2: Close confirm modal, show proctoring guidelines --
+                    document.getElementById('testConfirmView').classList.remove('active');
 
                 ExamProctor.showGuidelines(
                     // onConfirm - student clicked "Allow Camera & Start Exam"
@@ -1264,6 +1274,16 @@
                         selectedTest = null;
                     }
                 );
+                } catch (err) {
+                    console.error("Proctor init failed:", err);
+                    showToast('Failed to load Exam AI. Check connection.', 'error');
+                } finally {
+                    if (btn) {
+                        btn.innerHTML = origText;
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                    }
+                }
             };
 
         function _shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
