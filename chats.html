@@ -1424,7 +1424,7 @@
                 profileCache[docSnap.id] = { photoURL, name: rawName, initials, avatarBg };
                 
                 const avatarHtml = photoURL
-                    ? `<img src="${photoURL}" alt="${rawName}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.style.background='${avatarBg}';this.parentElement.innerHTML='<span style=\'font-weight:700;color:white;\'>${initials}</span>';">`
+                    ? `<img src="${photoURL}" alt="${rawName}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.style.background='${avatarBg}';this.parentElement.innerHTML='<span style=\\'font-weight:700;color:white;\\'>${initials}</span>';">`
                     : `<span style="font-weight:700;color:white;">${initials}</span>`;
                 const avatarStyle = photoURL ? 'background:transparent;' : `background:${avatarBg};`;
 
@@ -2486,7 +2486,7 @@
                     // Real profile photo
                     avatarEl.style.background = 'transparent';
                     avatarEl.style.border = '3px solid rgba(0,168,132,0.5)';
-                    avatarEl.innerHTML = `<img src="${photoURL}" alt="${name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.style.background='${avatarBg}';this.parentElement.innerHTML='<span style=\\"font-size:38px;font-weight:700;\\">${initials||'?'}</span>'">`;
+                    avatarEl.innerHTML = `<img src="${photoURL}" alt="${name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.style.background='${avatarBg}';this.parentElement.innerHTML='<span style=\\'font-size:38px;font-weight:700;\\'>${initials||'?'}</span>'">`;
                 } else {
                     // Initials fallback
                     avatarEl.style.background = avatarBg;
@@ -2513,7 +2513,7 @@
             const headerAvatar = document.getElementById('activeChatAvatar');
             if (headerAvatar && photoURL) {
                 headerAvatar.style.background = 'transparent';
-                headerAvatar.innerHTML = `<img src="${photoURL}" alt="${name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.innerHTML='<i class=\\"fas fa-user\\"></i>';this.parentElement.style.background='#3b4a54';">`;
+                headerAvatar.innerHTML = `<img src="${photoURL}" alt="${name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-user\\'></i>';this.parentElement.style.background='#3b4a54';">`;
             } else if (headerAvatar && initials) {
                 headerAvatar.style.background = avatarBg;
                 headerAvatar.style.fontSize = '18px';
