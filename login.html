@@ -933,8 +933,8 @@
             const adminCode = adminCodeInput ? adminCodeInput.value.trim() : '';
             const btn = document.getElementById('loginBtn');
 
-            const enteredCaptcha = document.getElementById('captchaInput').value.trim().toUpperCase().replace(/\s+/g, '');
-            const expectedCaptcha = currentCaptcha.replace(/\s+/g, '');
+            const enteredCaptcha = document.getElementById('captchaInput').value.trim().toUpperCase().replace(/\s/g, '');
+            const expectedCaptcha = currentCaptcha.toUpperCase();
             if (enteredCaptcha !== expectedCaptcha) {
                 showToast('Invalid CAPTCHA code. Please try again.', 'error');
                 generateCaptcha();
