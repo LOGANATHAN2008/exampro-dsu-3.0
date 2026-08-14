@@ -152,16 +152,22 @@ window.addEventListener('DOMContentLoaded', () => {
             
             // Ensure the swipe is mostly horizontal, not a vertical scroll
             if (Math.abs(xDiff) > Math.abs(yDiff) && Math.abs(xDiff) > 50) {
-                // Swiped Right (finger moved right) -> User wants to go to NEXT page
+                // Swiped Right (finger moved right) -> Go to PREV page
                 if (xDiff > 0) {
-                    if (currentIndex < pages.length - 1) {
-                        window.location.href = pages[currentIndex + 1];
+                    if (currentIndex > 0) {
+                        document.body.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+                        document.body.style.opacity = '0';
+                        document.body.style.transform = 'translateX(20px)';
+                        setTimeout(() => window.location.href = pages[currentIndex - 1], 150);
                     }
                 } 
-                // Swiped Left (finger moved left) -> User wants to go to PREV page
+                // Swiped Left (finger moved left) -> Go to NEXT page
                 else {
-                    if (currentIndex > 0) {
-                        window.location.href = pages[currentIndex - 1];
+                    if (currentIndex < pages.length - 1) {
+                        document.body.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+                        document.body.style.opacity = '0';
+                        document.body.style.transform = 'translateX(-20px)';
+                        setTimeout(() => window.location.href = pages[currentIndex + 1], 150);
                     }
                 }
             }
