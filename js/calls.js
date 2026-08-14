@@ -2,6 +2,7 @@ import {
     collection, doc, setDoc, addDoc, onSnapshot, getDoc, 
     updateDoc, deleteDoc, getDocs, query, where 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
 // STUN/TURN Servers Config
 const servers = {
@@ -415,6 +416,26 @@ export function initGlobalListener(db, currentUser) {
     // Request Notification permission for background calls
     if ("Notification" in window && Notification.permission === "default") {
         Notification.requestPermission();
+    }
+
+    // Initialize Firebase Cloud Messaging for Background Pushes
+    try {
+        const messaging = getMessaging();
+        getToken(messaging, { vapidKey: "BDMFxPzadFCNDmgUU9dnwKd_KYiMEdcq8mtHh-Ch-Vh3sy2eKrzVwWrjTR2jEDUHxtDf9vH6hRqV4z6hdenMo3g" }).then((currentToken) => {
+            if (currentToken) {
+                // Save token to Firestore
+                setDoc(doc(db, "fcmTokens", currentUser.uid), {
+                    token: currentToken,
+                    updatedAt: new Date()
+                }, { merge: true });
+            } else {
+                console.log('No registration token available. Request permission to generate one.');
+            }
+        }).catch((err) => {
+            console.log('An error occurred while retrieving token. ', err);
+        });
+    } catch (e) {
+        console.warn("FCM init failed:", e);
     }
 
     const q = query(

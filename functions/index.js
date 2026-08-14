@@ -290,3 +290,98 @@ exports.createStaffAccount = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError(code, msg);
   }
 });
+
+// 7. Push Notification for Incoming Calls
+exports.onCallCreated = functions.firestore
+    .document('calls/{callId}')
+    .onCreate(async (snap, context) => {
+        const callData = snap.data();
+        if (!callData || !callData.calleeUID) return null;
+
+        const calleeUID = callData.calleeUID;
+        const callerName = callData.callerName || "Someone";
+        const callType = callData.type || "video";
+
+        const db = admin.firestore();
+        const tokenDoc = await db.collection("fcmTokens").doc(calleeUID).get();
+        if (!tokenDoc.exists) return null;
+
+        const fcmToken = tokenDoc.data().token;
+        if (!fcmToken) return null;
+
+        const payload = {
+            token: fcmToken,
+            notification: {
+                title: `Incoming ${callType} call...`,
+                body: `${callerName} is calling you. Tap to open ExamPro DSU.`
+            },
+            data: {
+                click_action: "FLUTTER_NOTIFICATION_CLICK", // for flutter compat if needed
+                type: "call",
+                callId: context.params.callId
+            }
+        };
+
+        try {
+            await admin.messaging().send(payload);
+            console.log("Call push notification sent to", calleeUID);
+        } catch (error) {
+            console.error("Error sending call push notification:", error);
+        }
+    });
+
+// 8. Push Notification for New Chat Messages
+exports.onMessageSent = functions.firestore
+    .document('chats/{chatId}')
+    .onUpdate(async (change, context) => {
+        const newValue = change.after.data();
+        const previousValue = change.before.data();
+        
+        // Only trigger if lastMessage was updated
+        if (newValue.lastMessage === previousValue.lastMessage) return null;
+        
+        const senderId = newValue.lastMessageSenderId;
+        if (!senderId) return null;
+
+        const senderName = newValue.lastMessageSenderName || "User";
+        const messageText = newValue.lastMessage || "Sent a message";
+        const participants = newValue.participants || [];
+
+        const db = admin.firestore();
+        
+        // Get tokens for all participants EXCEPT the sender
+        const tokensToNotify = [];
+        
+        for (const uid of participants) {
+            if (uid === senderId) continue;
+            
+            const tokenDoc = await db.collection("fcmTokens").doc(uid).get();
+            if (tokenDoc.exists && tokenDoc.data().token) {
+                tokensToNotify.push(tokenDoc.data().token);
+            }
+        }
+
+        if (tokensToNotify.length === 0) return null;
+
+        const payload = {
+            notification: {
+                title: `ExamPro DSU: ${senderName}`,
+                body: messageText
+            },
+            data: {
+                type: "chat",
+                chatId: context.params.chatId
+            }
+        };
+
+        try {
+            const response = await admin.messaging().sendEachForMulticast({
+                tokens: tokensToNotify,
+                ...payload
+            });
+            console.log("Chat push notification sent:", response.successCount, "successful");
+        } catch (error) {
+            console.error("Error sending chat push notification:", error);
+        }
+    });
+
