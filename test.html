@@ -1020,6 +1020,8 @@
                     studentProfile = studentDoc.data();
                 }
             } catch (err) { console.error('Could not fetch student profile:', err); }
+            
+            initGlobalListener(db, currentUser);
             loadTests();
         });
 
@@ -1044,8 +1046,6 @@
             document.getElementById('testSubjectsGrid').style.display = 'grid';
             renderTestsList();
         };
-
-        initGlobalListener(db, currentUser);
 
         function loadTests() {
             const sGrid = document.getElementById('testSubjectsGrid');
