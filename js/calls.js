@@ -442,6 +442,44 @@ export function initGlobalListener(db, currentUser) {
             }
         });
     });
+
+    // ─── BACKGROUND MESSAGE NOTIFICATIONS ───
+    const chatQ = query(
+        collection(db, "chats"),
+        where("participants", "array-contains", currentUser.uid)
+    );
+
+    let isInitialChatLoad = true;
+    onSnapshot(chatQ, (snapshot) => {
+        if (isInitialChatLoad) {
+            isInitialChatLoad = false;
+            return;
+        }
+        
+        snapshot.docChanges().forEach((change) => {
+            if (change.type === 'modified' || change.type === 'added') {
+                const data = change.doc.data();
+                if (data.lastMessageSenderId && data.lastMessageSenderId !== currentUser.uid) {
+                    const now = new Date().getTime();
+                    const msgTime = data.lastMessageAt ? (typeof data.lastMessageAt.toMillis === 'function' ? data.lastMessageAt.toMillis() : 0) : 0;
+                    
+                    // Only notify if message is recent (within 10 seconds) to avoid spam
+                    if (now - msgTime < 10000) {
+                        if (typeof window.playNotification === 'function') {
+                            window.playNotification();
+                        }
+                        
+                        if ("Notification" in window && Notification.permission === "granted") {
+                            new Notification(`ExamPro DSU: ${data.lastMessageSenderName || 'User'}`, {
+                                body: data.lastMessage || "Sent an attachment",
+                                icon: "/dsu_logo.png"
+                            });
+                        }
+                    }
+                }
+            }
+        });
+    });
 }
 
 function showDynamicIsland(callId, data, db, currentUser) {

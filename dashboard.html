@@ -2361,9 +2361,9 @@
 
             currentUser = user;
             document.body.classList.add('auth-verified');
+            initGlobalListener(db, user);
             setupRealtimeFeatures(user);
             await loadDashboard(user);
-            initGlobalListener(db, user);
         });
 
         async function setupRealtimeFeatures(user) {

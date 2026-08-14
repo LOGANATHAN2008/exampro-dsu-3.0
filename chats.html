@@ -3448,7 +3448,9 @@
 
             await updateDoc(doc(db, "chats", currentChatId), {
                 lastMessage: previewText,
-                lastMessageAt: serverTimestamp()
+                lastMessageAt: serverTimestamp(),
+                lastMessageSenderId: currentUser.uid,
+                lastMessageSenderName: window.currentUserName || 'Unknown'
             });
             
         } catch(error) {
