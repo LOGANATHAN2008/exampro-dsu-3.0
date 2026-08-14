@@ -1907,7 +1907,9 @@
             
             snapshot.docChanges().forEach((change) => {
                 if (change.type === 'added') {
-                    isNewMessage = true;
+                    if (change.doc.data().senderId !== currentUser.uid) {
+                        isNewMessage = true;
+                    }
                 }
             });
             snapshot.forEach(docSnap => {
