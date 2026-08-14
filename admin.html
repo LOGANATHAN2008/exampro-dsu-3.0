@@ -1343,8 +1343,8 @@
             <div class="page-title" id="pageTitle">Dashboard</div>
             <div class="search-bar">
                 <i class="fas fa-search" style="color:var(--text-muted);font-size:13px"></i>
-                <input type="text" placeholder="Search students..." id="globalSearch"
-                    oninput="searchStudents(this.value)" autocomplete="off" spellcheck="false" />
+                <input type="search" placeholder="Search students..." id="globalSearch"
+                    oninput="searchStudents(this.value)" autocomplete="new-password" data-lpignore="true" spellcheck="false" readonly onfocus="this.removeAttribute('readonly');" />
             </div>
             <button class="btn btn-success" onclick="exportCSV()"><i class="fas fa-download"></i> Export CSV</button>
         </div>
