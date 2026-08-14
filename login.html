@@ -1123,28 +1123,32 @@
                         localStorage.setItem('dsu_deviceId', deviceId);
                     }
                     
-                    const locInfo = typeof fetchLocationInfo === 'function' ? await fetchLocationInfo() : {};
-                    
-                    const historyRef = collection(db, 'students', cred.user.uid, 'loginHistory');
-                    await addDoc(historyRef, {
-                        timestamp: serverTimestamp(),
-                        userAgent: navigator.userAgent,
-                        approxDevice: getDeviceLabel(),
-                        loginRole: userType,
-                        deviceId: deviceId,
-                        ip: locInfo.ip || 'Unknown',
-                        location: locInfo.approxLocation || 'Unknown'
-                    });
-                    const hq = query(historyRef, orderBy('timestamp', 'desc'));
-                    const historyDocs = await getDocs(hq);
-                    if (historyDocs.size > 10) {
-                        const toDelete = historyDocs.docs.slice(10);
-                        for (let d of toDelete) {
-                            await deleteDoc(d.ref);
-                        }
-                    }
+                    // Fire-and-forget background logging to prevent slow login
+                    (async () => {
+                        try {
+                            const locInfo = typeof fetchLocationInfo === 'function' ? await fetchLocationInfo() : {};
+                            const historyRef = collection(db, 'students', cred.user.uid, 'loginHistory');
+                            await addDoc(historyRef, {
+                                timestamp: serverTimestamp(),
+                                userAgent: navigator.userAgent,
+                                approxDevice: getDeviceLabel(),
+                                loginRole: userType,
+                                deviceId: deviceId,
+                                ip: locInfo.ip || 'Unknown',
+                                location: locInfo.approxLocation || 'Unknown'
+                            });
+                            const hq = query(historyRef, orderBy('timestamp', 'desc'));
+                            const historyDocs = await getDocs(hq);
+                            if (historyDocs.size > 10) {
+                                const toDelete = historyDocs.docs.slice(10);
+                                for (let d of toDelete) {
+                                    await deleteDoc(d.ref);
+                                }
+                            }
+                        } catch(e) {}
+                    })();
                 } catch (e) {
-                    console.error("Failed to log activity", e);
+                    console.error("Failed to setup activity logging", e);
                 }
 
                 // OTP Logic only for accounts with 2FA explicitly enabled
@@ -1223,7 +1227,7 @@
                             if (isAdmin) window.location.replace('admin.html');
                             else if (isStaffMember) window.location.replace('staff.html');
                             else window.location.replace('dashboard.html');
-                        }, 1000);
+                        }, 100);
                     };
 
                     resetBtn();
@@ -1236,7 +1240,7 @@
                     if (isAdmin) window.location.replace('admin.html');
                     else if (isStaffMember) window.location.replace('staff.html');
                     else window.location.replace('dashboard.html');
-                }, 1000);
+                }, 100);
 
             } catch (err) {
                 console.error(err);
