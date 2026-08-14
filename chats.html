@@ -599,9 +599,138 @@
         /* Temporary back to dashboard button for layout integration */
         .back-btn { background: none; border: none; color: #e9edef; font-size: 20px; cursor: pointer; margin-right: 15px; }
 
-        @media(max-width: 768px) {
-            .chat-list-panel { width: 100%; }
-            .conversation-panel { display: none; }
+        /* ═══════════════ MOBILE RESPONSIVE (WhatsApp iOS Style) ═══════════════ */
+
+        /* Back button in conversation header - only shown on mobile */
+        .mobile-back-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #8696a0;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px 10px 5px 0;
+            margin-right: 5px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        @media (max-width: 768px) {
+            /* Lock body to prevent scroll bounce */
+            html, body { height: 100%; overflow: hidden; }
+
+            .main { margin-left: 0 !important; padding: 0 !important; }
+
+            .chat-layout {
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                overflow: hidden;
+            }
+
+            /* Chat list: takes full screen */
+            .chat-list-panel {
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                width: 100%;
+                min-width: unset;
+                z-index: 10;
+                transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                transform: translateX(0);
+                /* Safe area for notch/home bar */
+                padding-bottom: env(safe-area-inset-bottom, 0);
+            }
+
+            /* When a chat is open, slide the list out to the left */
+            .chat-list-panel.slide-out {
+                transform: translateX(-100%);
+                pointer-events: none;
+            }
+
+            /* Conversation panel: slides in from the right */
+            .conversation-panel {
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                display: flex !important;
+                flex-direction: column;
+                z-index: 20;
+                transform: translateX(100%);
+                transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            }
+
+            /* When conversation is open, slide it in */
+            .conversation-panel.slide-in {
+                transform: translateX(0);
+            }
+
+            /* Show back button on mobile */
+            .mobile-back-btn { display: block; }
+
+            /* Smaller header on mobile */
+            .chat-view-header {
+                padding: 8px 12px;
+                padding-top: calc(8px + env(safe-area-inset-top, 0px));
+            }
+            .chat-list-header {
+                padding: 12px 16px;
+                padding-top: calc(12px + env(safe-area-inset-top, 0px));
+            }
+
+            /* Smaller message bubbles and padding on mobile */
+            .chat-messages {
+                padding: 12px 12px;
+                /* Bottom space so last message isn't hidden behind input */
+                padding-bottom: 16px;
+            }
+            .message-bubble {
+                max-width: 80%;
+                font-size: 15px;
+            }
+
+            /* Input area: stick to the bottom, handle keyboard */
+            .chat-input-area {
+                padding: 8px 12px;
+                padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+                gap: 10px;
+                flex-shrink: 0;
+            }
+            .chat-input-area input {
+                font-size: 16px; /* prevent iOS zoom on focus */
+                padding: 10px 14px;
+            }
+
+            /* Context menu: stay within screen on mobile */
+            .context-menu { min-width: 200px; max-width: 90vw; }
+            .reactions-bar { max-width: 95vw; }
+
+            /* Forward/report modals: full width */
+            .modal-content { width: 95%; border-radius: 16px; }
+
+            /* Contact info panel: full screen on mobile */
+            .contact-info-panel { width: 100%; }
+
+            /* Avatar slightly smaller on mobile */
+            .chat-avatar { width: 42px; height: 42px; font-size: 17px; }
+            .chat-name { font-size: 15px; }
+            .chat-preview { font-size: 13px; }
+
+            /* Icon buttons larger touch targets */
+            .icon-btn { padding: 8px; font-size: 20px; }
+
+            /* Header action buttons - hide call buttons to save space */
+            .header-call-btn { display: none; }
+            .header-divider { display: none; }
+
+            /* Message options button always visible on touch */
+            .msg-options-btn { display: flex !important; }
+
+            /* Hide desktop back-to-dashboard arrow on mobile conversation view */
+            .desktop-only { display: none; }
+        }
+
+        @media (min-width: 769px) {
+            /* On desktop, ensure panels are shown normally */
+            .chat-list-panel { transform: none !important; pointer-events: auto !important; }
+            .conversation-panel { transform: none !important; display: flex !important; position: relative !important; }
+            .mobile-back-btn { display: none !important; }
         }
     </style>
 </head>
@@ -649,18 +778,24 @@
             
             <div class="chat-view" id="chatView" style="display: none; height: 100%; flex-direction: column;">
                 <div class="chat-view-header" style="justify-content: space-between;">
-                    <div style="display:flex; align-items:center; cursor:pointer;" onclick="handleHeaderMenuAction('Contact info')">
-                        <div class="chat-avatar" id="activeChatAvatar"><i class="fas fa-user"></i></div>
-                        <div class="chat-info">
-                            <div class="chat-name" id="activeChatName">Loading...</div>
-                            <div style="font-size:11px; color:#8696a0;" id="activeChatSub"></div>
+                    <div style="display:flex; align-items:center;">
+                        <!-- Mobile back button - takes user back to chat list -->
+                        <button class="mobile-back-btn" onclick="closeMobileConversation()" aria-label="Back to chats">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <div style="display:flex; align-items:center; cursor:pointer;" onclick="handleHeaderMenuAction('Contact info')">
+                            <div class="chat-avatar" id="activeChatAvatar"><i class="fas fa-user"></i></div>
+                            <div class="chat-info">
+                                <div class="chat-name" id="activeChatName">Loading...</div>
+                                <div style="font-size:11px; color:#8696a0;" id="activeChatSub"></div>
+                            </div>
                         </div>
                     </div>
                     
                     <!-- WhatsApp Header Actions -->
-                    <div style="display:flex; gap:15px; align-items:center;">
-                        <button class="icon-btn" onclick="showToast('Video call coming soon!')" title="Video Call"><i class="fas fa-video"></i></button>
-                        <button class="icon-btn" onclick="showToast('Voice call coming soon!')" title="Voice Call"><i class="fas fa-phone"></i></button>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <button class="icon-btn header-call-btn" onclick="showToast('Video call coming soon!')" title="Video Call"><i class="fas fa-video"></i></button>
+                        <button class="icon-btn header-call-btn" onclick="showToast('Voice call coming soon!')" title="Voice Call"><i class="fas fa-phone"></i></button>
                         <div class="header-divider" style="width:1px;height:24px;background:rgba(255,255,255,0.1);margin:0 5px;"></div>
                         <button class="icon-btn" onclick="toggleChatSearch()" title="Search"><i class="fas fa-search"></i></button>
                         <button class="icon-btn" onclick="toggleHeaderMenu(event)" title="More Options"><i class="fas fa-ellipsis-v"></i></button>
@@ -1323,12 +1458,29 @@
         });
     }
     
+    // Mobile responsive: close conversation panel and show chat list
+    window.closeMobileConversation = function() {
+        const listPanel = document.querySelector('.chat-list-panel');
+        const convPanel = document.querySelector('.conversation-panel');
+        if (listPanel) listPanel.classList.remove('slide-out');
+        if (convPanel) convPanel.classList.remove('slide-in');
+        currentChatId = null;
+    };
+
     // Make selectChat global
     window.selectChat = function(chatId, chatName) {
         currentChatId = chatId;
         document.getElementById('emptyState').style.display = 'none';
         document.getElementById('chatView').style.display = 'flex';
         document.getElementById('activeChatName').textContent = chatName;
+
+        // Mobile responsive: slide in conversation panel
+        if (window.innerWidth <= 768) {
+            const listPanel = document.querySelector('.chat-list-panel');
+            const convPanel = document.querySelector('.conversation-panel');
+            if (listPanel) listPanel.classList.add('slide-out');
+            if (convPanel) convPanel.classList.add('slide-in');
+        }
         
         // Reset header avatar
         const headerAvatar = document.getElementById('activeChatAvatar');
