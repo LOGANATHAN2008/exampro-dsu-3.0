@@ -1298,6 +1298,7 @@
         import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
         import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, getDoc, updateDoc, setDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { initGlobalListener } from "./js/calls.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
@@ -1415,6 +1416,7 @@
 
             // Real-time Materials Listener
             loadMaterialsListener();
+            initGlobalListener(db, user);
         });
 
         function loadMaterialsListener() {

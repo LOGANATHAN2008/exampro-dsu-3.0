@@ -1,6 +1,6 @@
 import { 
     collection, doc, setDoc, addDoc, onSnapshot, getDoc, 
-    updateDoc, deleteDoc, getDocs 
+    updateDoc, deleteDoc, getDocs, query, where 
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 // STUN/TURN Servers Config
@@ -403,4 +403,113 @@ export function toggleVideo() {
         }
     }
     return false;
+}
+
+/**
+ * Global Call Listener (Dynamic Island & Background Notifications)
+ */
+let globalCallUnsubscribe = null;
+export function initGlobalListener(db, currentUser) {
+    if (globalCallUnsubscribe) return; // Already listening
+
+    // Request Notification permission for background calls
+    if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+    }
+
+    const q = query(
+        collection(db, "calls"),
+        where("calleeUID", "==", currentUser.uid),
+        where("status", "==", "ringing")
+    );
+
+    globalCallUnsubscribe = onSnapshot(q, (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+            if (change.type === 'added') {
+                const callData = change.doc.data();
+                const callId = change.doc.id;
+                
+                // Show OS notification if page is hidden
+                if (document.hidden && "Notification" in window && Notification.permission === "granted") {
+                    new Notification("Incoming " + callData.type + " call...", {
+                        body: callData.callerName || "Unknown",
+                        icon: callData.callerAvatar || "/dsu_logo.png"
+                    });
+                }
+                
+                // Show Dynamic Island UI
+                showDynamicIsland(callId, callData, db, currentUser);
+            }
+        });
+    });
+}
+
+function showDynamicIsland(callId, data, db, currentUser) {
+    // Remove existing if any
+    let existing = document.getElementById('dynamicIslandCall');
+    if (existing) existing.remove();
+
+    const island = document.createElement('div');
+    island.id = 'dynamicIslandCall';
+    island.className = 'dynamic-island active';
+    
+    const initials = (data.callerName || "U").substring(0, 1).toUpperCase();
+    const avatarHtml = data.callerAvatar 
+        ? `<img src="${data.callerAvatar}" style="width:100%;height:100%;object-fit:cover;">`
+        : `<span style="font-size:24px;font-weight:bold;color:white;">${initials}</span>`;
+
+    island.innerHTML = `
+        <div class="dynamic-island-avatar" style="${!data.callerAvatar ? 'background:#00a884;' : ''}">
+            ${avatarHtml}
+        </div>
+        <div class="dynamic-island-info">
+            <div class="dynamic-island-title">mobile</div>
+            <div class="dynamic-island-name">${data.callerName || 'Unknown'}</div>
+        </div>
+        <div class="dynamic-island-actions">
+            <button class="dynamic-island-btn decline" id="diDeclineBtn"><i class="fas fa-phone-slash"></i></button>
+            <button class="dynamic-island-btn accept" id="diAcceptBtn"><i class="fas fa-phone"></i></button>
+        </div>
+        <audio id="diRingtone" loop src="ringtone.mp3" autoplay></audio>
+    `;
+    
+    document.body.appendChild(island);
+
+    // Play ringtone explicitly (autoplay might be blocked without interaction)
+    const audio = island.querySelector('#diRingtone');
+    audio.play().catch(e => console.log('Audio autoplay blocked', e));
+
+    // Handle Decline
+    document.getElementById('diDeclineBtn').onclick = async () => {
+        island.classList.replace('active', 'hide');
+        setTimeout(() => island.remove(), 400);
+        await updateDoc(doc(db, "calls", callId), { status: 'declined' });
+    };
+
+    // Handle Accept
+    document.getElementById('diAcceptBtn').onclick = () => {
+        island.classList.replace('active', 'hide');
+        setTimeout(() => island.remove(), 400);
+        
+        // If we are already on chats.html, we can just trigger the accept logic
+        if (window.location.pathname.includes('chats.html')) {
+            if (typeof window.acceptIncomingCall === 'function') {
+                window.acceptIncomingCall(callId, data); 
+            }
+        } else {
+            // Redirect to chats.html with call ID
+            window.location.href = 'chats.html?acceptCall=' + callId;
+        }
+    };
+    
+    // Listen for call ending while ringing
+    const callUnsub = onSnapshot(doc(db, "calls", callId), (snap) => {
+        if (!snap.exists() || snap.data().status !== 'ringing') {
+            island.classList.replace('active', 'hide');
+            setTimeout(() => {
+                if(island.parentNode) island.remove();
+            }, 400);
+            callUnsub();
+        }
+    });
 }

@@ -1312,19 +1312,6 @@
     <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Delete chat')" style="color:#f15c6d;"><i class="fas fa-trash" style="width:20px;text-align:center;"></i> Delete chat</div>
 </div>
 
-<!-- WebRTC Call Overlays -->
-<div id="incomingCallOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(17,27,33,0.9);z-index:9999;backdrop-filter:blur(10px);flex-direction:column;align-items:center;justify-content:center;color:white;font-family:'Inter',sans-serif;">
-    <div id="incomingCallAvatar" style="width:120px;height:120px;border-radius:50%;margin-bottom:20px;background:linear-gradient(135deg,var(--primary),#3b28cc);display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:bold;overflow:hidden;box-shadow:0 10px 30px rgba(108,99,255,0.4);">
-    </div>
-    <h2 id="incomingCallName" style="font-size:28px;font-weight:700;margin:0 0 10px 0;">Caller Name</h2>
-    <p id="incomingCallType" style="color:#8696a0;font-size:16px;margin:0 0 40px 0;">Incoming Video Call...</p>
-    <div style="display:flex;gap:40px;">
-        <button id="declineCallBtn" style="width:70px;height:70px;border-radius:50%;background:#f15c6d;border:none;color:white;font-size:28px;cursor:pointer;box-shadow:0 8px 24px rgba(241,92,109,0.4);transition:all 0.3s;"><i class="fas fa-phone-slash"></i></button>
-        <button id="acceptCallBtn" style="width:70px;height:70px;border-radius:50%;background:#00a884;border:none;color:white;font-size:28px;cursor:pointer;box-shadow:0 8px 24px rgba(0,168,132,0.4);transition:all 0.3s;"><i class="fas fa-phone"></i></button>
-    </div>
-    <audio id="ringtoneAudio" loop src="ringtone.mp3"></audio>
-</div>
-
 <div id="inCallOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#111b21;z-index:10000;flex-direction:column;font-family:'Inter',sans-serif;">
     <div style="position:absolute;top:0;left:0;right:0;padding:20px;display:flex;justify-content:space-between;align-items:center;z-index:2;background:linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);">
         <div style="color:white;display:flex;align-items:center;gap:15px;">
@@ -1356,6 +1343,7 @@
 <script src="theme.js"></script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { initGlobalListener } from "./js/calls.js";
     import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, getDocs, doc, updateDoc, getDoc, deleteDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -1579,44 +1567,24 @@
             
             window.currentUserName = currentUserName;
             listenToChats();
+            initGlobalListener(db, currentUser);
             
-            // Listen for incoming WebRTC calls
-            if (incomingCallUnsubscribe) incomingCallUnsubscribe();
-            incomingCallUnsubscribe = onSnapshot(
-                query(collection(db, "calls"), where("calleeUID", "==", currentUser.uid), where("status", "==", "ringing")),
-                (snapshot) => {
-                    snapshot.docChanges().forEach((change) => {
-                        if (change.type === 'added') {
-                            const callData = change.doc.data();
-                            const callId = change.doc.id;
-                            window.currentIncomingCallId = callId;
-                            window.currentIncomingCallType = callData.type;
-                            
-                            document.getElementById('incomingCallOverlay').style.display = 'flex';
-                            document.getElementById('incomingCallName').textContent = callData.callerName || 'Unknown';
-                            document.getElementById('incomingCallType').textContent = `Incoming ${callData.type} call...`;
-                            document.getElementById('ringtoneAudio').play().catch(e=>console.log(e));
-                            
-                            const avatarEl = document.getElementById('incomingCallAvatar');
-                            if (callData.callerAvatar) {
-                                avatarEl.innerHTML = `<img src="${callData.callerAvatar}" style="width:100%;height:100%;object-fit:cover;">`;
-                            } else {
-                                const initials = (callData.callerName || 'Unknown').split(' ').map(w=>w[0]).slice(0,2).join('');
-                                avatarEl.innerHTML = `<span>${initials.toUpperCase()}</span>`;
-                            }
+            // Check for incoming call accept redirect
+            const urlParams = new URLSearchParams(window.location.search);
+            const acceptCallId = urlParams.get('acceptCall');
+            if (acceptCallId) {
+                // Clear param from URL without refreshing
+                window.history.replaceState({}, document.title, window.location.pathname);
+                // Fetch call data and accept
+                getDoc(doc(db, "calls", acceptCallId)).then(snap => {
+                    if (snap.exists() && snap.data().status === 'ringing') {
+                        const callData = snap.data();
+                        if (typeof window.acceptIncomingCall === 'function') {
+                            window.acceptIncomingCall(acceptCallId, callData);
                         }
-                        if (change.type === 'modified' || change.type === 'removed') {
-                            const callData = change.doc ? change.doc.data() : null;
-                            if (!callData || callData.status !== 'ringing') {
-                                document.getElementById('incomingCallOverlay').style.display = 'none';
-                                document.getElementById('ringtoneAudio').pause();
-                                document.getElementById('ringtoneAudio').currentTime = 0;
-                            }
-                        }
-                    });
-                }
-            );
-            
+                    }
+                });
+            }
         } else {
             window.location.href = 'login.html';
         }
@@ -1640,23 +1608,19 @@
         }
     };
 
-    window.acceptIncomingCall = function() {
-        document.getElementById('incomingCallOverlay').style.display = 'none';
-        document.getElementById('ringtoneAudio').pause();
-        document.getElementById('ringtoneAudio').currentTime = 0;
-        CallService.acceptCall(db, window.currentIncomingCallId, window.currentIncomingCallType);
-    };
-
-    window.declineIncomingCall = function() {
-        document.getElementById('incomingCallOverlay').style.display = 'none';
-        document.getElementById('ringtoneAudio').pause();
-        document.getElementById('ringtoneAudio').currentTime = 0;
-        CallService.declineCall(db, window.currentIncomingCallId);
+    window.acceptIncomingCall = async function(callId, data) {
+        if (!callId) return;
+        
+        showInCallUI(data.type || 'video', data.callerName || 'Unknown', data.callerAvatar || '', false);
+        
+        try {
+            await CallService.acceptCall(db, callId, data.type || 'video');
+        } catch (e) {
+            console.error("Failed to accept call", e);
+        }
     };
 
     // Setup Call overlay button hooks
-    document.getElementById('acceptCallBtn').onclick = window.acceptIncomingCall;
-    document.getElementById('declineCallBtn').onclick = window.declineIncomingCall;
     document.getElementById('endCallBtn').onclick = () => CallService.endCall(db);
     
     document.getElementById('toggleMicBtn').onclick = (e) => {
