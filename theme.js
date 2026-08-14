@@ -253,3 +253,16 @@ window.alert = function(msg) {
     `;
     document.body.appendChild(overlay);
 };
+
+// --- Global Notification Sound ---
+window.playNotification = function() {
+    let audio = document.getElementById('globalNotificationAudio');
+    if (!audio) {
+        audio = document.createElement('audio');
+        audio.id = 'globalNotificationAudio';
+        audio.src = 'notification.mp3';
+        document.body.appendChild(audio);
+    }
+    audio.currentTime = 0;
+    audio.play().catch(e => console.log('Audio play blocked:', e));
+};

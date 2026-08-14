@@ -4852,6 +4852,9 @@ const body = document.getElementById('resultsBody');
             const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle' };
             t.innerHTML = `<i class="fas ${icons[type]}"></i> ${msg}`;
             c.appendChild(t); setTimeout(() => t.remove(), 3500);
+            if (type === 'success' && typeof window.playNotification === 'function') {
+                window.playNotification();
+            }
         }
         window.showToast = showToast;
     </script>

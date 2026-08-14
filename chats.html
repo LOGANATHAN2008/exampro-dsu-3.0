@@ -1322,7 +1322,7 @@
         <button id="declineCallBtn" style="width:70px;height:70px;border-radius:50%;background:#f15c6d;border:none;color:white;font-size:28px;cursor:pointer;box-shadow:0 8px 24px rgba(241,92,109,0.4);transition:all 0.3s;"><i class="fas fa-phone-slash"></i></button>
         <button id="acceptCallBtn" style="width:70px;height:70px;border-radius:50%;background:#00a884;border:none;color:white;font-size:28px;cursor:pointer;box-shadow:0 8px 24px rgba(0,168,132,0.4);transition:all 0.3s;"><i class="fas fa-phone"></i></button>
     </div>
-    <audio id="ringtoneAudio" loop src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg"></audio>
+    <audio id="ringtoneAudio" loop src="ringtone.mp3"></audio>
 </div>
 
 <div id="inCallOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#111b21;z-index:10000;flex-direction:column;font-family:'Inter',sans-serif;">
@@ -1940,6 +1940,13 @@
                 return;
             }
             
+            let isNewMessage = false;
+            
+            snapshot.docChanges().forEach((change) => {
+                if (change.type === 'added') {
+                    isNewMessage = true;
+                }
+            });
             snapshot.forEach(docSnap => {
                 const msg = docSnap.data();
                 
@@ -2164,6 +2171,8 @@
                     starHtml = `<i class="fas fa-star" style="font-size: 10px; margin-right: 4px; color: #8696a0;"></i>`;
                 }
 
+
+
                 messagesDiv.innerHTML += `
                     <div class="message-bubble ${bubbleClass}" id="msg-${docSnap.id}" style="transition: background 0.3s;">
                         <div class="msg-options-btn" onclick="openContextMenu(event, '${docSnap.id}', ${isMine}, '${(msg.text || 'Image').replace(/'/g, "\\'")}', '${msg.senderName || chatName}', ${isStarred})">
@@ -2180,6 +2189,10 @@
                 `;
             });
             
+            if (isNewMessage && typeof window.playNotification === 'function') {
+                window.playNotification();
+            }
+
             // Auto scroll
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         });
@@ -2566,6 +2579,10 @@
                 toast.style.display = 'none';
             }
         }, 2500);
+        
+        if (typeof window.playNotification === 'function') {
+            window.playNotification();
+        }
     }
     
     // ═══════════════════════════════════════════════════
