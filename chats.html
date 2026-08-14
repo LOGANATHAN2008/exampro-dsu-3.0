@@ -1575,9 +1575,15 @@
                 // Reply snippet
                 let replyHtml = '';
                 if (msg.replyTo) {
+                    let replyName = msg.replyTo.name || 'User';
+                    // If the reply senderId matches currentUser, display 'You'
+                    if (msg.replyTo.senderId === currentUser.uid) {
+                        replyName = 'You';
+                    }
+                    
                     replyHtml = `
                         <div class="quoted-msg" onclick="scrollToMessage('${msg.replyTo.id}')">
-                            <div style="color:#00a884; font-weight:bold; margin-bottom:2px;">${msg.replyTo.name || 'User'}</div>
+                            <div style="color:#00a884; font-weight:bold; margin-bottom:2px;">${replyName}</div>
                             <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${msg.replyTo.text || '📷 Image'}</div>
                         </div>
                     `;
@@ -2362,9 +2368,10 @@
             document.getElementById('deleteForEveryoneBtn').style.display = window.activeMessageIsMine ? 'block' : 'none';
             modal.style.display = 'flex';
         } else if (action === 'reply') {
-            replyingToMsg = { id: msgId, text: msgText, name: msgName };
+            const replySenderId = window.activeMessageIsMine ? currentUser.uid : 'other';
+            replyingToMsg = { id: msgId, text: msgText, name: msgName, senderId: replySenderId };
             document.getElementById('replyPreviewArea').style.display = 'flex';
-            document.getElementById('replyPreviewName').textContent = msgName;
+            document.getElementById('replyPreviewName').textContent = window.activeMessageIsMine ? 'You' : msgName;
             document.getElementById('replyPreviewText').textContent = msgText;
             document.getElementById('messageInput').focus();
         } else if (action === 'star') {
