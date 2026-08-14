@@ -1388,11 +1388,11 @@
             }
         };
 
-        function _selA(i){answers[currentQ]=i;renderQuestion();if(!isPreviewMode&&attemptDocRef){const p={};p['answers.'+currentQ]=i;updateDoc(attemptDocRef,p).catch(()=>{});}}
-        function _multiA(i){if(!Array.isArray(answers[currentQ]))answers[currentQ]=[];const idx=answers[currentQ].indexOf(i);if(idx===-1)answers[currentQ].push(i);else answers[currentQ].splice(idx,1);if(!answers[currentQ].length)delete answers[currentQ];renderQuestion();}
-        function _tfA(v){answers[currentQ]=v;renderQuestion();}
-        function _fillA(v){answers[currentQ]=v;}
-        function _numA(v){answers[currentQ]=v===''?undefined:parseFloat(v);}
+        window._selA = function(i){answers[currentQ]=i;renderQuestion();if(!isPreviewMode&&attemptDocRef){const p={};p['answers.'+currentQ]=i;updateDoc(attemptDocRef,p).catch(()=>{});}}
+        window._multiA = function(i){if(!Array.isArray(answers[currentQ]))answers[currentQ]=[];const idx=answers[currentQ].indexOf(i);if(idx===-1)answers[currentQ].push(i);else answers[currentQ].splice(idx,1);if(!answers[currentQ].length)delete answers[currentQ];renderQuestion();}
+        window._tfA = function(v){answers[currentQ]=v;renderQuestion();}
+        window._fillA = function(v){answers[currentQ]=v;}
+        window._numA = function(v){answers[currentQ]=v===''?undefined:parseFloat(v);}
 
         window.nextQuestion = function () {
             if (currentQ < selectedTest.questions.length - 1) { currentQ++; renderQuestion(); }
