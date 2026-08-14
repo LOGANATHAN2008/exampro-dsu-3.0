@@ -950,8 +950,8 @@
                     
                     <!-- WhatsApp Header Actions -->
                     <div style="display:flex; gap:10px; align-items:center;">
-                        <button class="icon-btn header-call-btn" onclick="showToast('Video call coming soon!')" title="Video Call"><i class="fas fa-video"></i></button>
-                        <button class="icon-btn header-call-btn" onclick="showToast('Voice call coming soon!')" title="Voice Call"><i class="fas fa-phone"></i></button>
+                        <button class="icon-btn header-call-btn" onclick="startMediaCall('video')" title="Video Call"><i class="fas fa-video"></i></button>
+                        <button class="icon-btn header-call-btn" onclick="startMediaCall('voice')" title="Voice Call"><i class="fas fa-phone"></i></button>
                         <div class="header-divider" style="width:1px;height:24px;background:rgba(255,255,255,0.1);margin:0 5px;"></div>
                         <button class="icon-btn" onclick="toggleChatSearch()" title="Search"><i class="fas fa-search"></i></button>
                         <button class="icon-btn" onclick="toggleHeaderMenu(event)" title="More Options"><i class="fas fa-ellipsis-v"></i></button>
@@ -1312,12 +1312,54 @@
     <div class="context-menu-item left-icon" onclick="handleHeaderMenuAction('Delete chat')" style="color:#f15c6d;"><i class="fas fa-trash" style="width:20px;text-align:center;"></i> Delete chat</div>
 </div>
 
+<!-- WebRTC Call Overlays -->
+<div id="incomingCallOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(17,27,33,0.9);z-index:9999;backdrop-filter:blur(10px);flex-direction:column;align-items:center;justify-content:center;color:white;font-family:'Inter',sans-serif;">
+    <div id="incomingCallAvatar" style="width:120px;height:120px;border-radius:50%;margin-bottom:20px;background:linear-gradient(135deg,var(--primary),#3b28cc);display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:bold;overflow:hidden;box-shadow:0 10px 30px rgba(108,99,255,0.4);">
+    </div>
+    <h2 id="incomingCallName" style="font-size:28px;font-weight:700;margin:0 0 10px 0;">Caller Name</h2>
+    <p id="incomingCallType" style="color:#8696a0;font-size:16px;margin:0 0 40px 0;">Incoming Video Call...</p>
+    <div style="display:flex;gap:40px;">
+        <button id="declineCallBtn" style="width:70px;height:70px;border-radius:50%;background:#f15c6d;border:none;color:white;font-size:28px;cursor:pointer;box-shadow:0 8px 24px rgba(241,92,109,0.4);transition:all 0.3s;"><i class="fas fa-phone-slash"></i></button>
+        <button id="acceptCallBtn" style="width:70px;height:70px;border-radius:50%;background:#00a884;border:none;color:white;font-size:28px;cursor:pointer;box-shadow:0 8px 24px rgba(0,168,132,0.4);transition:all 0.3s;"><i class="fas fa-phone"></i></button>
+    </div>
+    <audio id="ringtoneAudio" loop src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg"></audio>
+</div>
+
+<div id="inCallOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#111b21;z-index:10000;flex-direction:column;font-family:'Inter',sans-serif;">
+    <div style="position:absolute;top:0;left:0;right:0;padding:20px;display:flex;justify-content:space-between;align-items:center;z-index:2;background:linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);">
+        <div style="color:white;display:flex;align-items:center;gap:15px;">
+            <button class="icon-btn" style="color:white;background:rgba(255,255,255,0.1);" onclick="document.getElementById('endCallBtn').click()"><i class="fas fa-chevron-down"></i></button>
+            <div>
+                <div id="inCallRemoteName" style="font-size:18px;font-weight:600;">Remote User</div>
+                <div id="inCallStatus" style="font-size:13px;color:#00a884;">Connecting...</div>
+            </div>
+        </div>
+        <div style="color:white;font-size:12px;opacity:0.8;"><i class="fas fa-shield-alt"></i> WebRTC Encrypted</div>
+    </div>
+    <div id="inCallVideoContainer" style="display:none;flex:1;position:relative;background:#000;">
+        <video id="remoteVideo" autoplay playsinline style="width:100%;height:100%;object-fit:cover;"></video>
+        <video id="localVideo" autoplay playsinline muted style="width:120px;height:160px;object-fit:cover;position:absolute;bottom:100px;right:20px;border-radius:12px;border:2px solid rgba(255,255,255,0.2);box-shadow:0 8px 24px rgba(0,0,0,0.5);z-index:2;"></video>
+    </div>
+    <div id="inCallVoiceContainer" style="display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;position:relative;background:linear-gradient(135deg,#111b21,#1d2c35);">
+        <div id="inCallAvatar" style="width:150px;height:150px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#3b28cc);display:flex;align-items:center;justify-content:center;font-size:50px;font-weight:bold;color:white;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.5);border:4px solid rgba(255,255,255,0.1);">
+            <span>?</span>
+        </div>
+        <audio id="voiceOnlyAudio" autoplay playsinline></audio>
+    </div>
+    <div style="position:absolute;bottom:0;left:0;right:0;padding:30px;display:flex;justify-content:center;gap:30px;background:linear-gradient(to top, rgba(0,0,0,0.8), transparent);z-index:2;">
+        <button id="toggleMicBtn" class="call-control-btn" style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,0.2);border:none;color:white;font-size:22px;cursor:pointer;backdrop-filter:blur(5px);transition:all 0.2s;"><i class="fas fa-microphone"></i></button>
+        <button id="toggleVideoBtn" class="call-control-btn" style="width:60px;height:60px;border-radius:50%;background:rgba(255,255,255,0.2);border:none;color:white;font-size:22px;cursor:pointer;backdrop-filter:blur(5px);transition:all 0.2s;"><i class="fas fa-video"></i></button>
+        <button id="endCallBtn" class="call-control-btn" style="width:60px;height:60px;border-radius:50%;background:#f15c6d;border:none;color:white;font-size:22px;cursor:pointer;box-shadow:0 8px 24px rgba(241,92,109,0.4);transition:all 0.2s;"><i class="fas fa-phone-slash"></i></button>
+    </div>
+</div>
+
 <script src="theme.js"></script>
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, collection, query, where, onSnapshot, orderBy, addDoc, serverTimestamp, getDocs, doc, updateDoc, getDoc, deleteDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+    import * as CallService from './js/calls.js';
 
     const firebaseConfig = {
         apiKey: "AIzaSyDKDT0kvwEm0cEdh_MpbTb8A9W3_xwAVxY",
@@ -1341,6 +1383,7 @@
     let allChats = [];
     let currentChatId = null;
     let messagesUnsubscribe = null;
+    let incomingCallUnsubscribe = null;
 
     // --- Modal Logic ---
     window.openNewChatModal = function() {
@@ -1535,10 +1578,98 @@
             }
             
             listenToChats();
+            
+            // Listen for incoming WebRTC calls
+            if (incomingCallUnsubscribe) incomingCallUnsubscribe();
+            incomingCallUnsubscribe = onSnapshot(
+                query(collection(db, "calls"), where("calleeUID", "==", currentUser.uid), where("status", "==", "ringing")),
+                (snapshot) => {
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === 'added') {
+                            const callData = change.doc.data();
+                            const callId = change.doc.id;
+                            window.currentIncomingCallId = callId;
+                            window.currentIncomingCallType = callData.type;
+                            
+                            document.getElementById('incomingCallOverlay').style.display = 'flex';
+                            document.getElementById('incomingCallName').textContent = callData.callerName || 'Unknown';
+                            document.getElementById('incomingCallType').textContent = `Incoming ${callData.type} call...`;
+                            document.getElementById('ringtoneAudio').play().catch(e=>console.log(e));
+                            
+                            const avatarEl = document.getElementById('incomingCallAvatar');
+                            if (callData.callerAvatar) {
+                                avatarEl.innerHTML = `<img src="${callData.callerAvatar}" style="width:100%;height:100%;object-fit:cover;">`;
+                            } else {
+                                const initials = (callData.callerName || 'Unknown').split(' ').map(w=>w[0]).slice(0,2).join('');
+                                avatarEl.innerHTML = `<span>${initials.toUpperCase()}</span>`;
+                            }
+                        }
+                        if (change.type === 'modified' || change.type === 'removed') {
+                            const callData = change.doc ? change.doc.data() : null;
+                            if (!callData || callData.status !== 'ringing') {
+                                document.getElementById('incomingCallOverlay').style.display = 'none';
+                                document.getElementById('ringtoneAudio').pause();
+                                document.getElementById('ringtoneAudio').currentTime = 0;
+                            }
+                        }
+                    });
+                }
+            );
+            
         } else {
             window.location.href = 'login.html';
         }
     });
+
+    window.startMediaCall = async function(type) {
+        if (!currentChatId) return;
+        try {
+            const chatSnap = await getDoc(doc(db, "chats", currentChatId));
+            if (chatSnap.exists()) {
+                const chatData = chatSnap.data();
+                const otherUid = chatData.participants.find(id => id !== currentUser.uid);
+                const otherName = chatData.participantNames ? chatData.participantNames[otherUid] : "User";
+                let otherAvatar = "";
+                if (profileCache[otherUid]) {
+                    otherAvatar = profileCache[otherUid].photoURL || "";
+                }
+                CallService.startCall(db, currentUser, type, otherUid, otherName, otherAvatar);
+            }
+        } catch (e) {
+            console.error("Failed to start call", e);
+        }
+    };
+
+    window.acceptIncomingCall = function() {
+        document.getElementById('incomingCallOverlay').style.display = 'none';
+        document.getElementById('ringtoneAudio').pause();
+        document.getElementById('ringtoneAudio').currentTime = 0;
+        CallService.acceptCall(db, window.currentIncomingCallId, window.currentIncomingCallType);
+    };
+
+    window.declineIncomingCall = function() {
+        document.getElementById('incomingCallOverlay').style.display = 'none';
+        document.getElementById('ringtoneAudio').pause();
+        document.getElementById('ringtoneAudio').currentTime = 0;
+        CallService.declineCall(db, window.currentIncomingCallId);
+    };
+
+    // Setup Call overlay button hooks
+    document.getElementById('acceptCallBtn').onclick = window.acceptIncomingCall;
+    document.getElementById('declineCallBtn').onclick = window.declineIncomingCall;
+    document.getElementById('endCallBtn').onclick = () => CallService.endCall(db);
+    
+    document.getElementById('toggleMicBtn').onclick = (e) => {
+        const isMuted = CallService.toggleMic();
+        e.currentTarget.innerHTML = isMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
+        e.currentTarget.style.background = isMuted ? 'rgba(241,92,109,0.8)' : 'rgba(255,255,255,0.2)';
+    };
+    
+    document.getElementById('toggleVideoBtn').onclick = (e) => {
+        const isVideoOff = CallService.toggleVideo();
+        e.currentTarget.innerHTML = isVideoOff ? '<i class="fas fa-video-slash"></i>' : '<i class="fas fa-video"></i>';
+        e.currentTarget.style.background = isVideoOff ? 'rgba(241,92,109,0.8)' : 'rgba(255,255,255,0.2)';
+    };
 
     function listenToChats() {
         const q = query(

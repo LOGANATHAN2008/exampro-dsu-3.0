@@ -344,6 +344,27 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ===== WebRTC Calls =====
+    match /calls/{callId} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.callerUID;
+      allow read, update, delete: if request.auth != null && (
+        request.auth.uid == resource.data.callerUID || request.auth.uid == resource.data.calleeUID
+      );
+      
+      match /offerCandidates/{docId} {
+        allow read, write: if request.auth != null && (
+          request.auth.uid == get(/databases/$(database)/documents/calls/$(callId)).data.callerUID ||
+          request.auth.uid == get(/databases/$(database)/documents/calls/$(callId)).data.calleeUID
+        );
+      }
+      match /answerCandidates/{docId} {
+        allow read, write: if request.auth != null && (
+          request.auth.uid == get(/databases/$(database)/documents/calls/$(callId)).data.callerUID ||
+          request.auth.uid == get(/databases/$(database)/documents/calls/$(callId)).data.calleeUID
+        );
+      }
+    }
+
     // ===== Deny all other access =====
     match /{document=**} {
       allow read, write: if false;
