@@ -1611,8 +1611,6 @@
     window.acceptIncomingCall = async function(callId, data) {
         if (!callId) return;
         
-        showInCallUI(data.type || 'video', data.callerName || 'Unknown', data.callerAvatar || '', false);
-        
         try {
             await CallService.acceptCall(db, callId, data.type || 'video');
         } catch (e) {
