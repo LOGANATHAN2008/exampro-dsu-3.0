@@ -1,5 +1,5 @@
-// ExamPro DSU - Service Worker v3
-const CACHE_NAME = 'exampro-dsu-v3';
+// ExamPro DSU - Service Worker v4
+const CACHE_NAME = 'exampro-dsu-v4';
 
 // Static assets to cache immediately on install (App Shell)
 const STATIC_ASSETS = [
