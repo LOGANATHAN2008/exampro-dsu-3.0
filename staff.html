@@ -7,6 +7,9 @@
     <meta name="robots" content="noindex, nofollow">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="dsu_logo.png">
+    <link rel="apple-touch-icon" href="dsu_logo.png">
+    <link rel="manifest" href="manifest.json">
     <style>
         body { opacity: 0; transition: opacity 0.5s ease; }
         body.staff-verified { opacity: 1; }
@@ -353,7 +356,7 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, collection, onSnapshot, doc, getDoc, deleteDoc, addDoc, updateDoc, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -370,6 +373,7 @@
             isTokenAutoRefreshEnabled: true
         });
     const auth = getAuth(app);
+    await setPersistence(auth, browserLocalPersistence);
     const db = getFirestore(app);
 
     let currentStaff = null;
@@ -731,3 +735,4 @@
 </script>
 </body>
 </html>
+

@@ -2292,7 +2292,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, query, where, getDocs, onSnapshot, orderBy, limit, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
         import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 
@@ -2312,6 +2312,7 @@
             isTokenAutoRefreshEnabled: true
         });
         const auth = getAuth(app);
+        await setPersistence(auth, browserLocalPersistence);
         const db = getFirestore(app);
         const functions = getFunctions(app);
 
@@ -4074,6 +4075,15 @@ showToast('Error loading dashboard: ' + (err.message || 'Unknown error'), 'error
                 setTimeout(() => toast.remove(), 400);
             }, 3500);
         };
+    </script>
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(reg => console.log('ServiceWorker registered:', reg.scope))
+                .catch(err => console.log('ServiceWorker registration failed:', err));
+        }
     </script>
 </body>
 
