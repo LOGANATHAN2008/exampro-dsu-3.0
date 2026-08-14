@@ -254,7 +254,13 @@ service cloud.firestore {
         allow read, create: if request.auth != null && (
           request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants
         );
-        allow update, delete: if false; // Messages are immutable once sent
+        allow update: if request.auth != null && (
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants
+        ) && (
+           // If they are modifying message content (delete for everyone), they must be the sender
+           (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['text', 'imageUrl', 'isDeletedForEveryone']) || resource.data.senderId == request.auth.uid)
+        );
+        allow delete: if request.auth != null && resource.data.senderId == request.auth.uid;
       }
     }
 
