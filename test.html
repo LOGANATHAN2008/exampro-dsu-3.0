@@ -977,7 +977,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
         import { initGlobalListener } from "./js/calls.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, getDoc, addDoc, setDoc, serverTimestamp, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -996,6 +996,7 @@
             isTokenAutoRefreshEnabled: true
         });
         const auth = getAuth(app);
+        await setPersistence(auth, browserLocalPersistence);
         const db = getFirestore(app);
 
         let currentUser = null;
