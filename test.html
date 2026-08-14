@@ -1171,10 +1171,15 @@
         }
 
         window.openConfirm = function (testId) {
-            selectedTest = window._tests[testId];
-            document.getElementById('confirmTitle').textContent = selectedTest.title;
-            document.getElementById('confirmDesc').textContent = `Duration: ${selectedTest.duration || 30} minutes • ${selectedTest.questions?.length || 0} Questions • ${selectedTest.totalMarks || 100} Marks`;
-            document.getElementById('testConfirmView').classList.add('active');
+            try {
+                selectedTest = window._tests[testId];
+                if (!selectedTest) throw new Error("Test not found in cache");
+                document.getElementById('confirmTitle').textContent = selectedTest.title;
+                document.getElementById('confirmDesc').textContent = `Duration: ${selectedTest.duration || 30} minutes • ${selectedTest.questions?.length || 0} Questions • ${selectedTest.totalMarks || 100} Marks`;
+                document.getElementById('testConfirmView').classList.add('active');
+            } catch (err) {
+                alert("Error opening test: " + err.message);
+            }
         };
 
         window.cancelTest = function () {
