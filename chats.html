@@ -292,6 +292,33 @@
         }
         .delete-modal-btn:hover { background: rgba(255,255,255,0.05); }
 
+        /* ═══════════════ iOS ACTION SHEET (Delete Modal) ═══════════════ */
+        .ios-action-sheet-overlay { align-items: flex-end; padding: 10px; }
+        .ios-action-sheet {
+            width: 100%; max-width: 400px;
+            margin: 0 auto 10px;
+            display: flex; flex-direction: column; gap: 8px;
+            animation: slideUpSheet 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .ios-action-group {
+            background: rgba(32, 44, 51, 0.9);
+            border-radius: 14px;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .ios-action-btn {
+            width: 100%; background: transparent; border: none; padding: 16px;
+            font-size: 18px; font-weight: 500; cursor: pointer; text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: #53bdeb; /* Default iOS blue */
+            transition: background 0.2s;
+        }
+        .ios-action-btn:last-child { border-bottom: none; }
+        .ios-action-btn.destructive { color: #f15c6d; }
+        .ios-action-btn.cancel { font-weight: 600; color: #53bdeb; }
+        .ios-action-btn:active { background: rgba(255,255,255,0.1); }
+
         .context-menu {
             position: absolute; z-index: 1001;
             background: rgba(35, 49, 56, 0.75); 
@@ -424,6 +451,11 @@
         .light-mode .ios-contact-name { color: #000; }
         .light-mode .ios-radio { border-color: rgba(0,0,0,0.2); }
         .light-mode .ios-radio.selected { background: #007aff; border-color: #007aff; }
+
+        .light-mode .ios-action-group { background: rgba(255,255,255,0.9); border: 1px solid rgba(0,0,0,0.05); }
+        .light-mode .ios-action-btn { border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .light-mode .ios-action-btn.cancel { color: #007aff; }
+        .light-mode .ios-action-btn:active { background: rgba(0,0,0,0.05); }
 
         /* ═══════════════ CONTACT INFO SIDE PANEL ═══════════════ */
         .contact-info-panel {
@@ -1042,16 +1074,15 @@
     </div>
 </div>
 
-<!-- Delete Message Modal -->
-<div class="modal-overlay" id="deleteModal" style="display:none;" onclick="document.getElementById('deleteModal').style.display='none'">
-    <div class="modal-content" onclick="event.stopPropagation()" style="max-width: 350px;">
-        <div style="padding: 20px; font-size: 16px; font-weight: 500;">
-            Delete message?
+<!-- Delete Message Modal (iOS Action Sheet style) -->
+<div class="modal-overlay ios-action-sheet-overlay" id="deleteModal" style="display:none;" onclick="document.getElementById('deleteModal').style.display='none'">
+    <div class="ios-action-sheet" onclick="event.stopPropagation()">
+        <div class="ios-action-group">
+            <button id="deleteForEveryoneBtn" class="ios-action-btn destructive" onclick="deleteMessageForEveryone()">Delete for everyone</button>
+            <button class="ios-action-btn destructive" onclick="deleteMessageForMe()">Delete for me</button>
         </div>
-        <div style="padding: 10px; display: flex; flex-direction: column; gap: 5px;">
-            <button class="delete-modal-btn" id="deleteForEveryoneBtn" onclick="deleteMessageForEveryone()" style="color: #f15c6d;">Delete for everyone</button>
-            <button class="delete-modal-btn" onclick="deleteMessageForMe()" style="color: #00a884;">Delete for me</button>
-            <button class="delete-modal-btn" onclick="document.getElementById('deleteModal').style.display='none'" style="color: inherit;">Cancel</button>
+        <div class="ios-action-group">
+            <button class="ios-action-btn cancel" onclick="document.getElementById('deleteModal').style.display='none'">Cancel</button>
         </div>
     </div>
 </div>
