@@ -412,6 +412,19 @@
         .light-mode .in-chat-search input { background: #ffffff; color: #111b21; border: 1px solid #d1d7db; }
         .light-mode .delete-modal-btn:hover { background: rgba(0,0,0,0.05); }
 
+        /* Light mode overrides for iOS sheet */
+        .light-mode .ios-sheet { background: #f2f2f7; }
+        .light-mode .ios-sheet-handle { background: rgba(0,0,0,0.2); }
+        .light-mode .ios-sheet-header h3 { color: #000; }
+        .light-mode .ios-btn-cancel, .light-mode .ios-btn-send { color: #007aff; }
+        .light-mode .ios-search-input { background: #e3e3e8; color: #000; }
+        .light-mode .ios-search-icon { color: #8e8e93; }
+        .light-mode .ios-contact-item { border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .light-mode .ios-contact-item:hover { background: rgba(0,0,0,0.05); }
+        .light-mode .ios-contact-name { color: #000; }
+        .light-mode .ios-radio { border-color: rgba(0,0,0,0.2); }
+        .light-mode .ios-radio.selected { background: #007aff; border-color: #007aff; }
+
         /* ═══════════════ CONTACT INFO SIDE PANEL ═══════════════ */
         .contact-info-panel {
             position: fixed; right: 0; top: 0; bottom: 0; width: 340px;
@@ -595,6 +608,61 @@
             transition: background 0.2s;
         }
         .search-result-item:hover { background: #2a3942; }
+
+        .search-result-item:hover { background: #2a3942; }
+
+        /* ═══════════════ iOS STYLE SHEET MODAL ═══════════════ */
+        .ios-sheet-overlay { align-items: flex-end; }
+        .ios-sheet {
+            width: 100%; max-width: 500px;
+            background: #202c33;
+            border-radius: 20px 20px 0 0;
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+            animation: slideUpSheet 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        @keyframes slideUpSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        .ios-sheet-handle {
+            width: 36px; height: 5px; border-radius: 3px;
+            background: rgba(255,255,255,0.2); margin: 8px auto 0;
+        }
+        .ios-sheet-header {
+            background: transparent; justify-content: space-between; padding: 12px 20px;
+            border-bottom: none;
+        }
+        .ios-sheet-header h3 { font-size: 17px; font-weight: 600; text-align: center; flex: 1; }
+        .ios-btn-cancel, .ios-btn-send {
+            background: none; border: none; font-size: 16px; cursor: pointer; padding: 0;
+        }
+        .ios-btn-cancel { color: #53bdeb; }
+        .ios-btn-send { color: #53bdeb; font-weight: 600; opacity: 1; }
+        .ios-btn-send:disabled { opacity: 0.4; pointer-events: none; }
+        
+        .ios-search-container {
+            margin: 0 16px 10px; position: relative;
+        }
+        .ios-search-input {
+            width: 100%; background: #2a3942; border: none; border-radius: 10px;
+            padding: 8px 12px 8px 36px; color: #e9edef; font-size: 16px; outline: none;
+        }
+        .ios-search-icon { position: absolute; left: 12px; top: 10px; color: #8696a0; font-size: 14px; }
+        
+        .ios-sheet-body { padding: 0; max-height: 50vh; overflow-y: auto; gap: 0; }
+        
+        .ios-contact-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 20px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.2s;
+        }
+        .ios-contact-item:hover { background: rgba(255,255,255,0.05); }
+        .ios-contact-name { color: #e9edef; font-weight: 500; font-size: 16px; margin-left: 12px; flex: 1; }
+        
+        .ios-radio {
+            width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .ios-radio.selected { background: #53bdeb; border-color: #53bdeb; }
+        .ios-radio.selected::after { content: '\f00c'; font-family: 'Font Awesome 5 Free'; font-weight: 900; color: white; font-size: 12px; }
 
         /* Temporary back to dashboard button for layout integration */
         .back-btn { background: none; border: none; color: #e9edef; font-size: 20px; cursor: pointer; margin-right: 15px; }
@@ -955,21 +1023,21 @@
     <img src="" id="fullScreenImage" onclick="event.stopPropagation()">
 </div>
 
-<!-- Forward Message Modal -->
-<div class="modal-overlay" id="forwardModal" style="display:none;" onclick="document.getElementById('forwardModal').style.display='none'">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="modal-header">
+<!-- Forward Message Modal (iOS style) -->
+<div class="modal-overlay ios-sheet-overlay" id="forwardModal" style="display:none;" onclick="document.getElementById('forwardModal').style.display='none'">
+    <div class="modal-content ios-sheet" onclick="event.stopPropagation()">
+        <div class="ios-sheet-handle"></div>
+        <div class="modal-header ios-sheet-header">
+            <button class="ios-btn-cancel" onclick="document.getElementById('forwardModal').style.display='none'">Cancel</button>
             <h3>Forward Message</h3>
-            <i class="fas fa-times icon-btn" onclick="document.getElementById('forwardModal').style.display='none'"></i>
+            <button class="ios-btn-send" id="forwardSendBtn" onclick="sendForwardedMessage()" disabled>Send</button>
         </div>
-        <div style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">
-            <input type="text" id="forwardSearchInput" placeholder="Search chats..." style="width: 100%; padding: 10px; background: #2a3942; border: none; border-radius: 6px; color: white; outline: none;">
+        <div class="ios-search-container">
+            <i class="fas fa-search ios-search-icon"></i>
+            <input type="text" id="forwardSearchInput" class="ios-search-input" placeholder="Search chats...">
         </div>
-        <div class="modal-body" id="forwardChatsList" style="max-height: 400px; overflow-y: auto;">
+        <div class="modal-body ios-sheet-body" id="forwardChatsList">
             <!-- Populated by JS -->
-        </div>
-        <div style="padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: flex-end;">
-            <button onclick="sendForwardedMessage()" style="background: #00a884; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;"><i class="fas fa-paper-plane" style="margin-right: 8px;"></i>Send</button>
         </div>
     </div>
 </div>
@@ -2405,8 +2473,10 @@
     window.openForwardModal = function() {
         const modal = document.getElementById('forwardModal');
         const listElem = document.getElementById('forwardChatsList');
+        const sendBtn = document.getElementById('forwardSendBtn');
         listElem.innerHTML = '';
         window.selectedForwardChats = new Set();
+        sendBtn.disabled = true;
         
         allChats.forEach(chat => {
             let displayName = chat.subject || "Direct Message";
@@ -2426,12 +2496,10 @@
             const avatarHtml = photoUrl ? `<img src="${photoUrl}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">` : `<div style="width:40px;height:40px;border-radius:50%;background:#3b4a54;display:flex;align-items:center;justify-content:center;color:white;"><i class="fas fa-user"></i></div>`;
             
             listElem.innerHTML += `
-                <div class="search-result-item" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:10px 15px;border-bottom:1px solid rgba(255,255,255,0.05);" onclick="toggleForwardChat('${chat.id}', this)">
-                    <div style="display:flex;align-items:center;gap:15px;">
-                        ${avatarHtml}
-                        <span style="color:#e9edef;font-weight:500;" class="chat-name-txt">${displayName}</span>
-                    </div>
-                    <div class="forward-checkbox" style="width:20px;height:20px;border:2px solid #8696a0;border-radius:4px;display:flex;align-items:center;justify-content:center;"></div>
+                <div class="ios-contact-item" onclick="toggleForwardChat('${chat.id}', this)">
+                    ${avatarHtml}
+                    <span class="ios-contact-name chat-name-txt">${displayName}</span>
+                    <div class="ios-radio forward-checkbox"></div>
                 </div>
             `;
         });
@@ -2450,17 +2518,15 @@
     
     window.toggleForwardChat = function(chatId, elem) {
         const checkbox = elem.querySelector('.forward-checkbox');
+        const sendBtn = document.getElementById('forwardSendBtn');
         if (window.selectedForwardChats.has(chatId)) {
             window.selectedForwardChats.delete(chatId);
-            checkbox.style.background = 'transparent';
-            checkbox.style.borderColor = '#8696a0';
-            checkbox.innerHTML = '';
+            checkbox.classList.remove('selected');
         } else {
             window.selectedForwardChats.add(chatId);
-            checkbox.style.background = '#00a884';
-            checkbox.style.borderColor = '#00a884';
-            checkbox.innerHTML = '<i class="fas fa-check" style="color:white;font-size:12px;"></i>';
+            checkbox.classList.add('selected');
         }
+        sendBtn.disabled = window.selectedForwardChats.size === 0;
     }
     
     window.sendForwardedMessage = async function() {
