@@ -1577,6 +1577,7 @@
                 currentUserName = `${adm.data().name} (Admin)`;
             }
             
+            window.currentUserName = currentUserName;
             listenToChats();
             
             // Listen for incoming WebRTC calls
