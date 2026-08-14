@@ -469,9 +469,21 @@ export function initGlobalListener(db, currentUser) {
                             window.playNotification();
                         }
                         
+                        const msgText = data.lastMessage || "Sent a message";
+                        const senderName = data.lastMessageSenderName || 'User';
+                        
+                        // Show in-app Toast notification
+                        if (typeof window.showToast === 'function') {
+                            // Don't show toast if they are currently on chats page to avoid double notifications while chatting
+                            if (!window.location.pathname.includes('chats.html')) {
+                                window.showToast(`ExamPro DSU - ${senderName}: ${msgText}`, 'info');
+                            }
+                        }
+                        
+                        // Show OS-level background notification
                         if ("Notification" in window && Notification.permission === "granted") {
-                            new Notification(`ExamPro DSU: ${data.lastMessageSenderName || 'User'}`, {
-                                body: data.lastMessage || "Sent an attachment",
+                            new Notification(`ExamPro DSU: ${senderName}`, {
+                                body: msgText,
                                 icon: "/dsu_logo.png"
                             });
                         }
